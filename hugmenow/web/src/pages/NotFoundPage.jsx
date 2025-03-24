@@ -1,22 +1,24 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import AnimatedErrorState from '../components/errors/AnimatedErrorState';
 
 function NotFoundPage() {
+  const navigate = useNavigate();
+  
   return (
     <MainLayout>
       <div className="not-found-page">
-        <div className="not-found-content">
-          <h1>404</h1>
-          <h2>Page Not Found</h2>
-          <p>
-            The page you're looking for doesn't exist or has been moved.
-          </p>
-          <div className="not-found-actions">
-            <Link to="/" className="btn btn-primary">
-              Go to Home
-            </Link>
-          </div>
-        </div>
+        <AnimatedErrorState
+          title="404 - Page Not Found"
+          description="The page you're looking for doesn't exist or has been moved."
+          errorType="route"
+          actionText="Go to Home"
+          actionLink="/"
+          secondaryAction={{
+            text: "Go Back",
+            onClick: () => navigate(-1)
+          }}
+        />
       </div>
     </MainLayout>
   );
