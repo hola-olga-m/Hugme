@@ -1,93 +1,90 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
-import client from './apollo/client';
+import { client } from './apollo/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Import pages
+// Pages
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import MoodTrackerPage from './pages/MoodTrackerPage';
-import MoodHistoryPage from './pages/MoodHistoryPage';
 import HugCenterPage from './pages/HugCenterPage';
 import ProfilePage from './pages/ProfilePage';
+import MoodHistoryPage from './pages/MoodHistoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-// Import styles
+// Styles
 import './styles/index.css';
 
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-
+// PrivateRoute component for protected routes
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
   if (loading) {
-    return <div className="loading-spinner centered" />;
+    return <div className="loading-container">Loading...</div>;
   }
-
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
+  
+  return isAuthenticated() ? children : <Navigate to="/login" />;
 };
 
+// App component with routes
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-
-      {/* Protected routes */}
+      
+      {/* Protected Routes */}
       <Route 
         path="/dashboard" 
         element={
-          <ProtectedRoute>
+          <PrivateRoute>
             <DashboardPage />
-          </ProtectedRoute>
+          </PrivateRoute>
         } 
       />
       <Route 
         path="/mood-tracker" 
         element={
-          <ProtectedRoute>
+          <PrivateRoute>
             <MoodTrackerPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/mood-history" 
-        element={
-          <ProtectedRoute>
-            <MoodHistoryPage />
-          </ProtectedRoute>
+          </PrivateRoute>
         } 
       />
       <Route 
         path="/hug-center" 
         element={
-          <ProtectedRoute>
+          <PrivateRoute>
             <HugCenterPage />
-          </ProtectedRoute>
+          </PrivateRoute>
         } 
       />
       <Route 
         path="/profile" 
         element={
-          <ProtectedRoute>
+          <PrivateRoute>
             <ProfilePage />
-          </ProtectedRoute>
+          </PrivateRoute>
         } 
       />
-
-      {/* Catch all route */}
+      <Route 
+        path="/mood-history" 
+        element={
+          <PrivateRoute>
+            <MoodHistoryPage />
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* 404 Page */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
 
+// Main App component
 function App() {
   return (
     <Router>

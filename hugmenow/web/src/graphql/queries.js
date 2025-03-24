@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 
-// User related queries
+// User Queries
 export const GET_ME = gql`
   query GetMe {
     me {
@@ -11,7 +11,6 @@ export const GET_ME = gql`
       avatarUrl
       isAnonymous
       createdAt
-      updatedAt
     }
   }
 `;
@@ -26,7 +25,6 @@ export const GET_USER = gql`
       avatarUrl
       isAnonymous
       createdAt
-      updatedAt
     }
   }
 `;
@@ -43,7 +41,7 @@ export const GET_USERS = gql`
   }
 `;
 
-// Mood related queries
+// Mood Queries
 export const GET_USER_MOODS = gql`
   query GetUserMoods {
     userMoods {
@@ -52,12 +50,6 @@ export const GET_USER_MOODS = gql`
       note
       isPublic
       createdAt
-      user {
-        id
-        name
-        username
-        avatarUrl
-      }
     }
   }
 `;
@@ -71,8 +63,8 @@ export const GET_PUBLIC_MOODS = gql`
       createdAt
       user {
         id
-        name
         username
+        name
         avatarUrl
       }
     }
@@ -89,9 +81,8 @@ export const GET_MOOD = gql`
       createdAt
       user {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
@@ -103,7 +94,7 @@ export const GET_MOOD_STREAK = gql`
   }
 `;
 
-// Hug related queries
+// Hug Queries
 export const GET_SENT_HUGS = gql`
   query GetSentHugs {
     sentHugs {
@@ -114,9 +105,8 @@ export const GET_SENT_HUGS = gql`
       createdAt
       recipient {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
@@ -132,9 +122,8 @@ export const GET_RECEIVED_HUGS = gql`
       createdAt
       sender {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
@@ -150,21 +139,19 @@ export const GET_HUG = gql`
       createdAt
       sender {
         id
-        name
         username
-        avatarUrl
+        name
       }
       recipient {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
 `;
 
-// Hug Request related queries
+// Hug Request Queries
 export const GET_MY_HUG_REQUESTS = gql`
   query GetMyHugRequests {
     myHugRequests {
@@ -176,9 +163,8 @@ export const GET_MY_HUG_REQUESTS = gql`
       respondedAt
       recipient {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
@@ -194,9 +180,8 @@ export const GET_PENDING_HUG_REQUESTS = gql`
       createdAt
       requester {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
@@ -207,14 +192,12 @@ export const GET_COMMUNITY_HUG_REQUESTS = gql`
     communityHugRequests {
       id
       message
-      isCommunityRequest
       status
       createdAt
       requester {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
@@ -231,35 +214,31 @@ export const GET_HUG_REQUEST = gql`
       respondedAt
       requester {
         id
-        name
         username
-        avatarUrl
+        name
       }
       recipient {
         id
-        name
         username
-        avatarUrl
+        name
       }
     }
   }
 `;
 
-// Dashboard stats
+// Stats Queries
 export const GET_USER_STATS = gql`
   query GetUserStats {
     moodStreak
-    userMoods {
-      id
-      score
-      createdAt
-    }
     sentHugs {
       id
-      createdAt
     }
     receivedHugs {
       id
+    }
+    userMoods {
+      id
+      score
       createdAt
     }
   }

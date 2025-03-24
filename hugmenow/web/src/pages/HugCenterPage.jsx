@@ -1,677 +1,786 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import MainLayout from '../layouts/MainLayout';
 import { 
-  GET_RECEIVED_HUGS, 
+  GET_USERS, 
   GET_SENT_HUGS, 
-  GET_MY_HUG_REQUESTS,
+  GET_RECEIVED_HUGS, 
   GET_PENDING_HUG_REQUESTS,
-  GET_COMMUNITY_HUG_REQUESTS 
+  GET_MY_HUG_REQUESTS,
+  GET_COMMUNITY_HUG_REQUESTS
 } from '../graphql/queries';
 import { 
   SEND_HUG, 
+  MARK_HUG_AS_READ, 
   CREATE_HUG_REQUEST, 
   RESPOND_TO_HUG_REQUEST,
-  CANCEL_HUG_REQUEST,
-  MARK_HUG_AS_READ
+  CANCEL_HUG_REQUEST
 } from '../graphql/mutations';
+import { useAuth } from '../context/AuthContext';
 
-const HugCenterPage = () => {
+function HugCenterPage() {
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('received');
-  const [showSendHugForm, setShowSendHugForm] = useState(false);
-  const [showRequestHugForm, setShowRequestHugForm] = useState(false);
-  const [sendHugData, setSendHugData] = useState({
-    recipientId: '',
-    type: 'WARM',
-    message: ''
-  });
-  const [requestHugData, setRequestHugData] = useState({
-    recipientId: '',
-    message: '',
-    isCommunityRequest: false
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [showSendHugModal, setShowSendHugModal] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [hugType, setHugType] = useState('QUICK');
+  const [hugMessage, setHugMessage] = useState('');
+  const [requestMessage, setRequestMessage] = useState('');
+  const [isCommunityRequest, setIsCommunityRequest] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   // Queries
-  const { 
-    data: receivedHugsData, 
-    loading: receivedHugsLoading, 
-    refetch: refetchReceivedHugs 
-  } = useQuery(GET_RECEIVED_HUGS);
-
-  const { 
-    data: sentHugsData, 
-    loading: sentHugsLoading, 
-    refetch: refetchSentHugs 
-  } = useQuery(GET_SENT_HUGS);
-
-  const {
-    data: myRequestsData,
-    loading: myRequestsLoading,
-    refetch: refetchMyRequests
-  } = useQuery(GET_MY_HUG_REQUESTS);
-
-  const {
-    data: pendingRequestsData,
-    loading: pendingRequestsLoading,
-    refetch: refetchPendingRequests
-  } = useQuery(GET_PENDING_HUG_REQUESTS);
-
-  const {
-    data: communityRequestsData,
-    loading: communityRequestsLoading,
-    refetch: refetchCommunityRequests
-  } = useQuery(GET_COMMUNITY_HUG_REQUESTS);
+  const { data: usersData, loading: usersLoading } = useQuery(GET_USERS);
+  const { data: sentHugsData, loading: sentHugsLoading, refetch: refetchSentHugs } = useQuery(GET_SENT_HUGS);
+  const { data: receivedHugsData, loading: receivedHugsLoading, refetch: refetchReceivedHugs } = useQuery(GET_RECEIVED_HUGS);
+  const { data: pendingRequestsData, loading: pendingRequestsLoading, refetch: refetchPendingRequests } = useQuery(GET_PENDING_HUG_REQUESTS);
+  const { data: myRequestsData, loading: myRequestsLoading, refetch: refetchMyRequests } = useQuery(GET_MY_HUG_REQUESTS);
+  const { data: communityRequestsData, loading: communityRequestsLoading, refetch: refetchCommunityRequests } = useQuery(GET_COMMUNITY_HUG_REQUESTS);
 
   // Mutations
-  const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG, {
+  const [sendHug] = useMutation(SEND_HUG, {
     onCompleted: () => {
-      setSendHugData({ recipientId: '', type: 'WARM', message: '' });
-      setShowSendHugForm(false);
-      setSuccess('Hug sent successfully!');
       refetchSentHugs();
-      setTimeout(() => setSuccess(''), 3000);
+      setSuccess('Hug sent successfully!');
+      setTimeout(() => setSuccess(null), 3000);
     },
     onError: (error) => {
-      console.error('Error sending hug:', error);
-      setError('Failed to send hug. Please try again.');
-    }
-  });
-
-  const [createHugRequest, { loading: creatingRequest }] = useMutation(CREATE_HUG_REQUEST, {
-    onCompleted: () => {
-      setRequestHugData({ recipientId: '', message: '', isCommunityRequest: false });
-      setShowRequestHugForm(false);
-      setSuccess('Hug request created successfully!');
-      refetchMyRequests();
-      setTimeout(() => setSuccess(''), 3000);
-    },
-    onError: (error) => {
-      console.error('Error creating hug request:', error);
-      setError('Failed to create hug request. Please try again.');
-    }
-  });
-
-  const [respondToHugRequest] = useMutation(RESPOND_TO_HUG_REQUEST, {
-    onCompleted: () => {
-      setSuccess('Response submitted successfully!');
-      refetchPendingRequests();
-      refetchCommunityRequests();
-      setTimeout(() => setSuccess(''), 3000);
-    },
-    onError: (error) => {
-      console.error('Error responding to request:', error);
-      setError('Failed to respond to request. Please try again.');
-    }
-  });
-
-  const [cancelHugRequest] = useMutation(CANCEL_HUG_REQUEST, {
-    onCompleted: () => {
-      setSuccess('Request cancelled successfully!');
-      refetchMyRequests();
-      setTimeout(() => setSuccess(''), 3000);
-    },
-    onError: (error) => {
-      console.error('Error cancelling request:', error);
-      setError('Failed to cancel request. Please try again.');
+      setError(`Failed to send hug: ${error.message}`);
+      setTimeout(() => setError(null), 5000);
     }
   });
 
   const [markHugAsRead] = useMutation(MARK_HUG_AS_READ, {
     onCompleted: () => {
       refetchReceivedHugs();
-    },
-    onError: (error) => {
-      console.error('Error marking hug as read:', error);
     }
   });
 
-  // Handlers
-  const handleSendHugChange = (e) => {
-    setSendHugData({
-      ...sendHugData,
-      [e.target.name]: e.target.value
+  const [createHugRequest] = useMutation(CREATE_HUG_REQUEST, {
+    onCompleted: () => {
+      refetchMyRequests();
+      refetchCommunityRequests();
+      setSuccess('Hug request created successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    },
+    onError: (error) => {
+      setError(`Failed to create request: ${error.message}`);
+      setTimeout(() => setError(null), 5000);
+    }
+  });
+
+  const [respondToHugRequest] = useMutation(RESPOND_TO_HUG_REQUEST, {
+    onCompleted: () => {
+      refetchPendingRequests();
+      refetchSentHugs();
+      refetchReceivedHugs();
+      setSuccess('Response sent successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    },
+    onError: (error) => {
+      setError(`Failed to respond to request: ${error.message}`);
+      setTimeout(() => setError(null), 5000);
+    }
+  });
+
+  const [cancelHugRequest] = useMutation(CANCEL_HUG_REQUEST, {
+    onCompleted: () => {
+      refetchMyRequests();
+      setSuccess('Request cancelled successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    },
+    onError: (error) => {
+      setError(`Failed to cancel request: ${error.message}`);
+      setTimeout(() => setError(null), 5000);
+    }
+  });
+
+  // Handle sending a hug
+  const handleSendHug = (e) => {
+    e.preventDefault();
+    
+    sendHug({
+      variables: {
+        sendHugInput: {
+          recipientId: selectedUserId,
+          type: hugType,
+          message: hugMessage.trim() || undefined
+        }
+      }
+    });
+
+    // Reset form and close modal
+    setHugType('QUICK');
+    setHugMessage('');
+    setSelectedUserId('');
+    setShowSendHugModal(false);
+  };
+
+  // Handle creating a hug request
+  const handleCreateRequest = (e) => {
+    e.preventDefault();
+    
+    createHugRequest({
+      variables: {
+        createHugRequestInput: {
+          recipientId: isCommunityRequest ? undefined : selectedUserId,
+          message: requestMessage.trim() || undefined,
+          isCommunityRequest
+        }
+      }
+    });
+
+    // Reset form and close modal
+    setRequestMessage('');
+    setSelectedUserId('');
+    setIsCommunityRequest(false);
+    setShowRequestModal(false);
+  };
+
+  // Handle responding to a hug request
+  const handleRespondToRequest = (requestId, status, message = '') => {
+    respondToHugRequest({
+      variables: {
+        respondToRequestInput: {
+          requestId,
+          status,
+          message: message.trim() || undefined
+        }
+      }
     });
   };
 
-  const handleRequestHugChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setRequestHugData({
-      ...requestHugData,
-      [e.target.name]: value
+  // Handle cancelling a hug request
+  const handleCancelRequest = (requestId) => {
+    cancelHugRequest({
+      variables: {
+        requestId
+      }
     });
   };
 
-  const handleSendHugSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!sendHugData.recipientId) {
-      setError('Please enter a recipient ID');
-      return;
-    }
-
-    try {
-      await sendHug({
-        variables: {
-          sendHugInput: sendHugData
-        }
-      });
-    } catch (err) {
-      // Error is handled in onError callback
-    }
+  // Handle marking a hug as read
+  const handleMarkAsRead = (hugId) => {
+    markHugAsRead({
+      variables: {
+        hugId
+      }
+    });
   };
 
-  const handleRequestHugSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!requestHugData.isCommunityRequest && !requestHugData.recipientId) {
-      setError('Please enter a recipient ID or make this a community request');
-      return;
-    }
-
-    try {
-      await createHugRequest({
-        variables: {
-          createHugRequestInput: {
-            ...requestHugData,
-            recipientId: requestHugData.isCommunityRequest ? null : requestHugData.recipientId
-          }
-        }
-      });
-    } catch (err) {
-      // Error is handled in onError callback
-    }
+  // Open send hug modal
+  const openSendHugModal = (userId = '') => {
+    setSelectedUserId(userId);
+    setHugType('QUICK');
+    setHugMessage('');
+    setError(null);
+    setShowSendHugModal(true);
   };
 
-  const handleRespondToRequest = async (requestId, status) => {
-    try {
-      await respondToHugRequest({
-        variables: {
-          respondToRequestInput: {
-            requestId,
-            status
-          }
-        }
-      });
-    } catch (err) {
-      // Error is handled in onError callback
+  // Open request hug modal
+  const openRequestModal = (userId = '') => {
+    setSelectedUserId(userId);
+    setRequestMessage('');
+    setIsCommunityRequest(!userId);
+    setError(null);
+    setShowRequestModal(true);
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
+  // Get hug type display
+  const getHugTypeDisplay = (type) => {
+    switch (type) {
+      case 'QUICK': return 'Quick Hug';
+      case 'WARM': return 'Warm Hug';
+      case 'SUPPORTIVE': return 'Supportive Hug';
+      case 'COMFORTING': return 'Comforting Hug';
+      case 'ENCOURAGING': return 'Encouraging Hug';
+      case 'CELEBRATORY': return 'Celebratory Hug';
+      default: return type;
     }
   };
 
-  const handleCancelRequest = async (requestId) => {
-    try {
-      await cancelHugRequest({
-        variables: {
-          id: requestId
-        }
-      });
-    } catch (err) {
-      // Error is handled in onError callback
+  // Get request status display
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'PENDING': return 'Pending';
+      case 'ACCEPTED': return 'Accepted';
+      case 'DECLINED': return 'Declined';
+      case 'EXPIRED': return 'Expired';
+      case 'CANCELLED': return 'Cancelled';
+      default: return status;
     }
   };
 
-  const handleMarkAsRead = async (hugId) => {
-    try {
-      await markHugAsRead({
-        variables: {
-          id: hugId
-        }
-      });
-    } catch (err) {
-      // Error is handled in onError callback
-    }
-  };
-
-  // Render helpers
-  const renderReceivedHugs = () => {
-    if (receivedHugsLoading) return <div className="loading-spinner">Loading hugs...</div>;
-    
-    const hugs = receivedHugsData?.receivedHugs || [];
-    
-    if (hugs.length === 0) {
-      return (
-        <div className="empty-state">
-          <p>You haven't received any hugs yet.</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="hug-list">
-        {hugs.map(hug => (
-          <div 
-            key={hug.id} 
-            className={`hug-card ${!hug.isRead ? 'unread' : ''}`}
-            onClick={() => !hug.isRead && handleMarkAsRead(hug.id)}
-          >
-            <div className="hug-sender">
-              From: {hug.sender.name}
-            </div>
-            <div className="hug-type">
-              {hug.type} Hug
-            </div>
-            {hug.message && (
-              <div className="hug-message">
-                "{hug.message}"
-              </div>
-            )}
-            <div className="hug-time">
-              {new Date(hug.createdAt).toLocaleString()}
-            </div>
-            {!hug.isRead && (
-              <div className="unread-marker">New</div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderSentHugs = () => {
-    if (sentHugsLoading) return <div className="loading-spinner">Loading hugs...</div>;
-    
-    const hugs = sentHugsData?.sentHugs || [];
-    
-    if (hugs.length === 0) {
-      return (
-        <div className="empty-state">
-          <p>You haven't sent any hugs yet.</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="hug-list">
-        {hugs.map(hug => (
-          <div key={hug.id} className="hug-card">
-            <div className="hug-recipient">
-              To: {hug.recipient.name}
-            </div>
-            <div className="hug-type">
-              {hug.type} Hug
-            </div>
-            {hug.message && (
-              <div className="hug-message">
-                "{hug.message}"
-              </div>
-            )}
-            <div className="hug-time">
-              {new Date(hug.createdAt).toLocaleString()}
-            </div>
-            <div className="hug-status">
-              {hug.isRead ? 'Read' : 'Unread'}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderMyRequests = () => {
-    if (myRequestsLoading) return <div className="loading-spinner">Loading requests...</div>;
-    
-    const requests = myRequestsData?.myHugRequests || [];
-    
-    if (requests.length === 0) {
-      return (
-        <div className="empty-state">
-          <p>You haven't made any hug requests yet.</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="request-list">
-        {requests.map(request => (
-          <div key={request.id} className="request-card">
-            <div className="request-type">
-              {request.isCommunityRequest ? 'Community Request' : `To: ${request.recipient?.name || 'Unknown'}`}
-            </div>
-            {request.message && (
-              <div className="request-message">
-                "{request.message}"
-              </div>
-            )}
-            <div className="request-status">
-              Status: {request.status}
-            </div>
-            <div className="request-time">
-              {new Date(request.createdAt).toLocaleString()}
-            </div>
-            {request.status === 'PENDING' && (
-              <button 
-                className="btn btn-outline btn-sm"
-                onClick={() => handleCancelRequest(request.id)}
-              >
-                Cancel Request
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderPendingRequests = () => {
-    if (pendingRequestsLoading) return <div className="loading-spinner">Loading requests...</div>;
-    
-    const requests = pendingRequestsData?.pendingHugRequests || [];
-    
-    if (requests.length === 0) {
-      return (
-        <div className="empty-state">
-          <p>You don't have any pending hug requests.</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="request-list">
-        {requests.map(request => (
-          <div key={request.id} className="request-card">
-            <div className="request-sender">
-              From: {request.requester.name}
-            </div>
-            {request.message && (
-              <div className="request-message">
-                "{request.message}"
-              </div>
-            )}
-            <div className="request-time">
-              {new Date(request.createdAt).toLocaleString()}
-            </div>
-            <div className="request-actions">
-              <button 
-                className="btn btn-primary btn-sm"
-                onClick={() => handleRespondToRequest(request.id, 'ACCEPTED')}
-              >
-                Accept
-              </button>
-              <button 
-                className="btn btn-outline btn-sm"
-                onClick={() => handleRespondToRequest(request.id, 'DECLINED')}
-              >
-                Decline
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderCommunityRequests = () => {
-    if (communityRequestsLoading) return <div className="loading-spinner">Loading requests...</div>;
-    
-    const requests = communityRequestsData?.communityHugRequests || [];
-    
-    if (requests.length === 0) {
-      return (
-        <div className="empty-state">
-          <p>There are no community hug requests at the moment.</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="request-list">
-        {requests.map(request => (
-          <div key={request.id} className="request-card">
-            <div className="request-sender">
-              From: {request.requester.name}
-            </div>
-            {request.message && (
-              <div className="request-message">
-                "{request.message}"
-              </div>
-            )}
-            <div className="request-time">
-              {new Date(request.createdAt).toLocaleString()}
-            </div>
-            <button 
-              className="btn btn-primary btn-sm"
-              onClick={() => handleRespondToRequest(request.id, 'ACCEPTED')}
-            >
-              Send a Hug
-            </button>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderSendHugForm = () => {
-    return (
-      <div className="modal">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h3>Send a Hug</h3>
-            <button 
-              className="modal-close"
-              onClick={() => setShowSendHugForm(false)}
-            >
-              &times;
-            </button>
-          </div>
-          
-          <form onSubmit={handleSendHugSubmit} className="send-hug-form">
-            <div className="form-group">
-              <label htmlFor="recipientId" className="form-label">Recipient ID</label>
-              <input
-                type="text"
-                id="recipientId"
-                name="recipientId"
-                value={sendHugData.recipientId}
-                onChange={handleSendHugChange}
-                className="form-input"
-                placeholder="Enter recipient's ID"
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="type" className="form-label">Hug Type</label>
-              <select
-                id="type"
-                name="type"
-                value={sendHugData.type}
-                onChange={handleSendHugChange}
-                className="form-select"
-              >
-                <option value="QUICK">Quick Hug</option>
-                <option value="WARM">Warm Hug</option>
-                <option value="SUPPORTIVE">Supportive Hug</option>
-                <option value="COMFORTING">Comforting Hug</option>
-                <option value="ENCOURAGING">Encouraging Hug</option>
-                <option value="CELEBRATORY">Celebratory Hug</option>
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="message" className="form-label">Message (Optional)</label>
-              <textarea
-                id="message"
-                name="message"
-                value={sendHugData.message}
-                onChange={handleSendHugChange}
-                className="form-textarea"
-                placeholder="Add a personal message..."
-                rows="3"
-              ></textarea>
-            </div>
-            
-            <div className="form-actions">
-              <button 
-                type="submit" 
-                className="btn btn-primary btn-block"
-                disabled={sendingHug}
-              >
-                {sendingHug ? 'Sending...' : 'Send Hug'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
-  const renderRequestHugForm = () => {
-    return (
-      <div className="modal">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h3>Request a Hug</h3>
-            <button 
-              className="modal-close"
-              onClick={() => setShowRequestHugForm(false)}
-            >
-              &times;
-            </button>
-          </div>
-          
-          <form onSubmit={handleRequestHugSubmit} className="request-hug-form">
-            <div className="form-group form-toggle">
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  name="isCommunityRequest"
-                  checked={requestHugData.isCommunityRequest}
-                  onChange={handleRequestHugChange}
-                />
-                <span className="toggle-slider"></span>
-                <span className="toggle-label">Make this a community request</span>
-              </label>
-            </div>
-            
-            {!requestHugData.isCommunityRequest && (
-              <div className="form-group">
-                <label htmlFor="recipientId" className="form-label">Recipient ID</label>
-                <input
-                  type="text"
-                  id="recipientId"
-                  name="recipientId"
-                  value={requestHugData.recipientId}
-                  onChange={handleRequestHugChange}
-                  className="form-input"
-                  placeholder="Enter recipient's ID"
-                  required={!requestHugData.isCommunityRequest}
-                />
-              </div>
-            )}
-            
-            <div className="form-group">
-              <label htmlFor="message" className="form-label">Message</label>
-              <textarea
-                id="message"
-                name="message"
-                value={requestHugData.message}
-                onChange={handleRequestHugChange}
-                className="form-textarea"
-                placeholder="Why do you need a hug today?"
-                rows="3"
-              ></textarea>
-            </div>
-            
-            <div className="form-actions">
-              <button 
-                type="submit" 
-                className="btn btn-primary btn-block"
-                disabled={creatingRequest}
-              >
-                {creatingRequest ? 'Requesting...' : 'Request Hug'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
+  // Filter out the current user from the users list
+  const otherUsers = usersData?.users?.filter(user => user.id !== currentUser?.id) || [];
 
   return (
-    <div className="hug-center-page">
-      <div className="page-header">
-        <h1>Hug Center</h1>
-        <div className="page-actions">
+    <MainLayout>
+      <div className="hug-center-page">
+        <div className="hug-center-header">
+          <h1>Hug Center</h1>
+          <p>Send and receive virtual hugs with friends and the community.</p>
+        </div>
+
+        {error && (
+          <div className="alert alert-error">
+            <div className="alert-content">
+              <span>{error}</span>
+              <button 
+                className="alert-close" 
+                onClick={() => setError(null)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        )}
+
+        {success && (
+          <div className="alert alert-success">
+            <div className="alert-content">
+              <span>{success}</span>
+              <button 
+                className="alert-close" 
+                onClick={() => setSuccess(null)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="hug-center-actions">
           <button 
-            className="btn btn-primary mr-2"
-            onClick={() => setShowSendHugForm(true)}
+            className="btn btn-primary"
+            onClick={() => openSendHugModal()}
           >
-            Send Hug
+            Send a Hug
           </button>
           <button 
             className="btn btn-outline"
-            onClick={() => setShowRequestHugForm(true)}
+            onClick={() => openRequestModal()}
           >
-            Request Hug
+            Request a Hug
           </button>
         </div>
+
+        <div className="hug-center-tabs">
+          <div className="tabs-header">
+            <button 
+              className={`tab-button ${activeTab === 'received' ? 'active' : ''}`}
+              onClick={() => setActiveTab('received')}
+            >
+              Received Hugs
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'sent' ? 'active' : ''}`}
+              onClick={() => setActiveTab('sent')}
+            >
+              Sent Hugs
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pending')}
+            >
+              Pending Requests
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'my-requests' ? 'active' : ''}`}
+              onClick={() => setActiveTab('my-requests')}
+            >
+              My Requests
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'community' ? 'active' : ''}`}
+              onClick={() => setActiveTab('community')}
+            >
+              Community
+            </button>
+          </div>
+
+          <div className="tabs-content">
+            {/* Received Hugs Tab */}
+            {activeTab === 'received' && (
+              <div className="tab-pane">
+                <h3>Received Hugs</h3>
+                {receivedHugsLoading ? (
+                  <div className="loading-spinner centered" />
+                ) : receivedHugsData?.receivedHugs?.length > 0 ? (
+                  <div className="hugs-list">
+                    {receivedHugsData.receivedHugs.map(hug => (
+                      <div 
+                        key={hug.id} 
+                        className={`hug-item ${!hug.isRead ? 'unread' : ''}`}
+                        onClick={() => !hug.isRead && handleMarkAsRead(hug.id)}
+                      >
+                        <div className="hug-icon">{hug.type === 'CELEBRATORY' ? '🎉' : '🤗'}</div>
+                        <div className="hug-content">
+                          <div className="hug-header">
+                            <span className="hug-sender">{hug.sender.name || hug.sender.username}</span>
+                            <span className="hug-type">{getHugTypeDisplay(hug.type)}</span>
+                          </div>
+                          {hug.message && (
+                            <div className="hug-message">"{hug.message}"</div>
+                          )}
+                          <div className="hug-footer">
+                            <span className="hug-date">{formatDate(hug.createdAt)}</span>
+                            {!hug.isRead && <span className="hug-status">New</span>}
+                          </div>
+                        </div>
+                        <div className="hug-actions">
+                          <button 
+                            className="btn btn-sm btn-outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openSendHugModal(hug.sender.id);
+                            }}
+                          >
+                            Send Back
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <p>You haven't received any hugs yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sent Hugs Tab */}
+            {activeTab === 'sent' && (
+              <div className="tab-pane">
+                <h3>Sent Hugs</h3>
+                {sentHugsLoading ? (
+                  <div className="loading-spinner centered" />
+                ) : sentHugsData?.sentHugs?.length > 0 ? (
+                  <div className="hugs-list">
+                    {sentHugsData.sentHugs.map(hug => (
+                      <div key={hug.id} className="hug-item">
+                        <div className="hug-icon">{hug.type === 'CELEBRATORY' ? '🎉' : '🤗'}</div>
+                        <div className="hug-content">
+                          <div className="hug-header">
+                            <span className="hug-sender">To: {hug.recipient.name || hug.recipient.username}</span>
+                            <span className="hug-type">{getHugTypeDisplay(hug.type)}</span>
+                          </div>
+                          {hug.message && (
+                            <div className="hug-message">"{hug.message}"</div>
+                          )}
+                          <div className="hug-footer">
+                            <span className="hug-date">{formatDate(hug.createdAt)}</span>
+                            <span className="hug-status">{hug.isRead ? 'Read' : 'Unread'}</span>
+                          </div>
+                        </div>
+                        <div className="hug-actions">
+                          <button 
+                            className="btn btn-sm btn-outline"
+                            onClick={() => openSendHugModal(hug.recipient.id)}
+                          >
+                            Send Again
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <p>You haven't sent any hugs yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Pending Requests Tab */}
+            {activeTab === 'pending' && (
+              <div className="tab-pane">
+                <h3>Pending Hug Requests</h3>
+                {pendingRequestsLoading ? (
+                  <div className="loading-spinner centered" />
+                ) : pendingRequestsData?.pendingHugRequests?.length > 0 ? (
+                  <div className="requests-list">
+                    {pendingRequestsData.pendingHugRequests.map(request => (
+                      <div key={request.id} className="request-item">
+                        <div className="request-content">
+                          <div className="request-header">
+                            <span className="request-sender">
+                              From: {request.requester.name || request.requester.username}
+                            </span>
+                            <span className="request-type">
+                              {request.isCommunityRequest ? 'Community Request' : 'Personal Request'}
+                            </span>
+                          </div>
+                          {request.message && (
+                            <div className="request-message">"{request.message}"</div>
+                          )}
+                          <div className="request-footer">
+                            <span className="request-date">{formatDate(request.createdAt)}</span>
+                            <span className="request-status">{getStatusDisplay(request.status)}</span>
+                          </div>
+                        </div>
+                        <div className="request-actions">
+                          <button 
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleRespondToRequest(request.id, 'ACCEPTED')}
+                          >
+                            Accept
+                          </button>
+                          <button 
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleRespondToRequest(request.id, 'DECLINED')}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <p>You don't have any pending hug requests.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* My Requests Tab */}
+            {activeTab === 'my-requests' && (
+              <div className="tab-pane">
+                <h3>My Hug Requests</h3>
+                {myRequestsLoading ? (
+                  <div className="loading-spinner centered" />
+                ) : myRequestsData?.myHugRequests?.length > 0 ? (
+                  <div className="requests-list">
+                    {myRequestsData.myHugRequests.map(request => (
+                      <div key={request.id} className="request-item">
+                        <div className="request-content">
+                          <div className="request-header">
+                            <span className="request-recipient">
+                              {request.isCommunityRequest 
+                                ? 'To: Community'
+                                : `To: ${request.recipient?.name || request.recipient?.username}`}
+                            </span>
+                            <span className="request-type">
+                              {request.isCommunityRequest ? 'Community Request' : 'Personal Request'}
+                            </span>
+                          </div>
+                          {request.message && (
+                            <div className="request-message">"{request.message}"</div>
+                          )}
+                          <div className="request-footer">
+                            <span className="request-date">{formatDate(request.createdAt)}</span>
+                            <span className={`request-status status-${request.status.toLowerCase()}`}>
+                              {getStatusDisplay(request.status)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="request-actions">
+                          {request.status === 'PENDING' && (
+                            <button 
+                              className="btn btn-sm btn-outline btn-danger"
+                              onClick={() => handleCancelRequest(request.id)}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <p>You haven't made any hug requests yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Community Tab */}
+            {activeTab === 'community' && (
+              <div className="tab-pane">
+                <h3>Community Hug Requests</h3>
+                {communityRequestsLoading ? (
+                  <div className="loading-spinner centered" />
+                ) : communityRequestsData?.communityHugRequests?.length > 0 ? (
+                  <div className="requests-list">
+                    {communityRequestsData.communityHugRequests
+                      .filter(request => request.requester.id !== currentUser?.id) // Don't show own requests
+                      .map(request => (
+                        <div key={request.id} className="request-item">
+                          <div className="request-content">
+                            <div className="request-header">
+                              <span className="request-sender">
+                                From: {request.requester.name || request.requester.username}
+                              </span>
+                              <span className="request-type">Community Request</span>
+                            </div>
+                            {request.message && (
+                              <div className="request-message">"{request.message}"</div>
+                            )}
+                            <div className="request-footer">
+                              <span className="request-date">{formatDate(request.createdAt)}</span>
+                              <span className="request-status">{getStatusDisplay(request.status)}</span>
+                            </div>
+                          </div>
+                          <div className="request-actions">
+                            {request.status === 'PENDING' && (
+                              <button 
+                                className="btn btn-sm btn-primary"
+                                onClick={() => handleRespondToRequest(request.id, 'ACCEPTED')}
+                              >
+                                Send a Hug
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <p>There are no community hug requests at the moment.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {error && (
-        <div className="alert alert-error">
-          <div className="alert-content">
-            <p>{error}</p>
-            <button onClick={() => setError('')} className="alert-close">&times;</button>
+      {/* Send Hug Modal */}
+      {showSendHugModal && (
+        <div className="modal" onClick={() => setShowSendHugModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Send a Hug</h3>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowSendHugModal(false)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleSendHug}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="recipient">Recipient</label>
+                  <select
+                    id="recipient"
+                    className="form-select"
+                    value={selectedUserId}
+                    onChange={e => setSelectedUserId(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a recipient</option>
+                    {otherUsers.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.name || user.username}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">Hug Type</label>
+                  <div className="hug-type-options">
+                    <div className="hug-type-option">
+                      <input
+                        type="radio"
+                        id="quick"
+                        name="hugType"
+                        value="QUICK"
+                        checked={hugType === 'QUICK'}
+                        onChange={() => setHugType('QUICK')}
+                      />
+                      <label htmlFor="quick">Quick Hug</label>
+                    </div>
+                    <div className="hug-type-option">
+                      <input
+                        type="radio"
+                        id="warm"
+                        name="hugType"
+                        value="WARM"
+                        checked={hugType === 'WARM'}
+                        onChange={() => setHugType('WARM')}
+                      />
+                      <label htmlFor="warm">Warm Hug</label>
+                    </div>
+                    <div className="hug-type-option">
+                      <input
+                        type="radio"
+                        id="supportive"
+                        name="hugType"
+                        value="SUPPORTIVE"
+                        checked={hugType === 'SUPPORTIVE'}
+                        onChange={() => setHugType('SUPPORTIVE')}
+                      />
+                      <label htmlFor="supportive">Supportive Hug</label>
+                    </div>
+                    <div className="hug-type-option">
+                      <input
+                        type="radio"
+                        id="comforting"
+                        name="hugType"
+                        value="COMFORTING"
+                        checked={hugType === 'COMFORTING'}
+                        onChange={() => setHugType('COMFORTING')}
+                      />
+                      <label htmlFor="comforting">Comforting Hug</label>
+                    </div>
+                    <div className="hug-type-option">
+                      <input
+                        type="radio"
+                        id="encouraging"
+                        name="hugType"
+                        value="ENCOURAGING"
+                        checked={hugType === 'ENCOURAGING'}
+                        onChange={() => setHugType('ENCOURAGING')}
+                      />
+                      <label htmlFor="encouraging">Encouraging Hug</label>
+                    </div>
+                    <div className="hug-type-option">
+                      <input
+                        type="radio"
+                        id="celebratory"
+                        name="hugType"
+                        value="CELEBRATORY"
+                        checked={hugType === 'CELEBRATORY'}
+                        onChange={() => setHugType('CELEBRATORY')}
+                      />
+                      <label htmlFor="celebratory">Celebratory Hug</label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label" htmlFor="hugMessage">Message (Optional)</label>
+                  <textarea
+                    id="hugMessage"
+                    className="form-textarea"
+                    value={hugMessage}
+                    onChange={e => setHugMessage(e.target.value)}
+                    placeholder="Add a personal message..."
+                    maxLength={200}
+                  ></textarea>
+                  <div className="textarea-counter">
+                    {hugMessage.length}/200 characters
+                  </div>
+                </div>
+                
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-outline" onClick={() => setShowSendHugModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    Send Hug
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
-      {success && (
-        <div className="alert alert-success">
-          <div className="alert-content">
-            <p>{success}</p>
-            <button onClick={() => setSuccess('')} className="alert-close">&times;</button>
+      {/* Request Hug Modal */}
+      {showRequestModal && (
+        <div className="modal" onClick={() => setShowRequestModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Request a Hug</h3>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowRequestModal(false)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleCreateRequest}>
+                <div className="form-group">
+                  <div className="form-toggle">
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={isCommunityRequest}
+                        onChange={() => setIsCommunityRequest(!isCommunityRequest)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                    <span className="toggle-label">
+                      Community Request
+                    </span>
+                  </div>
+                  <div className="form-hint">
+                    Anyone in the community can respond to your request
+                  </div>
+                </div>
+                
+                {!isCommunityRequest && (
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="requestRecipient">Recipient</label>
+                    <select
+                      id="requestRecipient"
+                      className="form-select"
+                      value={selectedUserId}
+                      onChange={e => setSelectedUserId(e.target.value)}
+                      required={!isCommunityRequest}
+                    >
+                      <option value="">Select a recipient</option>
+                      {otherUsers.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name || user.username}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                <div className="form-group">
+                  <label className="form-label" htmlFor="requestMessage">
+                    {isCommunityRequest ? 'Why do you need a hug?' : 'Message (Optional)'}
+                  </label>
+                  <textarea
+                    id="requestMessage"
+                    className="form-textarea"
+                    value={requestMessage}
+                    onChange={e => setRequestMessage(e.target.value)}
+                    placeholder={isCommunityRequest ? "Share why you need a hug today..." : "Add a personal message..."}
+                    maxLength={200}
+                    required={isCommunityRequest}
+                  ></textarea>
+                  <div className="textarea-counter">
+                    {requestMessage.length}/200 characters
+                  </div>
+                </div>
+                
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-outline" onClick={() => setShowRequestModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    Send Request
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
-
-      <div className="tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'received' ? 'active' : ''}`}
-          onClick={() => setActiveTab('received')}
-        >
-          Received Hugs
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'sent' ? 'active' : ''}`}
-          onClick={() => setActiveTab('sent')}
-        >
-          Sent Hugs
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'myRequests' ? 'active' : ''}`}
-          onClick={() => setActiveTab('myRequests')}
-        >
-          My Requests
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'pendingRequests' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pendingRequests')}
-        >
-          Pending Requests
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'communityRequests' ? 'active' : ''}`}
-          onClick={() => setActiveTab('communityRequests')}
-        >
-          Community Requests
-        </button>
-      </div>
-
-      <div className="tab-content">
-        {activeTab === 'received' && renderReceivedHugs()}
-        {activeTab === 'sent' && renderSentHugs()}
-        {activeTab === 'myRequests' && renderMyRequests()}
-        {activeTab === 'pendingRequests' && renderPendingRequests()}
-        {activeTab === 'communityRequests' && renderCommunityRequests()}
-      </div>
-
-      {showSendHugForm && renderSendHugForm()}
-      {showRequestHugForm && renderRequestHugForm()}
-    </div>
+    </MainLayout>
   );
-};
+}
 
 export default HugCenterPage;

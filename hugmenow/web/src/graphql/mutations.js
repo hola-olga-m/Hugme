@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 
-// Auth mutations
+// Auth Mutations
 export const LOGIN = gql`
   mutation Login($loginInput: LoginInput!) {
     login(loginInput: $loginInput) {
@@ -13,7 +13,6 @@ export const LOGIN = gql`
         avatarUrl
         isAnonymous
         createdAt
-        updatedAt
       }
     }
   }
@@ -31,7 +30,6 @@ export const REGISTER = gql`
         avatarUrl
         isAnonymous
         createdAt
-        updatedAt
       }
     }
   }
@@ -44,18 +42,16 @@ export const ANONYMOUS_LOGIN = gql`
       user {
         id
         username
-        email
         name
         avatarUrl
         isAnonymous
         createdAt
-        updatedAt
       }
     }
   }
 `;
 
-// User mutations
+// User Mutations
 export const UPDATE_USER = gql`
   mutation UpdateUser($updateUserInput: UpdateUserInput!) {
     updateUser(updateUserInput: $updateUserInput) {
@@ -64,7 +60,8 @@ export const UPDATE_USER = gql`
       email
       name
       avatarUrl
-      updatedAt
+      isAnonymous
+      createdAt
     }
   }
 `;
@@ -75,7 +72,7 @@ export const REMOVE_USER = gql`
   }
 `;
 
-// Mood mutations
+// Mood Mutations
 export const CREATE_MOOD = gql`
   mutation CreateMood($createMoodInput: CreateMoodInput!) {
     createMood(createMoodInput: $createMoodInput) {
@@ -86,6 +83,7 @@ export const CREATE_MOOD = gql`
       createdAt
       user {
         id
+        username
         name
       }
     }
@@ -99,7 +97,7 @@ export const UPDATE_MOOD = gql`
       score
       note
       isPublic
-      updatedAt
+      createdAt
     }
   }
 `;
@@ -110,7 +108,7 @@ export const REMOVE_MOOD = gql`
   }
 `;
 
-// Hug mutations
+// Hug Mutations
 export const SEND_HUG = gql`
   mutation SendHug($sendHugInput: SendHugInput!) {
     sendHug(sendHugInput: $sendHugInput) {
@@ -121,6 +119,7 @@ export const SEND_HUG = gql`
       createdAt
       recipient {
         id
+        username
         name
       }
     }
@@ -128,25 +127,26 @@ export const SEND_HUG = gql`
 `;
 
 export const MARK_HUG_AS_READ = gql`
-  mutation MarkHugAsRead($id: ID!) {
-    markHugAsRead(id: $id) {
+  mutation MarkHugAsRead($hugId: ID!) {
+    markHugAsRead(hugId: $hugId) {
       id
       isRead
     }
   }
 `;
 
-// Hug Request mutations
+// Hug Request Mutations
 export const CREATE_HUG_REQUEST = gql`
   mutation CreateHugRequest($createHugRequestInput: CreateHugRequestInput!) {
     createHugRequest(createHugRequestInput: $createHugRequestInput) {
       id
       message
-      isCommunityRequest
       status
+      isCommunityRequest
       createdAt
       recipient {
         id
+        username
         name
       }
     }
@@ -164,8 +164,8 @@ export const RESPOND_TO_HUG_REQUEST = gql`
 `;
 
 export const CANCEL_HUG_REQUEST = gql`
-  mutation CancelHugRequest($id: ID!) {
-    cancelHugRequest(id: $id) {
+  mutation CancelHugRequest($requestId: ID!) {
+    cancelHugRequest(requestId: $requestId) {
       id
       status
     }

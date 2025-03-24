@@ -1,0 +1,183 @@
+/* Mood Tracker Page Styles */
+
+.mood-tracker-page {
+  margin-bottom: 3rem;
+}
+
+.mood-tracker-header {
+  margin-bottom: 2rem;
+}
+
+.mood-tracker-header h1 {
+  color: var(--primary-color);
+}
+
+.mood-tracker-card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.mood-tracker-content {
+  padding-top: 1rem;
+}
+
+/* Mood Slider */
+.mood-slider-container {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.mood-emoji-display {
+  font-size: 4rem;
+  margin-bottom: 0.25rem;
+}
+
+.mood-label-display {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--dark-color);
+}
+
+.mood-score-display {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.mood-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: var(--gray-light);
+  outline: none;
+  margin-bottom: 1rem;
+}
+
+.mood-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--thumb-color, var(--primary-color));
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mood-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--thumb-color, var(--primary-color));
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Use a CSS variable to style the slider track in Firefox */
+.mood-slider::-moz-range-progress {
+  background-color: var(--track-color, var(--primary-color));
+  height: 8px;
+  border-radius: 5px;
+}
+
+/* For webkit browsers, we can use a background-image with a linear-gradient */
+.mood-slider::-webkit-slider-runnable-track {
+  border-radius: 5px;
+  height: 8px;
+  background-image: linear-gradient(
+    to right,
+    var(--track-color, var(--primary-color)) 0%,
+    var(--track-color, var(--primary-color)) calc((var(--value, 5) - 1) * 11.111%),
+    var(--gray-light) calc((var(--value, 5) - 1) * 11.111%),
+    var(--gray-light) 100%
+  );
+}
+
+.mood-range-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.mood-range-labels span {
+  font-size: 0.75rem;
+  color: var(--gray-color);
+}
+
+.textarea-counter {
+  font-size: 0.75rem;
+  color: var(--gray-color);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--gray-color);
+  margin-top: 0.25rem;
+  margin-left: 3rem;
+}
+
+/* Already Logged Mood */
+.mood-already-logged {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 2rem;
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.mood-emoji-large {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+}
+
+.mood-already-logged h2 {
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+}
+
+.mood-details {
+  margin-bottom: 2rem;
+}
+
+.mood-score {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.mood-note {
+  background-color: #f8f9fa;
+  padding: 1.25rem;
+  border-radius: var(--border-radius);
+  font-style: italic;
+  margin: 1.25rem 0;
+  color: var(--gray-dark);
+}
+
+.mood-timestamp {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+}
+
+.mood-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media screen and (min-width: 576px) {
+  .mood-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

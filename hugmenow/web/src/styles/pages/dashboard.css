@@ -1,0 +1,191 @@
+/* Dashboard Page Styles */
+
+.dashboard-page {
+  margin-bottom: 3rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  color: var(--primary-color);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media screen and (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dashboard-card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  transition: var(--transition);
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.dashboard-card h3 {
+  color: var(--primary-color);
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Mood Summary Card */
+.mood-overview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.mood-emoji {
+  font-size: 3.5rem;
+  margin-right: 1.25rem;
+  min-width: 60px;
+  text-align: center;
+}
+
+.mood-details {
+  flex: 1;
+}
+
+.mood-score {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.mood-label {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+  margin-top: 0.25rem;
+}
+
+.streak-info {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-light);
+  font-size: 0.9375rem;
+}
+
+.streak-count {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Hugs Card */
+.hugs-overview,
+.requests-overview {
+  margin-bottom: 1.25rem;
+}
+
+.hugs-count,
+.requests-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.count-number {
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--primary-color);
+}
+
+.count-label {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+  margin-top: 0.25rem;
+}
+
+.hugs-preview,
+.requests-preview {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.hugs-list,
+.requests-list {
+  margin-top: 0.5rem;
+}
+
+.hugs-list li,
+.requests-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--gray-light);
+}
+
+.hugs-list li:last-child,
+.requests-list li:last-child {
+  border-bottom: none;
+}
+
+.and-more {
+  font-style: italic;
+  color: var(--gray-color);
+}
+
+.no-data-message {
+  color: var(--gray-color);
+  text-align: center;
+  margin: 2rem 0;
+  font-style: italic;
+}
+
+/* Quick Actions Card */
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius);
+  padding: 1.25rem 0.5rem;
+  text-align: center;
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.action-button:hover {
+  background-color: var(--primary-light);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.action-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-text {
+  font-weight: 500;
+}
+
+.loading-indicator {
+  text-align: center;
+  color: var(--gray-color);
+  font-style: italic;
+  margin: 1.5rem 0;
+}

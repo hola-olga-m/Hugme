@@ -1,156 +1,190 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useMutation, useApolloClient } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useApolloClient } from '@apollo/client';
 import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
 import { GET_ME } from '../graphql/queries';
 
-// Create auth context
-const AuthContext = createContext();
+// Create the context
+const AuthContext = createContext(null);
 
-// Provider component that wraps your app and makes auth object available to any
-// child component that calls useAuth().
-export function AuthProvider({ children }) {
+// Hook for using the auth context
+export const useAuth = () => useContext(AuthContext);
+
+// Auth Provider Component
+export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  const navigate = useNavigate();
   const client = useApolloClient();
-
-  // Setup mutations
+  
+  // Apollo mutations
   const [loginMutation] = useMutation(LOGIN);
   const [registerMutation] = useMutation(REGISTER);
   const [anonymousLoginMutation] = useMutation(ANONYMOUS_LOGIN);
-
-  // Check if user is already logged in
+  
+  // Get current user query
+  const { refetch } = useQuery(GET_ME, {
+    skip: !localStorage.getItem('authToken'),
+    onCompleted: (data) => {
+      if (data?.me) {
+        setCurrentUser(data.me);
+      }
+      setLoading(false);
+    },
+    onError: (error) => {
+      console.error('Error fetching current user:', error);
+      setError(error.message);
+      setLoading(false);
+    }
+  });
+  
+  // Check if user is authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      
-      if (token) {
-        try {
-          const { data } = await client.query({
-            query: GET_ME,
-            fetchPolicy: 'network-only' // Don't use the cache for this query
-          });
-          
-          if (data && data.me) {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          // Refetch user data
+          const { data } = await refetch();
+          if (data?.me) {
             setCurrentUser(data.me);
+          } else {
+            // If no user data is returned, clear the token
+            localStorage.removeItem('authToken');
           }
-        } catch (err) {
-          // Invalid token or other error
-          console.error('Auth check error:', err);
-          localStorage.removeItem('token');
         }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        localStorage.removeItem('authToken');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
-
+    
     checkAuth();
-  }, [client]);
-
-  // Register a new user
-  const register = async (userData) => {
-    setError(null);
-    try {
-      const { data } = await registerMutation({
-        variables: { registerInput: userData }
-      });
-      
-      if (data.register.accessToken) {
-        localStorage.setItem('token', data.register.accessToken);
-        setCurrentUser(data.register.user);
-        return data.register;
-      }
-    } catch (err) {
-      setError(err.message || 'Registration failed');
-      throw err;
-    }
-  };
-
-  // Log in an existing user
+  }, [refetch]);
+  
+  // Login function
   const login = async (email, password) => {
     setError(null);
     try {
       const { data } = await loginMutation({
-        variables: { loginInput: { email, password } }
+        variables: {
+          loginInput: {
+            email,
+            password
+          }
+        }
       });
       
-      if (data.login.accessToken) {
-        localStorage.setItem('token', data.login.accessToken);
+      if (data?.login) {
+        localStorage.setItem('authToken', data.login.accessToken);
         setCurrentUser(data.login.user);
-        return data.login;
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+        return data.login.user;
       }
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message);
       throw err;
     }
   };
-
-  // Log in anonymously
+  
+  // Register function
+  const register = async (username, email, name, password, avatarUrl) => {
+    setError(null);
+    try {
+      const { data } = await registerMutation({
+        variables: {
+          registerInput: {
+            username,
+            email,
+            name,
+            password,
+            avatarUrl: avatarUrl || undefined
+          }
+        }
+      });
+      
+      if (data?.register) {
+        localStorage.setItem('authToken', data.register.accessToken);
+        setCurrentUser(data.register.user);
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+        return data.register.user;
+      }
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+  
+  // Anonymous login function
   const anonymousLogin = async (nickname, avatarUrl) => {
     setError(null);
     try {
       const { data } = await anonymousLoginMutation({
-        variables: { 
-          anonymousLoginInput: { 
-            nickname, 
-            avatarUrl 
-          } 
+        variables: {
+          anonymousLoginInput: {
+            nickname,
+            avatarUrl: avatarUrl || undefined
+          }
         }
       });
       
-      if (data.anonymousLogin.accessToken) {
-        localStorage.setItem('token', data.anonymousLogin.accessToken);
+      if (data?.anonymousLogin) {
+        localStorage.setItem('authToken', data.anonymousLogin.accessToken);
         setCurrentUser(data.anonymousLogin.user);
-        return data.anonymousLogin;
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+        return data.anonymousLogin.user;
       }
     } catch (err) {
-      setError(err.message || 'Anonymous login failed');
+      setError(err.message);
       throw err;
     }
   };
-
-  // Log out
+  
+  // Logout function
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     setCurrentUser(null);
-    // Reset Apollo store to clear cached data
-    client.resetStore();
+    
+    // Clear Apollo cache
+    client.clearStore();
+    
+    // Redirect to home page
+    navigate('/');
   };
-
-  // Update user in state after profile changes
-  const updateUserState = (updatedUser) => {
-    setCurrentUser(updatedUser);
+  
+  // Check if user is authenticated
+  const isAuthenticated = () => {
+    return !!currentUser;
   };
-
-  // Value contains all the things we want to expose to components using this context
+  
+  // Value object for context provider
   const value = {
     currentUser,
     loading,
     error,
-    register,
     login,
+    register,
     anonymousLogin,
     logout,
-    updateUserState,
-    isAuthenticated: !!currentUser,
-    isAnonymous: currentUser?.isAnonymous || false
+    isAuthenticated,
+    refetchUser: refetch,
   };
-
+  
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Custom hook to use the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
 
 export default AuthContext;

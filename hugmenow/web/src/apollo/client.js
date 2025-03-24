@@ -1,17 +1,32 @@
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error';
 
-// Create the HTTP link to the GraphQL API
+// Create an http link for GraphQL API
 const httpLink = createHttpLink({
   uri: 'http://localhost:3000/graphql',
 });
 
-// Auth link to attach the JWT token to every request
+// Error handling link
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ message, locations, path }) => {
+      console.error(
+        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+      );
+    });
+  }
+  if (networkError) {
+    console.error(`[Network error]: ${networkError}`);
+  }
+});
+
+// Auth link to set JWT token in headers
 const authLink = setContext((_, { headers }) => {
-  // Get the token from local storage
-  const token = localStorage.getItem('token');
+  // Get token from localStorage
+  const token = localStorage.getItem('authToken');
   
-  // Return the headers with the token if it exists
+  // Return headers to the context
   return {
     headers: {
       ...headers,
@@ -20,9 +35,9 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-// Create the Apollo client
+// Create Apollo Client
 export const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
@@ -38,5 +53,3 @@ export const client = new ApolloClient({
     },
   },
 });
-
-export default client;
