@@ -15,14 +15,13 @@ const HomePage = () => {
     const fetchAppInfo = async () => {
       try {
         setLoading(true);
-        // Use the centralized API base URL
-        const response = await fetch(`${API_BASE_URL}/info`, {
+        // Use relative path with Vite proxy
+        const response = await fetch('/info', {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-          },
-          mode: 'cors'
+          }
         });
         
         if (!response.ok) {
@@ -31,11 +30,34 @@ const HomePage = () => {
         
         const data = await response.json();
         console.log('Fetched app info:', data);
-        setAppInfo(data);
-        setError(null);
+        
+        if (data && Object.keys(data).length > 0) {
+          setAppInfo(data);
+          setError(null);
+        } else {
+          throw new Error('Received empty data from API');
+        }
       } catch (err) {
         console.error('Error fetching app info:', err);
-        setError('Failed to load application information');
+        setError(`Failed to load application information: ${err.message || 'Unknown error'}`);
+        // Set some default data for development/debugging if the API call fails
+        setAppInfo({
+          name: 'Hug Me Now',
+          version: '1.0.0-dev',
+          description: 'A platform for emotional wellness through virtual hugs and mood tracking',
+          endpoints: {
+            graphql: '/graphql',
+            api: '/api',
+          },
+          features: [
+            'User authentication with JWT',
+            'Mood tracking and history',
+            'Virtual hugs exchange',
+            'Hug requests',
+            'Public and private mood sharing',
+          ],
+          status: 'development'
+        });
       } finally {
         setLoading(false);
       }

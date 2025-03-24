@@ -2,9 +2,9 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 
-// API Base URL - centralize for reuse across application
-export const API_BASE_URL = 'http://localhost:3000';
-export const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
+// API Base URL - using relative paths with Vite proxy
+export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy
+export const GRAPHQL_URL = '/graphql';
 
 // Create an http link for GraphQL API
 const httpLink = createHttpLink({
