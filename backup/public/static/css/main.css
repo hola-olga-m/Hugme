@@ -1,0 +1,2 @@
+/* Main CSS file that imports our compiled CSS */
+@import url('/static/css/main.chunk.css');

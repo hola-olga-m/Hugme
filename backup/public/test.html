@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HugMood GraphQL Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+    }
+    .message {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    .received {
+      background-color: #e3f2fd;
+    }
+    .sent {
+      background-color: #e8f5e9;
+      text-align: right;
+    }
+    .error {
+      background-color: #ffebee;
+    }
+    .system {
+      background-color: #f5f5f5;
+      font-style: italic;
+    }
+    button {
+      margin: 5px;
+      padding: 5px 10px;
+    }
+    input, select {
+      margin: 5px 0;
+      padding: 5px;
+      width: 100%;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>HugMood GraphQL Test</h1>
+  
+  <div id="messages"></div>
+  
+  <div id="controls">
+    <div id="auth-controls">
+      <h3>Authentication</h3>
+      <div class="form-group">
+        <select id="auth-method">
+          <option value="token">Token</option>
+          <option value="register">Register</option>
+          <option value="login">Login</option>
+          <option value="anonymous">Anonymous</option>
+        </select>
+      </div>
+      
+      <div id="token-auth" class="auth-panel">
+        <input type="text" id="token" placeholder="JWT Token">
+      </div>
+      
+      <div id="register-auth" class="auth-panel" style="display:none;">
+        <input type="text" id="register-username" placeholder="Username">
+        <input type="email" id="register-email" placeholder="Email">
+        <input type="password" id="register-password" placeholder="Password">
+      </div>
+      
+      <div id="login-auth" class="auth-panel" style="display:none;">
+        <input type="text" id="login-email" placeholder="Email or Username">
+        <input type="password" id="login-password" placeholder="Password">
+      </div>
+      
+      <button id="authenticate">Authenticate</button>
+    </div>
+    
+    <div id="message-controls">
+      <h3>GraphQL Operations</h3>
+      <div class="form-group">
+        <select id="operation-type">
+          <option value="ping">Ping</option>
+          <option value="mood_update">Update Mood</option>
+          <option value="send_hug">Send Hug</option>
+          <option value="request_hug">Request Hug</option>
+          <option value="get_me">Get Current User</option>
+          <option value="get_mood_history">Get Mood History</option>
+        </select>
+      </div>
+      
+      <div id="mood-update-panel" class="message-panel" style="display:none;">
+        <input type="text" id="mood" placeholder="Mood (happy, sad, etc.)">
+        <input type="number" id="intensity" placeholder="Intensity (1-10)" min="1" max="10" value="5">
+        <input type="text" id="note" placeholder="Note (optional)">
+        <label>
+          <input type="checkbox" id="is-public"> Public
+        </label>
+      </div>
+      
+      <div id="send-hug-panel" class="message-panel" style="display:none;">
+        <input type="text" id="hug-recipient" placeholder="Recipient User ID">
+        <input type="text" id="hug-type" placeholder="Hug Type">
+        <input type="text" id="hug-message" placeholder="Message (optional)">
+      </div>
+      
+      <div id="request-hug-panel" class="message-panel" style="display:none;">
+        <input type="text" id="request-recipient" placeholder="Recipient User ID (leave empty for community)">
+        <select id="request-urgency">
+          <option value="low">Low</option>
+          <option value="normal" selected>Normal</option>
+          <option value="high">High</option>
+        </select>
+        <input type="text" id="request-message" placeholder="Message (optional)">
+      </div>
+      
+      <button id="execute">Execute GraphQL</button>
+    </div>
+  </div>
+  
+  <script>
+    let currentUserId = null;
+    let currentToken = null;
+    const GRAPHQL_ENDPOINT = '/graphql';
+    
+    // Elements
+    const messagesEl = document.getElementById('messages');
+    const authMethodSelect = document.getElementById('auth-method');
+    const tokenPanel = document.getElementById('token-auth');
+    const registerPanel = document.getElementById('register-auth');
+    const loginPanel = document.getElementById('login-auth');
+    const authenticateBtn = document.getElementById('authenticate');
+    const operationTypeSelect = document.getElementById('operation-type');
+    const moodPanel = document.getElementById('mood-update-panel');
+    const sendHugPanel = document.getElementById('send-hug-panel');
+    const requestHugPanel = document.getElementById('request-hug-panel');
+    const executeBtn = document.getElementById('execute');
+    
+    // Event Listeners
+    authMethodSelect.addEventListener('change', toggleAuthPanels);
+    authenticateBtn.addEventListener('click', authenticate);
+    operationTypeSelect.addEventListener('change', toggleMessagePanels);
+    executeBtn.addEventListener('click', executeOperation);
+    
+    // Toggle auth panels based on selection
+    function toggleAuthPanels() {
+      const method = authMethodSelect.value;
+      
+      tokenPanel.style.display = method === 'token' ? 'block' : 'none';
+      registerPanel.style.display = method === 'register' ? 'block' : 'none';
+      loginPanel.style.display = method === 'login' ? 'block' : 'none';
+    }
+    
+    // Toggle message panels based on selection
+    function toggleMessagePanels() {
+      const type = operationTypeSelect.value;
+      
+      moodPanel.style.display = type === 'mood_update' ? 'block' : 'none';
+      sendHugPanel.style.display = type === 'send_hug' ? 'block' : 'none';
+      requestHugPanel.style.display = type === 'request_hug' ? 'block' : 'none';
+    }
+    
+    // Authenticate with the server
+    async function authenticate() {
+      const method = authMethodSelect.value;
+      
+      try {
+        if (method === 'token') {
+          const token = document.getElementById('token').value.trim();
+          if (!token) {
+            logMessage('Token is required', 'error');
+            return;
+          }
+          
+          // Verify token using GraphQL
+          const query = `
+            query VerifyToken {
+              me {
+                id
+                username
+              }
+            }
+          `;
+          
+          const result = await executeGraphQLRequest(query, {}, token);
+          
+          if (result.data && result.data.me) {
+            currentUserId = result.data.me.id;
+            currentToken = token;
+            logMessage(`Authenticated as user: ${result.data.me.username} (${result.data.me.id})`, 'system');
+          } else {
+            logMessage('Invalid token', 'error');
+          }
+        } 
+        else if (method === 'register') {
+          const username = document.getElementById('register-username').value.trim();
+          const email = document.getElementById('register-email').value.trim();
+          const password = document.getElementById('register-password').value;
+          
+          if (!username || !email || !password) {
+            logMessage('All registration fields are required', 'error');
+            return;
+          }
+          
+          const mutation = `
+            mutation Register($input: RegisterInput!) {
+              register(input: $input) {
+                token
+                user {
+                  id
+                  username
+                  email
+                }
+              }
+            }
+          `;
+          
+          const variables = {
+            input: { username, email, password }
+          };
+          
+          const result = await executeGraphQLRequest(mutation, variables);
+          
+          if (result.data && result.data.register) {
+            currentUserId = result.data.register.user.id;
+            currentToken = result.data.register.token;
+            document.getElementById('token').value = currentToken;
+            logMessage(`Registered and authenticated as: ${username} (${currentUserId})`, 'system');
+          }
+        } 
+        else if (method === 'login') {
+          const email = document.getElementById('login-email').value.trim();
+          const password = document.getElementById('login-password').value;
+          
+          if (!email || !password) {
+            logMessage('Email/username and password are required', 'error');
+            return;
+          }
+          
+          const mutation = `
+            mutation Login($input: LoginInput!) {
+              login(input: $input) {
+                token
+                user {
+                  id
+                  username
+                  email
+                }
+              }
+            }
+          `;
+          
+          const variables = {
+            input: { email, password }
+          };
+          
+          const result = await executeGraphQLRequest(mutation, variables);
+          
+          if (result.data && result.data.login) {
+            currentUserId = result.data.login.user.id;
+            currentToken = result.data.login.token;
+            document.getElementById('token').value = currentToken;
+            logMessage(`Logged in as: ${result.data.login.user.username} (${currentUserId})`, 'system');
+          }
+        } 
+        else if (method === 'anonymous') {
+          const mutation = `
+            mutation StartAnonymousSession {
+              startAnonymousSession {
+                token
+                user {
+                  id
+                  username
+                }
+              }
+            }
+          `;
+          
+          const result = await executeGraphQLRequest(mutation);
+          
+          if (result.data && result.data.startAnonymousSession) {
+            currentUserId = result.data.startAnonymousSession.user.id;
+            currentToken = result.data.startAnonymousSession.token;
+            document.getElementById('token').value = currentToken;
+            logMessage(`Anonymous session started. User: ${result.data.startAnonymousSession.user.username} (${currentUserId})`, 'system');
+          }
+        }
+      } catch (error) {
+        logMessage(`Authentication error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Execute a GraphQL operation
+    async function executeOperation() {
+      const type = operationTypeSelect.value;
+      
+      try {
+        if (type === 'ping') {
+          const query = `
+            query Ping {
+              ping
+            }
+          `;
+          
+          const result = await executeGraphQLRequest(query);
+          logMessage(`Ping result: ${result.data ? result.data.ping : 'No response'}`, 'received');
+        } 
+        else if (type === 'mood_update') {
+          const mood = document.getElementById('mood').value.trim();
+          const intensity = parseInt(document.getElementById('intensity').value, 10);
+          const note = document.getElementById('note').value.trim();
+          const isPublic = document.getElementById('is-public').checked;
+          
+          if (!mood) {
+            logMessage('Mood is required', 'error');
+            return;
+          }
+          
+          const mutation = `
+            mutation UpdateMood($input: MoodInput!) {
+              updateMood(input: $input) {
+                id
+                mood
+                intensity
+                note
+                createdAt
+              }
+            }
+          `;
+          
+          const variables = {
+            input: {
+              mood,
+              intensity,
+              note: note || null,
+              isPublic
+            }
+          };
+          
+          const result = await executeGraphQLRequest(mutation, variables, currentToken);
+          
+          if (result.data && result.data.updateMood) {
+            logMessage(`Mood updated: ${result.data.updateMood.mood} (${result.data.updateMood.intensity}/10)`, 'received');
+          }
+        } 
+        else if (type === 'send_hug') {
+          const recipientId = document.getElementById('hug-recipient').value.trim();
+          const hugType = document.getElementById('hug-type').value.trim();
+          const hugMessage = document.getElementById('hug-message').value.trim();
+          
+          if (!recipientId || !hugType) {
+            logMessage('Recipient ID and hug type are required', 'error');
+            return;
+          }
+          
+          const mutation = `
+            mutation SendHug($input: HugInput!) {
+              sendHug(input: $input) {
+                id
+                type
+                message
+                sender {
+                  id
+                  username
+                }
+                recipient {
+                  id
+                  username
+                }
+                createdAt
+              }
+            }
+          `;
+          
+          const variables = {
+            input: {
+              recipientId,
+              type: hugType,
+              message: hugMessage || null
+            }
+          };
+          
+          const result = await executeGraphQLRequest(mutation, variables, currentToken);
+          
+          if (result.data && result.data.sendHug) {
+            logMessage(`Hug sent to: ${result.data.sendHug.recipient.username}`, 'received');
+          }
+        } 
+        else if (type === 'request_hug') {
+          const recipientId = document.getElementById('request-recipient').value.trim();
+          const urgency = document.getElementById('request-urgency').value;
+          const requestMessage = document.getElementById('request-message').value.trim();
+          
+          const mutation = `
+            mutation RequestHug($input: HugRequestInput!) {
+              requestHug(input: $input) {
+                id
+                urgency
+                message
+                requester {
+                  id
+                  username
+                }
+                recipient {
+                  id
+                  username
+                }
+                createdAt
+              }
+            }
+          `;
+          
+          const variables = {
+            input: {
+              recipientId: recipientId || null,
+              urgency,
+              message: requestMessage || null
+            }
+          };
+          
+          const result = await executeGraphQLRequest(mutation, variables, currentToken);
+          
+          if (result.data && result.data.requestHug) {
+            const recipient = result.data.requestHug.recipient 
+              ? result.data.requestHug.recipient.username 
+              : 'the community';
+            logMessage(`Hug requested from: ${recipient}`, 'received');
+          }
+        }
+        else if (type === 'get_me') {
+          const query = `
+            query GetCurrentUser {
+              me {
+                id
+                username
+                email
+                createdAt
+                lastActivity
+                streakInfo {
+                  currentStreak
+                  longestStreak
+                  lastActivity
+                }
+                stats {
+                  hugsGiven
+                  hugsReceived
+                  moodEntries
+                }
+              }
+            }
+          `;
+          
+          const result = await executeGraphQLRequest(query, {}, currentToken);
+          
+          if (result.data && result.data.me) {
+            logMessage(`User profile retrieved`, 'received');
+            logMessage(JSON.stringify(result.data.me, null, 2), 'received');
+          }
+        }
+        else if (type === 'get_mood_history') {
+          const query = `
+            query GetMoodHistory($limit: Int, $offset: Int) {
+              moodHistory(limit: $limit, offset: $offset) {
+                items {
+                  id
+                  mood
+                  intensity
+                  note
+                  createdAt
+                }
+                total
+                hasMore
+              }
+            }
+          `;
+          
+          const variables = {
+            limit: 10,
+            offset: 0
+          };
+          
+          const result = await executeGraphQLRequest(query, variables, currentToken);
+          
+          if (result.data && result.data.moodHistory) {
+            logMessage(`Mood history retrieved (${result.data.moodHistory.items.length} entries)`, 'received');
+            logMessage(JSON.stringify(result.data.moodHistory.items, null, 2), 'received');
+          }
+        }
+      } catch (error) {
+        logMessage(`GraphQL error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Execute a GraphQL request
+    async function executeGraphQLRequest(query, variables = {}, token = null) {
+      const requestBody = {
+        query,
+        variables
+      };
+      
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      try {
+        logMessage(`Sending GraphQL request: ${query.trim().split('\n')[0]}...`, 'sent');
+        
+        const response = await fetch(GRAPHQL_ENDPOINT, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestBody)
+        });
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
+        }
+        
+        return result;
+      } catch (error) {
+        logMessage(`GraphQL request error: ${error.message}`, 'error');
+        throw error;
+      }
+    }
+    
+    // Log a message to the UI
+    function logMessage(text, type) {
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${type}`;
+      
+      // Pretty-print JSON objects
+      if (typeof text === 'object') {
+        const pre = document.createElement('pre');
+        pre.textContent = JSON.stringify(text, null, 2);
+        messageEl.appendChild(pre);
+      } else {
+        messageEl.textContent = text;
+      }
+      
+      messagesEl.appendChild(messageEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    
+    // Initial setup
+    toggleAuthPanels();
+    toggleMessagePanels();
+    logMessage('GraphQL test page loaded. You can execute GraphQL operations now.', 'system');
+  </script>
+</body>
+</html>

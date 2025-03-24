@@ -1,0 +1,82 @@
+graphql-bridge.js:2 GraphQL Bridge loaded
+bundle.js:2 Bundle.js loaded
+bundle.js:8 Found root element, initializing React app
+(index):1002 Using GraphQL WebSockets: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+main.chunk.js:2 Main chunk loaded
+main.chunk.js:39 Initializing GraphQL connection
+main.chunk.js:65 Falling back to WebSocket connection: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+bundle.js:19 Main chunk loaded
+graphql-bridge.js:6 Initializing GraphQL Bridge
+(index):1038 ServiceWorker registration successful with scope: https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/
+graphql-bridge.js:16 GraphQL client being initialized via bridge
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+graphql-bridge.js:234 GraphQL Bridge setup complete
+(index):1003 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+(anonymous) @ (index):1003
+(index):1014 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+socket.onerror @ (index):1014
+(index):1018 WebSocket connection closed
+main.chunk.js:67 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:67
+setupPageEventHandlers @ main.chunk.js:764
+renderApp @ main.chunk.js:755
+(anonymous) @ main.chunk.js:945
+main.chunk.js:173 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:173
+main.chunk.js:175 WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:175
+main.chunk.js:158 WebSocket disconnected
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ graphql-bridge.js:49
+initialize @ graphql-bridge.js:33
+(anonymous) @ graphql-bridge.js:232
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+main.chunk.js:39 Initializing GraphQL connection
+graphql-bridge.js:16 GraphQL client being initialized via bridge
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+main.chunk.js:48 GraphQL client initialized successfully
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ graphql-bridge.js:49
+initialize @ graphql-bridge.js:33
+connectWebSocket @ main.chunk.js:46
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ graphql-bridge.js:49
+(anonymous) @ graphql-bridge.js:96
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ graphql-bridge.js:49
+(anonymous) @ graphql-bridge.js:96
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ graphql-bridge.js:49
+(anonymous) @ graphql-bridge.js:96
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ graphql-bridge.js:49
+(anonymous) @ graphql-bridge.js:96
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql
+graphql-bridge.js:49 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ graphql-bridge.js:49
+(anonymous) @ graphql-bridge.js:96
+graphql-bridge.js:100 GraphQL WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ graphql-bridge.js:100
+graphql-bridge.js:85 GraphQL WebSocket disconnected
+graphql-bridge.js:46 GraphQL Bridge connecting to: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/graphql

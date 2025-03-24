@@ -1,0 +1,620 @@
+"""
+HugMood GraphQL Schema
+This schema defines the complete GraphQL API for the HugMood application,
+replacing the WebSocket-based communication with a modern GraphQL architecture.
+"""
+
+scalar DateTime
+scalar JSON
+
+"""
+User type representing a HugMood user
+"""
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  displayName: String
+  profileImage: String
+  bio: String
+  currentMood: String
+  isOnline: Boolean!
+  lastActive: DateTime
+  isPremium: Boolean!
+  premiumUntil: DateTime
+  theme: String
+  notificationSettings: JSON
+  isAnonymous: Boolean!
+  isArtist: Boolean
+  isVerified: Boolean
+  isPrivate: Boolean
+  therapyModeEnabled: Boolean
+  createdAt: DateTime!
+  updatedAt: DateTime
+  followersCount: Int!
+  followingCount: Int!
+}
+
+"""
+Mood entry for tracking emotional state
+"""
+type Mood {
+  id: ID!
+  userId: ID!
+  user: User
+  value: String!
+  score: Int!
+  note: String
+  isPublic: Boolean!
+  relatedActivities: [String]
+  location: String
+  weather: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+"""
+Hug sent from one user to another
+"""
+type Hug {
+  id: ID!
+  senderId: ID!
+  sender: User
+  recipientId: ID!
+  recipient: User
+  type: String!
+  message: String
+  viewed: Boolean
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+"""
+Request for a hug from the community
+"""
+type HugRequest {
+  id: ID!
+  userId: ID!
+  user: User
+  message: String
+  mood: String
+  isPublic: Boolean!
+  status: HugRequestStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+"""
+Group hug for multiple participants
+"""
+type GroupHug {
+  id: ID!
+  name: String!
+  creatorId: ID!
+  creator: User
+  description: String
+  totalParticipants: Int!
+  participants: [GroupHugParticipant]
+  expiresAt: DateTime
+  status: GroupHugStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+"""
+Group hug participant
+"""
+type GroupHugParticipant {
+  id: ID!
+  groupHugId: ID!
+  userId: ID!
+  user: User
+  joinedAt: DateTime!
+  status: ParticipantStatus!
+}
+
+"""
+User mood tracking streak
+"""
+type UserStreak {
+  id: ID!
+  userId: ID!
+  user: User
+  currentStreak: Int!
+  longestStreak: Int!
+  totalDays: Int!
+  lastUpdated: DateTime!
+  streakPoints: Int!
+  milestoneReached: Int
+}
+
+"""
+Badge earned by a user
+"""
+type Badge {
+  id: ID!
+  name: String!
+  description: String!
+  category: BadgeCategory!
+  tier: BadgeTier!
+  imageUrl: String
+  criteria: JSON
+  createdAt: DateTime!
+}
+
+"""
+Badge earned by a user
+"""
+type UserBadge {
+  id: ID!
+  userId: ID!
+  user: User
+  badgeId: ID!
+  badge: Badge
+  earnedAt: DateTime!
+}
+
+"""
+A follow relationship between users
+"""
+type Follow {
+  id: ID!
+  followerId: ID!
+  follower: User
+  followingId: ID!
+  following: User
+  createdAt: DateTime!
+}
+
+"""
+Media hug (image, GIF, video)
+"""
+type MediaHug {
+  id: ID!
+  hugId: ID!
+  hug: Hug
+  mediaUrl: String!
+  mediaType: MediaType!
+  duration: Int
+  thumbnail: String
+  createdAt: DateTime!
+}
+
+"""
+Streak reward for milestone achievement
+"""
+type StreakReward {
+  id: ID!
+  type: RewardType!
+  description: String!
+  milestoneDay: Int!
+  value: Int
+  imageUrl: String
+  createdAt: DateTime!
+}
+
+"""
+Wellness activity tracking
+"""
+type WellnessActivity {
+  id: ID!
+  userId: ID!
+  user: User
+  activityType: ActivityType!
+  relatedEntityId: ID
+  metadata: JSON
+  createdAt: DateTime!
+}
+
+"""
+User profile with mood history and stats
+"""
+type UserProfile {
+  user: User!
+  moods: [Mood!]!
+  moodStreak: UserStreak!
+  badges: [UserBadge!]!
+  stats: UserStats!
+}
+
+"""
+User statistics summary
+"""
+type UserStats {
+  hugsGiven: Int!
+  hugsReceived: Int!
+  moodEntries: Int!
+  avgMoodScore: Float
+  completionRate: Float!
+}
+
+"""
+Mood analytics data
+"""
+type MoodAnalytics {
+  userId: ID!
+  timeRange: Int!
+  moodFrequency: JSON!
+  moodByDayOfWeek: JSON!
+  moodByTimeOfDay: JSON!
+  averageScore: Float!
+  dominantMood: String!
+  trendDirection: String!
+  variability: String!
+  correlations: JSON
+  insights: [Insight!]!
+  recommendations: [Recommendation!]!
+}
+
+"""
+Insight based on mood data
+"""
+type Insight {
+  id: ID!
+  title: String!
+  description: String!
+  type: InsightType!
+  data: JSON
+}
+
+"""
+Recommendation based on mood data
+"""
+type Recommendation {
+  id: ID!
+  title: String!
+  description: String!
+  type: RecommendationType!
+  actionable: Boolean!
+  data: JSON
+}
+
+"""
+User status update notification
+"""
+type UserStatusUpdate {
+  userId: ID!
+  isOnline: Boolean!
+  lastActive: DateTime
+}
+
+"""
+Streak milestone notification
+"""
+type StreakMilestone {
+  userId: ID!
+  currentStreak: Int!
+  milestoneLevel: Int!
+  rewards: [StreakReward!]
+}
+
+"""
+Badge earned notification
+"""
+type BadgeEarned {
+  userId: ID!
+  badge: Badge!
+  earnedAt: DateTime!
+}
+
+"""
+Community feed item interface
+"""
+interface FeedItem {
+  id: ID!
+  createdAt: DateTime!
+  userId: ID!
+}
+
+"""
+Mood feed item
+"""
+type MoodFeedItem implements FeedItem {
+  id: ID!
+  createdAt: DateTime!
+  userId: ID!
+  user: User!
+  mood: Mood!
+}
+
+"""
+Hug feed item
+"""
+type HugFeedItem implements FeedItem {
+  id: ID!
+  createdAt: DateTime!
+  userId: ID!
+  user: User!
+  hug: Hug!
+}
+
+"""
+Achievement feed item
+"""
+type AchievementFeedItem implements FeedItem {
+  id: ID!
+  createdAt: DateTime!
+  userId: ID!
+  user: User!
+  achievement: UserBadge!
+}
+
+"""
+Hug request feed item
+"""
+type HugRequestFeedItem implements FeedItem {
+  id: ID!
+  createdAt: DateTime!
+  userId: ID!
+  user: User!
+  request: HugRequest!
+}
+
+"""
+Authentication result
+"""
+type AuthResult {
+  token: String!
+  user: User!
+}
+
+"""
+Generic operation result
+"""
+type OperationResult {
+  success: Boolean!
+  message: String
+  data: JSON
+}
+
+"""
+Token verification result
+"""
+type TokenVerificationResult {
+  isValid: Boolean!
+  user: User
+}
+
+# Enums
+enum HugRequestStatus {
+  PENDING
+  FULFILLED
+  EXPIRED
+}
+
+enum GroupHugStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+}
+
+enum ParticipantStatus {
+  JOINED
+  LEFT
+}
+
+enum BadgeCategory {
+  MOOD_TRACKING
+  HUGS
+  SOCIAL
+  STREAK
+  SPECIAL
+}
+
+enum BadgeTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum MediaType {
+  IMAGE
+  GIF
+  VIDEO
+  AUDIO
+}
+
+enum RewardType {
+  BADGE
+  THEME
+  FEATURE
+  PREMIUM_DAYS
+}
+
+enum ActivityType {
+  MOOD_UPDATE
+  SEND_HUG
+  RECEIVE_HUG
+  JOIN_GROUP_HUG
+  SOCIAL_SHARE
+}
+
+enum InsightType {
+  PATTERN
+  CORRELATION
+  IMPROVEMENT
+  MILESTONE
+  TIP
+}
+
+enum RecommendationType {
+  ACTIVITY
+  SOCIAL
+  MOOD_MANAGEMENT
+  HABIT
+  RESOURCE
+}
+
+# Input Types
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RegisterInput {
+  username: String!
+  email: String!
+  password: String!
+  displayName: String
+}
+
+input CreateMoodInput {
+  value: String!
+  score: Int!
+  note: String
+  isPublic: Boolean
+}
+
+input SendHugInput {
+  recipientId: ID!
+  type: String!
+  message: String
+}
+
+input RequestHugInput {
+  message: String
+  mood: String
+  isPublic: Boolean
+}
+
+input CreateGroupHugInput {
+  name: String!
+  description: String
+  initialParticipantIds: [ID!]
+  expiresInHours: Int
+}
+
+input FollowUserInput {
+  targetUserId: ID!
+  action: String! # 'follow' or 'unfollow'
+}
+
+input ShareToSocialInput {
+  platform: String!
+  contentType: String!
+  contentId: ID!
+  text: String
+}
+
+input FetchDataInput {
+  dataType: String!
+  params: JSON
+}
+
+input MoodAnalyticsInput {
+  userId: ID!
+  timeRange: Int
+  includeCorrelations: Boolean
+}
+
+input FeedQueryInput {
+  limit: Int
+  offset: Int
+  filter: String
+}
+
+# Queries
+type Query {
+  # Health check
+  healthCheck: String!
+  
+  # Authentication
+  verifyToken(token: String!): TokenVerificationResult!
+  
+  # Current user
+  me: User!
+  
+  # User profile
+  userProfile(userId: ID!): UserProfile!
+  
+  # User data
+  user(id: ID!): User
+  
+  # Mood history
+  moodHistory(userId: ID!, limit: Int, offset: Int): [Mood!]!
+  
+  # Mood analytics
+  moodAnalytics(input: MoodAnalyticsInput!): MoodAnalytics!
+  
+  # Hugs
+  hugs(userId: ID!, type: String, limit: Int, offset: Int): [Hug!]!
+  
+  # Group hugs
+  groupHugs(status: GroupHugStatus, limit: Int, offset: Int): [GroupHug!]!
+  
+  # Active hug requests
+  hugRequests(isPublic: Boolean, status: HugRequestStatus, limit: Int): [HugRequest!]!
+  
+  # User badges
+  userBadges(userId: ID!): [UserBadge!]!
+  
+  # Available badges
+  availableBadges(category: BadgeCategory): [Badge!]!
+  
+  # User streak info
+  userStreak(userId: ID!): UserStreak!
+  
+  # Community feed
+  communityFeed(input: FeedQueryInput): [FeedItem!]!
+  
+  # Following feed
+  followingFeed(input: FeedQueryInput): [FeedItem!]!
+}
+
+# Mutations
+type Mutation {
+  # Authentication
+  login(input: LoginInput!): AuthResult!
+  register(input: RegisterInput!): AuthResult!
+  createAnonymousSession(nickname: String): AuthResult!
+  validateToken(token: String!): TokenVerificationResult!
+  
+  # Mood tracking
+  createMood(input: CreateMoodInput!): Mood!
+  
+  # Hugs
+  sendHug(input: SendHugInput!): Hug!
+  requestHug(input: RequestHugInput!): HugRequest!
+  respondToHugRequest(requestId: ID!, response: String!, message: String): OperationResult!
+  
+  # Group hugs
+  createGroupHug(input: CreateGroupHugInput!): GroupHug!
+  joinGroupHug(groupHugId: ID!): OperationResult!
+  leaveGroupHug(groupHugId: ID!): OperationResult!
+  
+  # Social features
+  followUser(input: FollowUserInput!): OperationResult!
+  shareToSocial(input: ShareToSocialInput!): OperationResult!
+  
+  # Data fetching
+  fetchData(input: FetchDataInput!): JSON!
+  
+  # User management
+  updateProfile(displayName: String, bio: String, profileImage: String): User!
+  updateSettings(theme: String, notificationSettings: JSON): OperationResult!
+}
+
+# Subscriptions
+type Subscription {
+  # Real-time mood updates
+  moodUpdated(userId: ID!): Mood!
+  
+  # Received hugs
+  hugReceived(userId: ID!): Hug!
+  
+  # New hug requests
+  hugRequestCreated(isPublic: Boolean): HugRequest!
+  
+  # User status changes
+  userStatusChanged(userId: ID): UserStatusUpdate!
+  
+  # Streak milestones
+  streakMilestoneReached(userId: ID!): StreakMilestone!
+  
+  # Badge earned
+  badgeEarned(userId: ID!): BadgeEarned!
+  
+  # Group hug updates
+  groupHugUpdated(userId: ID!): GroupHug!
+}

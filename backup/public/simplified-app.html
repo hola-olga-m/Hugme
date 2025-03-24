@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HugMood - Simplified React App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .app-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .mood-tracker {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+    .mood-buttons {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    .mood-button {
+      padding: 10px 15px;
+      background: #7c5cbf;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      margin: 5px;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .mood-button:hover {
+      transform: scale(1.05);
+      background: #67499e;
+    }
+    .note-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      resize: none;
+    }
+    .current-mood {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .submit-button {
+      background: #43a047;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .submit-button:hover {
+      background: #388e3c;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    header h1 {
+      margin: 0;
+      color: #7c5cbf;
+    }
+    .user-menu {
+      cursor: pointer;
+      background: #7c5cbf;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main app container -->
+  <div id="root"></div>
+  
+  <!-- Simplified GraphQL Mock -->
+  <script>
+    console.log('Setting up mock GraphQL service');
+    window.graphqlService = {
+      initialized: true,
+      initialize: function() {
+        console.log('Mock GraphQL service initialized');
+        return true;
+      },
+      setAuthToken: function(token) {
+        console.log('Auth token set:', token);
+        this.token = token;
+      },
+      clearAuthToken: function() {
+        console.log('Auth token cleared');
+        this.token = null;
+      },
+      executeQuery: function(query, variables) {
+        console.log('GraphQL query executed:', query, variables);
+        return Promise.resolve({
+          success: true,
+          data: {
+            // Mock data
+            currentUser: {
+              id: 'user123',
+              username: 'testuser',
+              displayName: 'Test User'
+            }
+          }
+        });
+      },
+      executeMutation: function(mutation, variables) {
+        console.log('GraphQL mutation executed:', mutation, variables);
+        if (mutation.includes('login')) {
+          return Promise.resolve({
+            login: {
+              token: 'mock-auth-token',
+              user: {
+                id: 'user123',
+                username: 'testuser',
+                displayName: 'Test User',
+                isAnonymous: false
+              }
+            }
+          });
+        }
+        return Promise.resolve({
+          success: true
+        });
+      }
+    };
+  </script>
+
+  <!-- Load our simplified React loader -->
+  <script src="/static/js/simplified-react-loader.js"></script>
+</body>
+</html>

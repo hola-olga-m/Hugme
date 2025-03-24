@@ -1,0 +1,91 @@
+{
+  "expo": {
+    "name": "HugMood",
+    "slug": "hugmood",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8F2F6"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hugmood.app",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera for AR hug experiences",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photos to let you share and personalize hugs",
+        "NSPhotoLibraryAddUsageDescription": "This app saves photos to your library when you save hug animations",
+        "NSMotionUsageDescription": "This app uses motion detection for interactive hug experiences",
+        "UIRequiredDeviceCapabilities": [
+          "armv7",
+          "arkit"
+        ],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      },
+      "config": {
+        "googleSignIn": {
+          "reservedClientId": "GOOGLE_OAUTH_CLIENT_ID"
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F8F2F6"
+      },
+      "package": "com.hugmood.app",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "VIBRATE",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow HugMood to access your camera to create AR hug experiences"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E684AE",
+          "sounds": [
+            "./assets/notification.wav",
+            "./assets/hug-notification.wav"
+          ]
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow HugMood to access your photos to personalize your hug experiences"
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#E684AE"
+    }
+  }
+}

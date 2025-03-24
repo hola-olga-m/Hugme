@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .main { fill: #F5F5F5 }
+    .accent-1 { fill: #7E57C2 }
+    .accent-2 { fill: #5C6BC0 }
+    .accent-3 { fill: #FF7043 }
+    .face { fill: #FFD54F }
+    .outline { fill: #424242 }
+    .shadow { fill: #E0E0E0 }
+    .paper { fill: #FFFFFF }
+  </style>
+  
+  <!-- Background -->
+  <ellipse class="shadow" cx="125" cy="175" rx="90" ry="10" opacity="0.3"/>
+  
+  <!-- Character with paper plane -->
+  <g transform="translate(60, 40)">
+    <circle class="accent-2" cx="30" cy="30" r="25"/>
+    <path class="outline" d="M30 60C44.8 60 50 45 50 30C50 15 40 0 30 0C20 0 10 15 10 30C10 45 15.2 60 30 60Z" fill-opacity="0.1"/>
+    
+    <!-- Face -->
+    <circle class="face" cx="30" cy="25" r="18"/>
+    <circle class="outline" cx="23" cy="22" r="2"/>
+    <circle class="outline" cx="37" cy="22" r="2"/>
+    <path class="outline" d="M25 32C28.3333 35.3333 31.6667 35.3333 35 32" stroke="#424242" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Paper airplane -->
+  <g transform="translate(125, 60) rotate(30)">
+    <path class="paper" d="M0 0L60 25L40 40L0 0Z"/>
+    <path class="accent-1" d="M0 0L40 40L30 50L0 0Z"/>
+    <path class="outline" d="M0 0L60 25L40 40L30 50L0 0Z" stroke="#424242" stroke-width="1"/>
+  </g>
+  
+  <!-- Outbox icon -->
+  <g transform="translate(160, 130)">
+    <rect class="accent-3" x="0" y="0" width="40" height="30" rx="3"/>
+    <path class="paper" d="M5 5H35V25H5V5Z"/>
+    <path class="outline" d="M15 15L20 10L25 15" stroke="#424242" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="10" x2="20" y2="20" stroke="#424242" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Motion lines -->
+  <path class="outline" d="M140 90C145 88 150 85 155 83" stroke="#424242" stroke-width="1" stroke-dasharray="3,3"/>
+  <path class="outline" d="M150 100C155 98 160 95 165 93" stroke="#424242" stroke-width="1" stroke-dasharray="3,3"/>
+  <path class="outline" d="M160 110C165 108 170 105 175 103" stroke="#424242" stroke-width="1" stroke-dasharray="3,3"/>
+  
+  <!-- Zero indicator -->
+  <circle class="accent-1" cx="190" cy="50" r="15"/>
+  <text x="185" y="55" font-family="Arial" font-size="16" fill="white" font-weight="bold">0</text>
+</svg>

@@ -1,0 +1,68 @@
+bundle.js:2 Bundle.js loaded
+bundle.js:2 Bundle.js loaded
+bundle.js:8 Found root element, initializing React app
+bundle.js:8 Found root element, initializing React app
+main.chunk.js:2 Main chunk loaded
+bundle.js:19 Main chunk loaded
+main.chunk.js:1 Uncaught SyntaxError: Identifier 'userState' has already been declared (at main.chunk.js:1:1)
+bundle.js:19 Main chunk loaded
+login:1058 ServiceWorker registration successful with scope: https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/
+login:1148 ServiceWorker registration successful with scope: https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/
+login:1026 WebSocket connection established
+login:1030 WebSocket message received: {"type":"welcome","message":"Connected to HugMood WebSocket server"}
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}isTrusted: truebubbles: falsecancelBubble: falsecancelable: falsecomposed: falsecurrentTarget: WebSocket {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/', readyState: 3, bufferedAmount: 0, onopen: ƒ, onerror: ƒ, …}defaultPrevented: falseeventPhase: 0returnValue: truesrcElement: WebSocket {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/', readyState: 3, bufferedAmount: 0, onopen: ƒ, onerror: ƒ, …}target: WebSocket {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/', readyState: 3, bufferedAmount: 0, onopen: ƒ, onerror: ƒ, …}timeStamp: 11517.600000023842type: "error"[[Prototype]]: Event
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+login:1030 WebSocket message received: {"type":"pong"}
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+ WebSocket disconnected
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+ WebSocket disconnected
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+ WebSocket disconnected
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 400
+connectWebSocket @ main.chunk.js:37
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+ WebSocket disconnected

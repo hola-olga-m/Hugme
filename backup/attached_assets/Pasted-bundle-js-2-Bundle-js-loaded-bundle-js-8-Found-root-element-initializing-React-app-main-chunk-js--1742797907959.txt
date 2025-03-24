@@ -1,0 +1,34 @@
+bundle.js:2 Bundle.js loaded
+bundle.js:8 Found root element, initializing React app
+main.chunk.js:2 Main chunk loaded
+main.chunk.js:39 Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+bundle.js:19 Main chunk loaded
+(index):1028 ServiceWorker registration successful with scope: https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/
+(index):996 WebSocket connection established
+(index):1000 WebSocket message received: {"type":"welcome","message":"Connected to HugMood WebSocket server"}
+main.chunk.js:51 WebSocket connected
+main.chunk.js:80 Received message: {type: 'welcome', message: 'Connected to HugMood WebSocket server'}
+main.chunk.js:110 Connected to server: Connected to HugMood WebSocket server
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}
+Warning: Don’t paste code into the DevTools Console that you don’t understand or haven’t reviewed yourself. This could allow attackers to steal your identity or take control of your computer. Please type ‘allow pasting’ below and hit Enter to allow pasting.
+Warning: Don’t paste code into the DevTools Console that you don’t understand or haven’t reviewed yourself. This could allow attackers to steal your identity or take control of your computer. Please type ‘allow pasting’ below and hit Enter to allow pasting.
+(index):1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:56 Sending ping to keep connection alive
+main.chunk.js:80 Received message: {type: 'pong'}

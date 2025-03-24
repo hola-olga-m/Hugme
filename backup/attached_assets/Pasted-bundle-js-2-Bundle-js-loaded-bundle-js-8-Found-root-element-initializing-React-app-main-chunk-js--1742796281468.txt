@@ -1,0 +1,28 @@
+bundle.js:2 Bundle.js loaded
+bundle.js:8 Found root element, initializing React app
+main.chunk.js:2 Main chunk loaded
+bundle.js:19 Main chunk loaded
+app:1028 ServiceWorker registration successful with scope: https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/
+app:993 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+(anonymous) @ app:993
+app:1004 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+socket.onerror @ app:1004
+app:1008 WebSocket connection closed
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:37
+setupPageEventHandlers @ main.chunk.js:529
+renderApp @ main.chunk.js:520
+(anonymous) @ main.chunk.js:710
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected
+main.chunk.js:37 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:37
+main.chunk.js:83 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:83
+main.chunk.js:76 WebSocket disconnected

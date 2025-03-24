@@ -1,0 +1,318 @@
+"""
+Mood Service GraphQL Schema
+Provides types and operations for mood tracking and analytics
+"""
+
+# Custom scalar for JSON data
+scalar JSON
+
+# Service information for health checks and gateway
+type ServiceInfo {
+  name: String!
+  version: String!
+  status: String!
+}
+
+# Location data for mood entries
+type Location {
+  latitude: Float
+  longitude: Float
+  name: String
+}
+
+# Mood entry
+type Mood {
+  id: ID!
+  userId: ID!
+  value: String!
+  score: Int
+  note: String
+  isPublic: Boolean!
+  location: JSON
+  activities: [String!]
+  correlationData: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
+# Mood list response with pagination
+type MoodList {
+  moods: [Mood!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+# Daily mood entry for history
+type DailyMood {
+  date: String!
+  value: String
+  score: Int
+  note: String
+}
+
+# Mood frequency data for analytics
+type MoodFrequency {
+  mood: String!
+  count: Int!
+  percentage: Float!
+}
+
+# Summary of mood history
+type MoodHistorySummary {
+  averageScore: Float
+  moodFrequency: [MoodFrequency!]
+  startDate: String!
+  endDate: String!
+}
+
+# Mood history response
+type MoodHistory {
+  days: [DailyMood!]!
+  summary: MoodHistorySummary!
+}
+
+# Mood streak tracking
+type MoodStreak {
+  id: ID!
+  userId: ID!
+  currentStreak: Int!
+  longestStreak: Int!
+  lastRecordedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+# Day of week mood patterns
+type DayOfWeekMood {
+  day: String!
+  average: Float
+  count: Int!
+  scores: [Int!]
+}
+
+# Time of day mood patterns
+type TimeOfDayMood {
+  period: String!
+  average: Float
+  count: Int!
+  scores: [Int!]
+}
+
+# Mood metrics for analytics
+type MoodMetrics {
+  moodFrequency: JSON!
+  moodByDayOfWeek: [DayOfWeekMood!]!
+  moodByTimeOfDay: [TimeOfDayMood!]!
+}
+
+# Correlation data for mood analytics
+type MoodCorrelations {
+  activities: JSON
+  sleep: JSON
+  weather: JSON
+  screenTime: JSON
+}
+
+# Mood statistics
+type MoodStatistics {
+  totalEntries: Int!
+  uniqueMoods: Int!
+  currentStreak: Int!
+  longestStreak: Int!
+  averageScore: Float!
+  moodVariability: String!
+  dominantMood: String!
+  improvementTrend: String!
+}
+
+# Mood insight
+type MoodInsight {
+  id: ID!
+  userId: ID!
+  type: String!
+  title: String!
+  description: String
+  data: JSON
+  priority: String!
+  isRead: Boolean!
+  createdAt: String!
+}
+
+# Mood recommendation
+type MoodRecommendation {
+  type: String!
+  title: String!
+  description: String!
+  priority: String!
+}
+
+# Complete mood analytics response
+type MoodAnalytics {
+  userId: ID!
+  timeRange: Int!
+  moodEntries: [Mood!]!
+  statistics: MoodStatistics!
+  metrics: MoodMetrics!
+  correlations: MoodCorrelations
+  insights: [MoodInsight!]!
+  recommendations: [MoodRecommendation!]!
+}
+
+# Mood reminder
+type MoodReminder {
+  id: ID!
+  userId: ID!
+  time: String!
+  days: [Int!]!
+  isEnabled: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+# User wellness activity
+type UserActivity {
+  id: ID!
+  userId: ID!
+  activityType: String!
+  duration: Int
+  metadata: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
+# Social sharing result
+type SocialShareResult {
+  success: Boolean!
+  message: String!
+  url: String
+}
+
+# Input for creating a new mood entry
+input CreateMoodInput {
+  value: String!
+  score: Int
+  note: String
+  isPublic: Boolean
+  location: JSON
+  activities: [String!]
+}
+
+# Input for updating a mood entry
+input UpdateMoodInput {
+  value: String
+  score: Int
+  note: String
+  isPublic: Boolean
+  location: JSON
+  activities: [String!]
+}
+
+# Input for setting up mood reminders
+input MoodReminderInput {
+  time: String!
+  days: [Int!]
+  isEnabled: Boolean
+}
+
+# Input for recording user activities
+input UserActivityInput {
+  activityType: String!
+  duration: Int
+  metadata: JSON
+}
+
+# Input for social sharing
+input SocialShareInput {
+  platform: String!
+  contentType: String!
+  contentId: String!
+  text: String
+}
+
+# Query root type
+type Query {
+  # Get a specific mood entry by ID
+  mood(id: ID!): Mood
+  
+  # Get a list of moods for a user with pagination
+  moods(
+    userId: ID!
+    limit: Int
+    offset: Int
+    startDate: String
+    endDate: String
+  ): MoodList!
+  
+  # Get mood history for a user over a period
+  moodHistory(
+    userId: ID!
+    period: String
+  ): MoodHistory!
+  
+  # Get streak information for a user
+  moodStreak(userId: ID!): MoodStreak!
+  
+  # Get advanced mood analytics
+  moodAnalytics(
+    userId: ID!
+    timeRange: Int
+    includeCorrelations: Boolean
+  ): MoodAnalytics!
+  
+  # Get mood insights for a user
+  moodInsights(
+    userId: ID!
+    limit: Int
+    offset: Int
+  ): [MoodInsight!]!
+  
+  # Get mood reminders for a user
+  moodReminders(userId: ID!): [MoodReminder!]!
+  
+  # Get public moods for the community feed
+  communityMoods(
+    limit: Int
+    offset: Int
+  ): MoodList!
+  
+  # Get user wellness activities
+  userActivities(
+    userId: ID!
+    type: String
+    limit: Int
+    offset: Int
+  ): [UserActivity!]!
+  
+  # Get service information for health checks
+  _service: ServiceInfo!
+}
+
+# Mutation root type
+type Mutation {
+  # Create a new mood entry
+  createMood(input: CreateMoodInput!): Mood!
+  
+  # Update an existing mood entry
+  updateMood(id: ID!, input: UpdateMoodInput!): Mood!
+  
+  # Delete a mood entry
+  deleteMood(id: ID!): Boolean!
+  
+  # Set up a mood reminder
+  setupMoodReminder(input: MoodReminderInput!): MoodReminder!
+  
+  # Update a mood reminder
+  updateMoodReminder(id: ID!, input: MoodReminderInput!): MoodReminder!
+  
+  # Delete a mood reminder
+  deleteMoodReminder(id: ID!): Boolean!
+  
+  # Record a user activity for correlation analysis
+  recordUserActivity(input: UserActivityInput!): UserActivity!
+  
+  # Mark an insight as read
+  markInsightAsRead(id: ID!): Boolean!
+  
+  # Share mood content to social platforms
+  shareToSocial(input: SocialShareInput!): SocialShareResult!
+}

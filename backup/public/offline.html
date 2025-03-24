@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#E684AE">
+  <title>HugMood - Offline</title>
+  <style>
+    :root {
+      --primary-color: #7C5CBF;
+      --primary-light: #9879D9;
+      --primary-dark: #5E44A0;
+      --secondary-color: #FF5E7D;
+      --secondary-light: #FF8CA3;
+      --secondary-dark: #D33C5C;
+      --background-color: #F8F5FE;
+      --background-alt: #EEE6FF;
+      --text-color: #333333;
+      --text-light: #666666;
+      --text-dark: #111111;
+      --white: #FFFFFF;
+      --box-shadow: 0px 8px 24px rgba(124, 92, 191, 0.15);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    
+    .offline-container {
+      padding: 2rem;
+      max-width: 500px;
+    }
+    
+    .offline-icon {
+      font-size: 5rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+    }
+    
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+    
+    p {
+      margin-bottom: 1.5rem;
+      color: var(--text-light);
+    }
+    
+    .offline-btn {
+      padding: 0.8rem 1.5rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+    
+    .offline-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-3px);
+    }
+    
+    .offline-features {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .offline-feature {
+      background-color: var(--white);
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .offline-feature h3 {
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+    }
+    
+    @media (min-width: 600px) {
+      .offline-features {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+      </svg>
+    </div>
+    <h1>You're Offline</h1>
+    <p>It looks like you don't have an internet connection right now. Some features of HugMood may be unavailable until you're back online.</p>
+    
+    <button class="offline-btn" onclick="window.location.reload()">Try Again</button>
+    
+    <div class="offline-features">
+      <div class="offline-feature">
+        <h3>Available Offline</h3>
+        <p>View your recent mood history and saved hugs</p>
+      </div>
+      <div class="offline-feature">
+        <h3>Coming Back Soon</h3>
+        <p>Your changes will sync when you're back online</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+sources:
+  - name: HugMoodAPI
+    handler:
+      graphql:
+        endpoint: http://localhost:5000/graphql
+    transforms:
+      - prefixTypes:
+          prefix: HugMood_
+          ignore:
+            - Query
+            - Mutation
+            - Subscription
+
+  - name: UserService
+    handler:
+      graphql:
+        endpoint: http://localhost:5001/graphql
+    transforms:
+      - prefixTypes:
+          prefix: User_
+          ignore:
+            - Query
+            - Mutation
+            - Subscription
+
+  - name: MoodService
+    handler:
+      graphql:
+        endpoint: http://localhost:5002/graphql
+    transforms:
+      - prefixTypes:
+          prefix: Mood_
+          ignore:
+            - Query
+            - Mutation
+            - Subscription
+
+  - name: HugService
+    handler:
+      graphql:
+        endpoint: http://localhost:5003/graphql
+    transforms:
+      - prefixTypes:
+          prefix: Hug_
+          ignore:
+            - Query
+            - Mutation
+            - Subscription
+
+  - name: AnalyticsService
+    handler:
+      graphql:
+        endpoint: http://localhost:5004/graphql
+    transforms:
+      - prefixTypes:
+          prefix: Analytics_
+          ignore:
+            - Query
+            - Mutation
+            - Subscription
+
+additionalTypeDefs: |
+  extend type HugMood_Mood {
+    user: User_User
+  }
+  
+  extend type HugMood_Hug {
+    sender: User_User
+    recipient: User_User
+  }
+  
+  extend type HugMood_GroupHug {
+    creator: User_User
+  }
+  
+  extend type HugMood_GroupHugParticipant {
+    user: User_User
+  }
+  
+  extend type Mood_MoodInsight {
+    relatedMoods: [HugMood_Mood]
+  }
+  
+  extend type Hug_HugRequestResponse {
+    responder: User_User
+  }
+
+additionalResolvers:
+  - "./mesh/resolvers.js"
+
+serve:
+  browser: true
+  playground: true
+  cors:
+    origin: "*"
+    credentials: true

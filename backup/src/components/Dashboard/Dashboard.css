@@ -1,0 +1,138 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.dashboard-header h1 {
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 2rem;
+}
+
+.dashboard-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.dashboard-section {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-section h2 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.mood-stats {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  background-color: var(--bg-light);
+  border-radius: 8px;
+}
+
+.mood-stats p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.recent-hugs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.recent-hug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.recent-hug-item:last-child {
+  border-bottom: none;
+}
+
+.hug-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.hug-type {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.hug-sender {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.empty-list {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.primary-button {
+  display: block;
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primary-button:hover {
+  background-color: var(--primary-color-dark);
+}
+
+/* Medium screens and above */
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .mood-section {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .mood-section {
+    grid-column: span 1;
+  }
+  
+  .community-section {
+    grid-column: span 3;
+  }
+}

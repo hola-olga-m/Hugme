@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>HugMood GraphQL Playground</title>
+  <meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphql-playground-react/build/static/css/index.css" />
+  <link rel="shortcut icon" href="https://cdn.jsdelivr.net/npm/graphql-playground-react/build/favicon.png" />
+  <script src="https://cdn.jsdelivr.net/npm/graphql-playground-react/build/static/js/middleware.js"></script>
+</head>
+<body>
+  <div id="root">
+    <style>
+      body {
+        background-color: rgb(23, 42, 58);
+        font-family: Open Sans, sans-serif;
+        height: 90vh;
+      }
+      #root {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .loading {
+        font-size: 32px;
+        font-weight: 200;
+        color: rgba(255, 255, 255, .6);
+        margin-left: 20px;
+      }
+      img {
+        width: 78px;
+        height: 78px;
+      }
+      .title {
+        font-weight: 400;
+      }
+    </style>
+    <img src='https://cdn.jsdelivr.net/npm/graphql-playground-react/build/logo.png' alt=''>
+    <div class="loading">
+      <span class="title">HugMood GraphQL Playground</span>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', function (event) {
+      const root = document.getElementById('root');
+      root.classList.add('playgroundIn');
+      const config = {
+        endpoint: '/graphql',
+        settings: {
+          'schema.polling.enable': true,
+          'schema.polling.interval': 5000,
+          'request.credentials': 'include',
+          'editor.theme': 'dark',
+          'editor.reuseHeaders': true,
+          'editor.fontSize': 14,
+          'tracing.hideTracingResponse': true,
+          'editor.fontFamily': '"Fira Code", "Source Code Pro", Consolas, "Inconsolata", "Droid Sans Mono", Monaco, monospace'
+        },
+        tabs: [
+          {
+            name: 'User Profile',
+            endpoint: '/graphql',
+            query: `query GetUserProfile($userId: ID!) {
+  userProfile(userId: $userId) {
+    user {
+      id
+      username
+      displayName
+      avatarUrl
+      createdAt
+    }
+    moods {
+      id
+      value
+      score
+      note
+      createdAt
+    }
+    moodStreak {
+      currentStreak
+      longestStreak
+    }
+  }
+}`,
+            variables: `{
+  "userId": "user123"
+}`
+          },
+          {
+            name: 'Mood Analytics',
+            endpoint: '/graphql',
+            query: `query GetMoodAnalytics($userId: ID!, $timeRange: Int) {
+  moodAnalytics(userId: $userId, timeRange: $timeRange) {
+    statistics {
+      totalEntries
+      averageScore
+      dominantMood
+      improvementTrend
+    }
+    insights {
+      id
+      type
+      title
+      description
+    }
+  }
+}`,
+            variables: `{
+  "userId": "user123",
+  "timeRange": 30
+}`
+          }
+        ]
+      };
+      GraphQLPlayground.init(root, config);
+    });
+  </script>
+</body>
+</html>

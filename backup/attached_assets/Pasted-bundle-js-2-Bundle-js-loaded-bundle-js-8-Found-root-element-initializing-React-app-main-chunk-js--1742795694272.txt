@@ -1,0 +1,77 @@
+bundle.js:2 Bundle.js loaded
+bundle.js:8 Found root element, initializing React app
+main.chunk.js:2 Main chunk loaded
+main.chunk.js:39 Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+bundle.js:19 Main chunk loaded
+register:1028 ServiceWorker registration successful with scope: https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/
+register:996 WebSocket connection established
+register:1000 WebSocket message received: {"type":"welcome","message":"Connected to HugMood WebSocket server"}
+main.chunk.js:51 WebSocket connected
+main.chunk.js:64 Received message: {type: 'welcome', message: 'Connected to HugMood WebSocket server'}
+main.chunk.js:94 Connected to server: Connected to HugMood WebSocket server
+register:1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:265 Sending registration request
+main.chunk.js:64 Received message: {type: 'auth_error', message: 'Authentication data is missing'}
+main.chunk.js:265 Sending registration request
+main.chunk.js:64 Received message: {type: 'auth_error', message: 'Authentication data is missing'}message: "Authentication data is missing"type: "auth_error"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
+register:1000 WebSocket message received: {"type":"pong"}
+register:1000 WebSocket message received: {"type":"pong"}
+main.chunk.js:265 Sending registration request
+main.chunk.js:115 WebSocket disconnected
+register:1008 WebSocket connection closed
+main.chunk.js:270 Uncaught TypeError: Cannot read properties of null (reading 'send')
+    at main.chunk.js:270:10
+(anonymous) @ main.chunk.js:270
+setTimeout
+register @ main.chunk.js:269
+(anonymous) @ main.chunk.js:704
+main.chunk.js:39 Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+main.chunk.js:42 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:42
+main.chunk.js:122 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:122
+main.chunk.js:124 WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:124
+main.chunk.js:115 WebSocket disconnected
+main.chunk.js:39 Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+main.chunk.js:42 WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:42
+main.chunk.js:122 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:122
+main.chunk.js:124 WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:124
+ WebSocket disconnected
+ Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:42
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:122
+ WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:124
+ WebSocket disconnected
+ Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:42
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:122
+ WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:124
+ WebSocket disconnected
+ Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:42
+register @ main.chunk.js:278
+(anonymous) @ main.chunk.js:704
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:122
+ WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:124
+ WebSocket disconnected
+ Connecting to WebSocket: wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws
+ WebSocket connection to 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws' failed: Error during WebSocket handshake: Unexpected response code: 502
+connectWebSocket @ main.chunk.js:42
+ WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
+ws.onerror @ main.chunk.js:122
+ WebSocket connection details: {url: 'wss://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev/ws', readyState: 3, protocol: ''}
+ws.onerror @ main.chunk.js:124
+ WebSocket disconnected

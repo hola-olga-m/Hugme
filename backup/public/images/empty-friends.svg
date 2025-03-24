@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .main { fill: #F5F5F5 }
+    .accent-1 { fill: #7E57C2 }
+    .accent-2 { fill: #5C6BC0 }
+    .accent-3 { fill: #FF7043 }
+    .face { fill: #FFD54F }
+    .outline { fill: #424242 }
+    .shadow { fill: #E0E0E0 }
+  </style>
+  
+  <!-- Background -->
+  <ellipse class="shadow" cx="125" cy="165" rx="100" ry="15" opacity="0.3"/>
+  
+  <!-- Two character silhouettes -->
+  <g transform="translate(50, 60)">
+    <!-- Character 1 -->
+    <circle class="accent-1" cx="30" cy="30" r="25"/>
+    <path class="outline" d="M30 60C44.8 60 50 45 50 30C50 15 40 0 30 0C20 0 10 15 10 30C10 45 15.2 60 30 60Z" fill-opacity="0.1"/>
+    
+    <!-- Face -->
+    <circle class="face" cx="30" cy="25" r="18"/>
+    <circle class="outline" cx="23" cy="22" r="2"/>
+    <circle class="outline" cx="37" cy="22" r="2"/>
+    <path class="outline" d="M25 32C28.3333 35.3333 31.6667 35.3333 35 32" stroke="#424242" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <g transform="translate(130, 70)">
+    <!-- Character 2 -->
+    <circle class="accent-2" cx="30" cy="30" r="25"/>
+    <path class="outline" d="M30 60C44.8 60 50 45 50 30C50 15 40 0 30 0C20 0 10 15 10 30C10 45 15.2 60 30 60Z" fill-opacity="0.1"/>
+    
+    <!-- Face -->
+    <circle class="face" cx="30" cy="25" r="18"/>
+    <circle class="outline" cx="23" cy="22" r="2"/>
+    <circle class="outline" cx="37" cy="22" r="2"/>
+    <path class="outline" d="M25 32C28.3333 35.3333 31.6667 35.3333 35 32" stroke="#424242" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Question marks -->
+  <text x="70" y="40" font-family="Arial" font-size="30" class="accent-3">?</text>
+  <text x="170" y="50" font-family="Arial" font-size="30" class="accent-3">?</text>
+  
+  <!-- Dashed connecting line -->
+  <path d="M100 90L150 100" stroke="#757575" stroke-width="3" stroke-dasharray="5,5"/>
+  
+  <!-- Add friend icon -->
+  <circle class="accent-3" cx="125" cy="95" r="15"/>
+  <line x1="117" y1="95" x2="133" y2="95" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="125" y1="87" x2="125" y2="103" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</svg>
