@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../apollo/client';
 
 const HomePage = () => {
   const { isAuthenticated } = useAuth();
@@ -14,13 +15,22 @@ const HomePage = () => {
     const fetchAppInfo = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3000/info');
+        // Use the centralized API base URL
+        const response = await fetch(`${API_BASE_URL}/info`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          mode: 'cors'
+        });
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('Fetched app info:', data);
         setAppInfo(data);
         setError(null);
       } catch (err) {
