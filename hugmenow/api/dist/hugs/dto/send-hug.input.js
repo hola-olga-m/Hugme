@@ -21,20 +21,18 @@ let SendHugInput = class SendHugInput {
 exports.SendHugInput = SendHugInput;
 __decorate([
     (0, graphql_1.Field)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], SendHugInput.prototype, "recipientId", void 0);
 __decorate([
     (0, graphql_1.Field)(() => hug_entity_1.HugType),
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsEnum)(hug_entity_1.HugType),
     __metadata("design:type", String)
 ], SendHugInput.prototype, "type", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], SendHugInput.prototype, "message", void 0);
 exports.SendHugInput = SendHugInput = __decorate([

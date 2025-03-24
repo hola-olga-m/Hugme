@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HugsService } from './hugs.service';
-import { HugsResolver } from './hugs.resolver';
 import { Hug } from './entities/hug.entity';
 import { HugRequest } from './entities/hug-request.entity';
+import { HugsService } from './hugs.service';
+import { HugsResolver } from './hugs.resolver';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -11,7 +11,7 @@ import { UsersModule } from '../users/users.module';
     TypeOrmModule.forFeature([Hug, HugRequest]),
     UsersModule,
   ],
-  providers: [HugsResolver, HugsService],
-  exports: [HugsService]
+  providers: [HugsService, HugsResolver],
+  exports: [HugsService],
 })
 export class HugsModule {}

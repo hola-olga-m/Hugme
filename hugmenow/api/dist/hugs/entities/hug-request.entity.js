@@ -40,11 +40,11 @@ let HugRequest = class HugRequest {
 exports.HugRequest = HugRequest;
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.ID),
-    (0, typeorm_1.PrimaryColumn)(),
+    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], HugRequest.prototype, "id", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => String, { nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], HugRequest.prototype, "message", void 0);
@@ -55,8 +55,8 @@ __decorate([
     __metadata("design:type", user_entity_1.User)
 ], HugRequest.prototype, "requester", void 0);
 __decorate([
-    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)({ name: 'requester_id' }),
+    (0, graphql_1.Field)(),
     __metadata("design:type", String)
 ], HugRequest.prototype, "requesterId", void 0);
 __decorate([
@@ -66,12 +66,12 @@ __decorate([
     __metadata("design:type", user_entity_1.User)
 ], HugRequest.prototype, "recipient", void 0);
 __decorate([
-    (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ name: 'recipient_id', nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], HugRequest.prototype, "recipientId", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => Boolean),
+    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], HugRequest.prototype, "isCommunityRequest", void 0);
@@ -85,13 +85,13 @@ __decorate([
     __metadata("design:type", String)
 ], HugRequest.prototype, "status", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => Date),
-    (0, typeorm_1.CreateDateColumn)(),
+    (0, graphql_1.Field)(),
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     __metadata("design:type", Date)
 ], HugRequest.prototype, "createdAt", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => Date, { nullable: true }),
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ name: 'responded_at', nullable: true }),
     __metadata("design:type", Date)
 ], HugRequest.prototype, "respondedAt", void 0);
 exports.HugRequest = HugRequest = __decorate([

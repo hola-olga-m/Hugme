@@ -21,20 +21,18 @@ let RespondToRequestInput = class RespondToRequestInput {
 exports.RespondToRequestInput = RespondToRequestInput;
 __decorate([
     (0, graphql_1.Field)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], RespondToRequestInput.prototype, "requestId", void 0);
 __decorate([
     (0, graphql_1.Field)(() => hug_request_entity_1.HugRequestStatus),
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsEnum)(hug_request_entity_1.HugRequestStatus),
     __metadata("design:type", String)
 ], RespondToRequestInput.prototype, "status", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], RespondToRequestInput.prototype, "message", void 0);
 exports.RespondToRequestInput = RespondToRequestInput = __decorate([

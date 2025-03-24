@@ -1,8 +1,7 @@
-
-export enum RequestStatus {
+export enum HugRequestStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
   DECLINED = 'DECLINED',
   EXPIRED = 'EXPIRED',
-  CANCELED = 'CANCELED'
+  CANCELLED = 'CANCELLED'
 }

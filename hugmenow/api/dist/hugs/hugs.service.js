@@ -19,8 +19,6 @@ const typeorm_2 = require("typeorm");
 const hug_entity_1 = require("./entities/hug.entity");
 const hug_request_entity_1 = require("./entities/hug-request.entity");
 const users_service_1 = require("../users/users.service");
-const hug_type_enum_1 = require("./enums/hug-type.enum");
-const request_status_enum_1 = require("./enums/request-status.enum");
 let HugsService = class HugsService {
     hugsRepository;
     hugRequestsRepository;
@@ -33,66 +31,63 @@ let HugsService = class HugsService {
     async sendHug(sendHugInput, senderId) {
         const sender = await this.usersService.findOne(senderId);
         if (!sender) {
-            throw new Error('Sender not found');
+            throw new common_1.NotFoundException('Sender not found');
         }
-        let recipient = null;
-        if (sendHugInput.recipientId) {
-            recipient = await this.usersService.findOne(sendHugInput.recipientId);
-            if (!recipient) {
-                throw new Error('Recipient not found');
-            }
+        const recipient = await this.usersService.findOne(sendHugInput.recipientId);
+        if (!recipient) {
+            throw new common_1.NotFoundException('Recipient not found');
         }
         const hug = this.hugsRepository.create({
-            ...sendHugInput,
+            type: sendHugInput.type,
+            message: sendHugInput.message,
             sender,
             senderId,
             recipient,
-            recipientId: recipient?.id,
-            type: recipient ? hug_type_enum_1.HugType.PERSONAL : hug_type_enum_1.HugType.COMMUNITY,
+            recipientId: sendHugInput.recipientId,
+            isRead: false,
+            createdAt: new Date(),
         });
-        if (sendHugInput.requestId) {
-            const request = await this.hugRequestsRepository.findOne({
-                where: { id: sendHugInput.requestId },
-            });
-            if (request) {
-                request.status = request_status_enum_1.RequestStatus.FULFILLED;
-                await this.hugRequestsRepository.save(request);
-                hug.request = request;
-            }
-        }
         return this.hugsRepository.save(hug);
     }
     async findAllHugs() {
         return this.hugsRepository.find({
-            relations: ['sender', 'recipient', 'request'],
+            relations: ['sender', 'recipient'],
         });
     }
     async findHugById(id) {
         const hug = await this.hugsRepository.findOne({
             where: { id },
-            relations: ['sender', 'recipient', 'request'],
+            relations: ['sender', 'recipient'],
         });
         if (!hug) {
-            throw new Error('Hug not found');
+            throw new common_1.NotFoundException(`Hug with id ${id} not found`);
         }
         return hug;
     }
     async findHugsBySender(senderId) {
         return this.hugsRepository.find({
             where: { senderId },
-            relations: ['sender', 'recipient', 'request'],
+            relations: ['sender', 'recipient'],
+            order: { createdAt: 'DESC' }
         });
     }
     async findHugsByRecipient(recipientId) {
         return this.hugsRepository.find({
             where: { recipientId },
-            relations: ['sender', 'recipient', 'request'],
+            relations: ['sender', 'recipient'],
+            order: { createdAt: 'DESC' }
         });
     }
     async markHugAsRead(hugId, userId) {
-        const hug = await this.findHugById(hugId);
+        const hug = await this.hugsRepository.findOne({
+            where: { id: hugId },
+            relations: ['recipient'],
+        });
+        if (!hug) {
+            throw new common_1.NotFoundException(`Hug with id ${hugId} not found`);
+        }
         if (hug.recipientId !== userId) {
-            throw new Error('You can only mark your own hugs as read');
+            throw new common_1.ForbiddenException('You can only mark your own received hugs as read');
         }
         hug.isRead = true;
         return this.hugsRepository.save(hug);
@@ -100,25 +95,25 @@ let HugsService = class HugsService {
     async createHugRequest(createHugRequestInput, requesterId) {
         const requester = await this.usersService.findOne(requesterId);
         if (!requester) {
-            throw new Error('Requester not found');
+            throw new common_1.NotFoundException('Requester not found');
         }
-        let recipient = null;
+        let recipient = undefined;
+        let recipientId = undefined;
         if (createHugRequestInput.recipientId) {
             recipient = await this.usersService.findOne(createHugRequestInput.recipientId);
-            if (!recipient) {
-                throw new Error('Recipient not found');
-            }
+            recipientId = recipient.id;
         }
         const request = this.hugRequestsRepository.create({
-            ...createHugRequestInput,
+            message: createHugRequestInput.message,
             requester,
             requesterId,
             recipient,
-            recipientId: recipient?.id,
-            isCommunityRequest: !recipient,
-            status: request_status_enum_1.RequestStatus.PENDING,
+            recipientId,
+            isCommunityRequest: createHugRequestInput.isCommunityRequest,
+            status: hug_request_entity_1.HugRequestStatus.PENDING,
+            createdAt: new Date(),
         });
-        return this.hugRequestsRepository.save(request);
+        return await this.hugRequestsRepository.save(request);
     }
     async findAllHugRequests() {
         return this.hugRequestsRepository.find({
@@ -131,64 +126,79 @@ let HugsService = class HugsService {
             relations: ['requester', 'recipient'],
         });
         if (!request) {
-            throw new Error('Hug request not found');
+            throw new common_1.NotFoundException(`Hug request with id ${id} not found`);
         }
         return request;
     }
     async findHugRequestsByUser(userId) {
         return this.hugRequestsRepository.find({
-            where: [
-                { requesterId: userId },
-                { recipientId: userId },
-            ],
+            where: { requesterId: userId },
             relations: ['requester', 'recipient'],
+            order: { createdAt: 'DESC' }
         });
     }
     async findPendingRequestsForUser(userId) {
         return this.hugRequestsRepository.find({
             where: {
                 recipientId: userId,
-                status: request_status_enum_1.RequestStatus.PENDING,
+                status: hug_request_entity_1.HugRequestStatus.PENDING
             },
             relations: ['requester', 'recipient'],
+            order: { createdAt: 'DESC' }
         });
     }
     async findCommunityRequests() {
         return this.hugRequestsRepository.find({
             where: {
                 isCommunityRequest: true,
-                status: request_status_enum_1.RequestStatus.PENDING,
+                status: hug_request_entity_1.HugRequestStatus.PENDING
             },
             relations: ['requester'],
+            order: { createdAt: 'DESC' }
         });
     }
     async respondToHugRequest(respondToRequestInput, userId) {
-        const request = await this.findHugRequestById(respondToRequestInput.requestId);
-        if (!request.isCommunityRequest && request.recipientId !== userId) {
-            throw new Error('You cannot respond to this request');
+        const request = await this.hugRequestsRepository.findOne({
+            where: { id: respondToRequestInput.requestId },
+            relations: ['requester', 'recipient'],
+        });
+        if (!request) {
+            throw new common_1.NotFoundException(`Hug request with id ${respondToRequestInput.requestId} not found`);
         }
-        if (respondToRequestInput.accept) {
+        if (!request.isCommunityRequest && request.recipientId !== userId) {
+            throw new common_1.ForbiddenException('You can only respond to your own hug requests');
+        }
+        if (request.status !== hug_request_entity_1.HugRequestStatus.PENDING) {
+            throw new common_1.ForbiddenException('This request has already been processed');
+        }
+        if (respondToRequestInput.status === hug_request_entity_1.HugRequestStatus.ACCEPTED) {
             await this.sendHug({
-                message: respondToRequestInput.message || `Responding to your hug request: "${request.message}"`,
-                requestId: request.id,
                 recipientId: request.requesterId,
+                type: hug_entity_1.HugType.SUPPORTIVE,
+                message: respondToRequestInput.message || `In response to your request: "${request.message}"`,
             }, userId);
-            request.status = request_status_enum_1.RequestStatus.FULFILLED;
+            request.status = hug_request_entity_1.HugRequestStatus.ACCEPTED;
         }
         else {
-            request.status = request_status_enum_1.RequestStatus.DECLINED;
+            request.status = hug_request_entity_1.HugRequestStatus.DECLINED;
         }
+        request.respondedAt = new Date();
         return this.hugRequestsRepository.save(request);
     }
     async cancelHugRequest(requestId, userId) {
-        const request = await this.findHugRequestById(requestId);
+        const request = await this.hugRequestsRepository.findOne({
+            where: { id: requestId },
+        });
+        if (!request) {
+            throw new common_1.NotFoundException(`Hug request with id ${requestId} not found`);
+        }
         if (request.requesterId !== userId) {
-            throw new Error('You can only cancel your own requests');
+            throw new common_1.ForbiddenException('You can only cancel your own hug requests');
         }
-        if (request.status !== request_status_enum_1.RequestStatus.PENDING) {
-            throw new Error('You can only cancel pending requests');
+        if (request.status !== hug_request_entity_1.HugRequestStatus.PENDING) {
+            throw new common_1.ForbiddenException('This request has already been processed');
         }
-        request.status = request_status_enum_1.RequestStatus.CANCELLED;
+        request.status = hug_request_entity_1.HugRequestStatus.CANCELLED;
         return this.hugRequestsRepository.save(request);
     }
 };

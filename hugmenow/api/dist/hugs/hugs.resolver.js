@@ -15,15 +15,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HugsResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const common_1 = require("@nestjs/common");
-const hugs_service_1 = require("./hugs.service");
 const hug_entity_1 = require("./entities/hug.entity");
 const hug_request_entity_1 = require("./entities/hug-request.entity");
-const send_hug_input_1 = require("./dto/send-hug.input");
-const create_hug_request_input_1 = require("./dto/create-hug-request.input");
-const respond_to_request_input_1 = require("./dto/respond-to-request.input");
+const hugs_service_1 = require("./hugs.service");
 const gql_auth_guard_1 = require("../auth/gql-auth.guard");
 const current_user_decorator_1 = require("../auth/current-user.decorator");
 const user_entity_1 = require("../users/entities/user.entity");
+const send_hug_input_1 = require("./dto/send-hug.input");
+const create_hug_request_input_1 = require("./dto/create-hug-request.input");
+const respond_to_request_input_1 = require("./dto/respond-to-request.input");
 let HugsResolver = class HugsResolver {
     hugsService;
     constructor(hugsService) {
@@ -31,6 +31,9 @@ let HugsResolver = class HugsResolver {
     }
     async sendHug(sendHugInput, user) {
         return this.hugsService.sendHug(sendHugInput, user.id);
+    }
+    async markHugAsRead(hugId, user) {
+        return this.hugsService.markHugAsRead(hugId, user.id);
     }
     async sentHugs(user) {
         return this.hugsService.findHugsBySender(user.id);
@@ -41,11 +44,14 @@ let HugsResolver = class HugsResolver {
     async hug(id) {
         return this.hugsService.findHugById(id);
     }
-    async markHugAsRead(id, user) {
-        return this.hugsService.markHugAsRead(id, user.id);
-    }
     async createHugRequest(createHugRequestInput, user) {
         return this.hugsService.createHugRequest(createHugRequestInput, user.id);
+    }
+    async respondToHugRequest(respondToRequestInput, user) {
+        return this.hugsService.respondToHugRequest(respondToRequestInput, user.id);
+    }
+    async cancelHugRequest(requestId, user) {
+        return this.hugsService.cancelHugRequest(requestId, user.id);
     }
     async myHugRequests(user) {
         return this.hugsService.findHugRequestsByUser(user.id);
@@ -59,12 +65,6 @@ let HugsResolver = class HugsResolver {
     async hugRequest(id) {
         return this.hugsService.findHugRequestById(id);
     }
-    async respondToHugRequest(respondToRequestInput, user) {
-        return this.hugsService.respondToHugRequest(respondToRequestInput, user.id);
-    }
-    async cancelHugRequest(id, user) {
-        return this.hugsService.cancelHugRequest(id, user.id);
-    }
 };
 exports.HugsResolver = HugsResolver;
 __decorate([
@@ -77,6 +77,15 @@ __decorate([
         user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], HugsResolver.prototype, "sendHug", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => hug_entity_1.Hug),
+    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
+    __param(0, (0, graphql_1.Args)('hugId', { type: () => graphql_1.ID })),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, user_entity_1.User]),
+    __metadata("design:returntype", Promise)
+], HugsResolver.prototype, "markHugAsRead", null);
 __decorate([
     (0, graphql_1.Query)(() => [hug_entity_1.Hug]),
     (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
@@ -102,15 +111,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], HugsResolver.prototype, "hug", null);
 __decorate([
-    (0, graphql_1.Mutation)(() => hug_entity_1.Hug),
-    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
-    __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.ID })),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, user_entity_1.User]),
-    __metadata("design:returntype", Promise)
-], HugsResolver.prototype, "markHugAsRead", null);
-__decorate([
     (0, graphql_1.Mutation)(() => hug_request_entity_1.HugRequest),
     (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
     __param(0, (0, graphql_1.Args)('createHugRequestInput')),
@@ -120,6 +120,25 @@ __decorate([
         user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], HugsResolver.prototype, "createHugRequest", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => hug_request_entity_1.HugRequest),
+    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
+    __param(0, (0, graphql_1.Args)('respondToRequestInput')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [respond_to_request_input_1.RespondToRequestInput,
+        user_entity_1.User]),
+    __metadata("design:returntype", Promise)
+], HugsResolver.prototype, "respondToHugRequest", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => hug_request_entity_1.HugRequest),
+    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
+    __param(0, (0, graphql_1.Args)('requestId', { type: () => graphql_1.ID })),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, user_entity_1.User]),
+    __metadata("design:returntype", Promise)
+], HugsResolver.prototype, "cancelHugRequest", null);
 __decorate([
     (0, graphql_1.Query)(() => [hug_request_entity_1.HugRequest]),
     (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
@@ -138,7 +157,6 @@ __decorate([
 ], HugsResolver.prototype, "pendingHugRequests", null);
 __decorate([
     (0, graphql_1.Query)(() => [hug_request_entity_1.HugRequest]),
-    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -151,27 +169,8 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], HugsResolver.prototype, "hugRequest", null);
-__decorate([
-    (0, graphql_1.Mutation)(() => hug_request_entity_1.HugRequest),
-    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
-    __param(0, (0, graphql_1.Args)('respondToRequestInput')),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [respond_to_request_input_1.RespondToRequestInput,
-        user_entity_1.User]),
-    __metadata("design:returntype", Promise)
-], HugsResolver.prototype, "respondToHugRequest", null);
-__decorate([
-    (0, graphql_1.Mutation)(() => hug_request_entity_1.HugRequest),
-    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
-    __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.ID })),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, user_entity_1.User]),
-    __metadata("design:returntype", Promise)
-], HugsResolver.prototype, "cancelHugRequest", null);
 exports.HugsResolver = HugsResolver = __decorate([
-    (0, graphql_1.Resolver)(),
+    (0, graphql_1.Resolver)(() => hug_entity_1.Hug),
     __metadata("design:paramtypes", [hugs_service_1.HugsService])
 ], HugsResolver);
 //# sourceMappingURL=hugs.resolver.js.map

@@ -1,128 +1,176 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext';
+import MainLayout from '../layouts/MainLayout';
 
-function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const { login, anonymousLogin } = useAuth();
+const LoginPage = () => {
+  const { login, anonymousLogin, error: authError } = useAuth();
   const navigate = useNavigate();
-
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
+  };
+  
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+    
+    // Validate form
+    if (!validateForm()) return;
+    
     try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials and try again.');
+      setIsLoading(true);
+      setErrorMessage('');
+      
+      // Call login function from AuthContext
+      await login(formData.email, formData.password);
+      
+      // If successful, navigation is handled in the AuthContext
+      
+    } catch (error) {
+      setErrorMessage(error.message || 'Login failed. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
+  
+  // Handle anonymous login
   const handleAnonymousLogin = async () => {
-    setLoading(true);
-    setError(null);
-
     try {
-      // Generate a random nickname
-      const randomNickname = `Guest${Math.floor(Math.random() * 10000)}`;
-      await anonymousLogin(randomNickname);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.message || 'Anonymous login failed. Please try again.');
+      setIsLoading(true);
+      setErrorMessage('');
+      
+      // Generate a random nickname for guest users
+      const nickname = `Guest${Math.floor(Math.random() * 10000)}`;
+      
+      // Call anonymous login function from AuthContext
+      await anonymousLogin(nickname);
+      
+      // If successful, navigation is handled in the AuthContext
+      
+    } catch (error) {
+      setErrorMessage(error.message || 'Anonymous login failed. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
+  
   return (
     <MainLayout>
       <div className="auth-page">
-        <div className="auth-card">
-          <h2>Welcome Back</h2>
-          <p className="auth-subtitle">Log in to continue your wellness journey.</p>
-
-          {error && (
-            <div className="alert alert-error">
-              <div className="alert-content">
-                <span>{error}</span>
-              </div>
+        <div className="form-container">
+          <div className="form-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to your account to continue</p>
+          </div>
+          
+          {(errorMessage || authError) && (
+            <div className="auth-error">
+              {errorMessage || authError}
             </div>
           )}
-
+          
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" htmlFor="email">
-                Email Address
-              </label>
+              <label htmlFor="email" className="form-label">Email</label>
               <input
                 type="email"
                 id="email"
-                className="form-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                name="email"
+                className={`form-input ${errors.email ? 'has-error' : ''}`}
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                disabled={isLoading}
               />
+              {errors.email && <div className="form-error">{errors.email}</div>}
             </div>
-
+            
             <div className="form-group">
-              <label className="form-label" htmlFor="password">
-                Password
-              </label>
+              <label htmlFor="password" className="form-label">Password</label>
               <input
                 type="password"
                 id="password"
-                className="form-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                name="password"
+                className={`form-input ${errors.password ? 'has-error' : ''}`}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                disabled={isLoading}
               />
+              {errors.password && <div className="form-error">{errors.password}</div>}
             </div>
-
+            
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                {loading ? (
-                  <>
-                    <span className="btn-loader"></span> Logging in...
-                  </>
-                ) : (
-                  'Log In'
-                )}
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-block" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </button>
             </div>
           </form>
-
-          <div className="auth-divider">
+          
+          <div className="separator">
             <span>OR</span>
           </div>
-
-          <button
+          
+          <button 
+            className="btn btn-outline btn-block anonymous-login-btn"
             onClick={handleAnonymousLogin}
-            className="btn btn-outline btn-block"
-            disabled={loading}
+            disabled={isLoading}
           >
             Continue as Guest
           </button>
-
-          <div className="auth-footer">
-            <p>
-              Don't have an account?{' '}
-              <Link to="/register" className="auth-link">
-                Sign Up
-              </Link>
-            </p>
+          
+          <div className="form-footer">
+            <p>Don't have an account? <Link to="/register" className="form-link">Sign Up</Link></p>
           </div>
         </div>
       </div>
     </MainLayout>
   );
-}
+};
 
 export default LoginPage;

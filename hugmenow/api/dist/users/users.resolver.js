@@ -29,10 +29,20 @@ let UsersResolver = class UsersResolver {
         return this.usersService.findAll();
     }
     async user(id) {
-        return this.usersService.findOne(id);
+        try {
+            return await this.usersService.findOne(id);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async me(user) {
-        return this.usersService.findOne(user.id);
+        try {
+            return await this.usersService.findOne(user.id);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async updateUser(user, updateUserInput) {
         return this.usersService.update(user.id, updateUserInput);

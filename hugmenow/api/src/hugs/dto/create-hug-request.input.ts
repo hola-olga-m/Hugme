@@ -1,20 +1,19 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsUUID, IsOptional, IsString, IsBoolean } from 'class-validator';
 
 @InputType()
 export class CreateHugRequestInput {
   @Field({ nullable: true })
+  @IsUUID()
   @IsOptional()
-  @IsString()
   recipientId?: string;
 
   @Field({ nullable: true })
-  @IsOptional()
   @IsString()
+  @IsOptional()
   message?: string;
 
   @Field()
-  @IsNotEmpty()
   @IsBoolean()
   isCommunityRequest: boolean;
 }

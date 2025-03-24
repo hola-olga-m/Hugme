@@ -1,10 +1,10 @@
 import { Repository } from 'typeorm';
 import { Hug } from './entities/hug.entity';
 import { HugRequest } from './entities/hug-request.entity';
+import { UsersService } from '../users/users.service';
 import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
-import { UsersService } from '../users/users.service';
 export declare class HugsService {
     private hugsRepository;
     private hugRequestsRepository;

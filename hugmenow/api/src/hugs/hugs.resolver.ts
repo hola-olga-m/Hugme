@@ -1,20 +1,20 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { HugsService } from './hugs.service';
 import { Hug } from './entities/hug.entity';
 import { HugRequest } from './entities/hug-request.entity';
-import { SendHugInput } from './dto/send-hug.input';
-import { CreateHugRequestInput } from './dto/create-hug-request.input';
-import { RespondToRequestInput } from './dto/respond-to-request.input';
+import { HugsService } from './hugs.service';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { User } from '../users/entities/user.entity';
+import { SendHugInput } from './dto/send-hug.input';
+import { CreateHugRequestInput } from './dto/create-hug-request.input';
+import { RespondToRequestInput } from './dto/respond-to-request.input';
 
-@Resolver()
+@Resolver(() => Hug)
 export class HugsResolver {
   constructor(private hugsService: HugsService) {}
 
-  // Hugs
+  // HUG MUTATIONS
   @Mutation(() => Hug)
   @UseGuards(GqlAuthGuard)
   async sendHug(
@@ -24,6 +24,16 @@ export class HugsResolver {
     return this.hugsService.sendHug(sendHugInput, user.id);
   }
 
+  @Mutation(() => Hug)
+  @UseGuards(GqlAuthGuard)
+  async markHugAsRead(
+    @Args('hugId', { type: () => ID }) hugId: string,
+    @CurrentUser() user: User,
+  ): Promise<Hug> {
+    return this.hugsService.markHugAsRead(hugId, user.id);
+  }
+
+  // HUG QUERIES
   @Query(() => [Hug])
   @UseGuards(GqlAuthGuard)
   async sentHugs(@CurrentUser() user: User): Promise<Hug[]> {
@@ -42,16 +52,7 @@ export class HugsResolver {
     return this.hugsService.findHugById(id);
   }
 
-  @Mutation(() => Hug)
-  @UseGuards(GqlAuthGuard)
-  async markHugAsRead(
-    @Args('id', { type: () => ID }) id: string,
-    @CurrentUser() user: User,
-  ): Promise<Hug> {
-    return this.hugsService.markHugAsRead(id, user.id);
-  }
-
-  // Hug Requests
+  // HUG REQUEST MUTATIONS
   @Mutation(() => HugRequest)
   @UseGuards(GqlAuthGuard)
   async createHugRequest(
@@ -59,30 +60,6 @@ export class HugsResolver {
     @CurrentUser() user: User,
   ): Promise<HugRequest> {
     return this.hugsService.createHugRequest(createHugRequestInput, user.id);
-  }
-
-  @Query(() => [HugRequest])
-  @UseGuards(GqlAuthGuard)
-  async myHugRequests(@CurrentUser() user: User): Promise<HugRequest[]> {
-    return this.hugsService.findHugRequestsByUser(user.id);
-  }
-
-  @Query(() => [HugRequest])
-  @UseGuards(GqlAuthGuard)
-  async pendingHugRequests(@CurrentUser() user: User): Promise<HugRequest[]> {
-    return this.hugsService.findPendingRequestsForUser(user.id);
-  }
-
-  @Query(() => [HugRequest])
-  @UseGuards(GqlAuthGuard)
-  async communityHugRequests(): Promise<HugRequest[]> {
-    return this.hugsService.findCommunityRequests();
-  }
-
-  @Query(() => HugRequest)
-  @UseGuards(GqlAuthGuard)
-  async hugRequest(@Args('id', { type: () => ID }) id: string): Promise<HugRequest> {
-    return this.hugsService.findHugRequestById(id);
   }
 
   @Mutation(() => HugRequest)
@@ -97,9 +74,33 @@ export class HugsResolver {
   @Mutation(() => HugRequest)
   @UseGuards(GqlAuthGuard)
   async cancelHugRequest(
-    @Args('id', { type: () => ID }) id: string,
+    @Args('requestId', { type: () => ID }) requestId: string,
     @CurrentUser() user: User,
   ): Promise<HugRequest> {
-    return this.hugsService.cancelHugRequest(id, user.id);
+    return this.hugsService.cancelHugRequest(requestId, user.id);
+  }
+
+  // HUG REQUEST QUERIES
+  @Query(() => [HugRequest])
+  @UseGuards(GqlAuthGuard)
+  async myHugRequests(@CurrentUser() user: User): Promise<HugRequest[]> {
+    return this.hugsService.findHugRequestsByUser(user.id);
+  }
+
+  @Query(() => [HugRequest])
+  @UseGuards(GqlAuthGuard)
+  async pendingHugRequests(@CurrentUser() user: User): Promise<HugRequest[]> {
+    return this.hugsService.findPendingRequestsForUser(user.id);
+  }
+
+  @Query(() => [HugRequest])
+  async communityHugRequests(): Promise<HugRequest[]> {
+    return this.hugsService.findCommunityRequests();
+  }
+
+  @Query(() => HugRequest)
+  @UseGuards(GqlAuthGuard)
+  async hugRequest(@Args('id', { type: () => ID }) id: string): Promise<HugRequest> {
+    return this.hugsService.findHugRequestById(id);
   }
 }

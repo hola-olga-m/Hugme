@@ -4,7 +4,6 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
-import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 
 @Resolver(() => User)
@@ -20,13 +19,21 @@ export class UsersResolver {
   @Query(() => User)
   @UseGuards(GqlAuthGuard)
   async user(@Args('id', { type: () => ID }) id: string): Promise<User> {
-    return this.usersService.findOne(id);
+    try {
+      return await this.usersService.findOne(id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Query(() => User)
   @UseGuards(GqlAuthGuard)
   async me(@CurrentUser() user: User): Promise<User> {
-    return this.usersService.findOne(user.id);
+    try {
+      return await this.usersService.findOne(user.id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Mutation(() => User)

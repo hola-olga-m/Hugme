@@ -1,5 +1,5 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 export enum HugType {
@@ -20,18 +20,18 @@ registerEnumType(HugType, {
 @Entity('hugs')
 export class Hug {
   @Field(() => ID)
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field(() => HugType)
   @Column({
     type: 'enum',
     enum: HugType,
-    default: HugType.QUICK,
+    default: HugType.SUPPORTIVE,
   })
   type: HugType;
 
-  @Field(() => String, { nullable: true })
+  @Field({ nullable: true })
   @Column({ nullable: true })
   message?: string;
 
@@ -40,8 +40,8 @@ export class Hug {
   @JoinColumn({ name: 'sender_id' })
   sender: User;
 
-  @Field()
   @Column({ name: 'sender_id' })
+  @Field()
   senderId: string;
 
   @Field(() => User)
@@ -49,15 +49,15 @@ export class Hug {
   @JoinColumn({ name: 'recipient_id' })
   recipient: User;
 
-  @Field()
   @Column({ name: 'recipient_id' })
+  @Field()
   recipientId: string;
 
-  @Field(() => Boolean)
+  @Field()
   @Column({ default: false })
   isRead: boolean;
 
-  @Field(() => Date)
-  @CreateDateColumn()
+  @Field()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

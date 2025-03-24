@@ -9,10 +9,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HugsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const hugs_service_1 = require("./hugs.service");
-const hugs_resolver_1 = require("./hugs.resolver");
 const hug_entity_1 = require("./entities/hug.entity");
 const hug_request_entity_1 = require("./entities/hug-request.entity");
+const hugs_service_1 = require("./hugs.service");
+const hugs_resolver_1 = require("./hugs.resolver");
 const users_module_1 = require("../users/users.module");
 let HugsModule = class HugsModule {
 };
@@ -23,8 +23,8 @@ exports.HugsModule = HugsModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([hug_entity_1.Hug, hug_request_entity_1.HugRequest]),
             users_module_1.UsersModule,
         ],
-        providers: [hugs_resolver_1.HugsResolver, hugs_service_1.HugsService],
-        exports: [hugs_service_1.HugsService]
+        providers: [hugs_service_1.HugsService, hugs_resolver_1.HugsResolver],
+        exports: [hugs_service_1.HugsService],
     })
 ], HugsModule);
 //# sourceMappingURL=hugs.module.js.map

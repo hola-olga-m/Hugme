@@ -1,79 +1,66 @@
-
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Hug } from './entities/hug.entity';
-import { HugRequest } from './entities/hug-request.entity';
+import { Hug, HugType } from './entities/hug.entity';
+import { HugRequest, HugRequestStatus } from './entities/hug-request.entity';
+import { UsersService } from '../users/users.service';
+import { User } from '../users/entities/user.entity';
 import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
-import { UsersService } from '../users/users.service';
-import { HugType } from './enums/hug-type.enum';
-import { RequestStatus } from './enums/request-status.enum';
 
 @Injectable()
 export class HugsService {
   constructor(
     @InjectRepository(Hug)
     private hugsRepository: Repository<Hug>,
+    
     @InjectRepository(HugRequest)
     private hugRequestsRepository: Repository<HugRequest>,
+    
     private usersService: UsersService,
   ) {}
 
+  // HUG METHODS
   async sendHug(sendHugInput: SendHugInput, senderId: string): Promise<Hug> {
     const sender = await this.usersService.findOne(senderId);
     if (!sender) {
-      throw new Error('Sender not found');
+      throw new NotFoundException('Sender not found');
     }
 
-    let recipient = null;
-    if (sendHugInput.recipientId) {
-      recipient = await this.usersService.findOne(sendHugInput.recipientId);
-      if (!recipient) {
-        throw new Error('Recipient not found');
-      }
+    const recipient = await this.usersService.findOne(sendHugInput.recipientId);
+    if (!recipient) {
+      throw new NotFoundException('Recipient not found');
     }
 
     const hug = this.hugsRepository.create({
-      ...sendHugInput,
+      type: sendHugInput.type,
+      message: sendHugInput.message,
       sender,
       senderId,
       recipient,
-      recipientId: recipient?.id,
-      type: recipient ? HugType.PERSONAL : HugType.COMMUNITY,
+      recipientId: sendHugInput.recipientId,
+      isRead: false,
+      createdAt: new Date(),
     });
-
-    // If this hug is in response to a request, update the request status
-    if (sendHugInput.requestId) {
-      const request = await this.hugRequestsRepository.findOne({
-        where: { id: sendHugInput.requestId },
-      });
-      
-      if (request) {
-        request.status = RequestStatus.FULFILLED;
-        await this.hugRequestsRepository.save(request);
-        hug.request = request;
-      }
-    }
 
     return this.hugsRepository.save(hug);
   }
 
   async findAllHugs(): Promise<Hug[]> {
     return this.hugsRepository.find({
-      relations: ['sender', 'recipient', 'request'],
+      relations: ['sender', 'recipient'],
     });
   }
 
   async findHugById(id: string): Promise<Hug> {
     const hug = await this.hugsRepository.findOne({
       where: { id },
-      relations: ['sender', 'recipient', 'request'],
+      relations: ['sender', 'recipient'],
     });
 
     if (!hug) {
-      throw new Error('Hug not found');
+      throw new NotFoundException(`Hug with id ${id} not found`);
     }
 
     return hug;
@@ -82,53 +69,64 @@ export class HugsService {
   async findHugsBySender(senderId: string): Promise<Hug[]> {
     return this.hugsRepository.find({
       where: { senderId },
-      relations: ['sender', 'recipient', 'request'],
+      relations: ['sender', 'recipient'],
+      order: { createdAt: 'DESC' }
     });
   }
 
   async findHugsByRecipient(recipientId: string): Promise<Hug[]> {
     return this.hugsRepository.find({
       where: { recipientId },
-      relations: ['sender', 'recipient', 'request'],
+      relations: ['sender', 'recipient'],
+      order: { createdAt: 'DESC' }
     });
   }
 
   async markHugAsRead(hugId: string, userId: string): Promise<Hug> {
-    const hug = await this.findHugById(hugId);
+    const hug = await this.hugsRepository.findOne({
+      where: { id: hugId },
+      relations: ['recipient'],
+    });
+
+    if (!hug) {
+      throw new NotFoundException(`Hug with id ${hugId} not found`);
+    }
 
     if (hug.recipientId !== userId) {
-      throw new Error('You can only mark your own hugs as read');
+      throw new ForbiddenException('You can only mark your own received hugs as read');
     }
 
     hug.isRead = true;
     return this.hugsRepository.save(hug);
   }
 
+  // HUG REQUEST METHODS
   async createHugRequest(createHugRequestInput: CreateHugRequestInput, requesterId: string): Promise<HugRequest> {
     const requester = await this.usersService.findOne(requesterId);
     if (!requester) {
-      throw new Error('Requester not found');
+      throw new NotFoundException('Requester not found');
     }
 
-    let recipient = null;
+    let recipient: User | undefined = undefined;
+    let recipientId: string | undefined = undefined;
+    
     if (createHugRequestInput.recipientId) {
       recipient = await this.usersService.findOne(createHugRequestInput.recipientId);
-      if (!recipient) {
-        throw new Error('Recipient not found');
-      }
+      recipientId = recipient.id;
     }
 
     const request = this.hugRequestsRepository.create({
-      ...createHugRequestInput,
+      message: createHugRequestInput.message,
       requester,
       requesterId,
       recipient,
-      recipientId: recipient?.id,
-      isCommunityRequest: !recipient,
-      status: RequestStatus.PENDING,
+      recipientId,
+      isCommunityRequest: createHugRequestInput.isCommunityRequest,
+      status: HugRequestStatus.PENDING,
+      createdAt: new Date(),
     });
 
-    return this.hugRequestsRepository.save(request);
+    return await this.hugRequestsRepository.save(request);
   }
 
   async findAllHugRequests(): Promise<HugRequest[]> {
@@ -144,7 +142,7 @@ export class HugsService {
     });
 
     if (!request) {
-      throw new Error('Hug request not found');
+      throw new NotFoundException(`Hug request with id ${id} not found`);
     }
 
     return request;
@@ -152,72 +150,87 @@ export class HugsService {
 
   async findHugRequestsByUser(userId: string): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
-      where: [
-        { requesterId: userId },
-        { recipientId: userId },
-      ],
+      where: { requesterId: userId },
       relations: ['requester', 'recipient'],
+      order: { createdAt: 'DESC' }
     });
   }
 
   async findPendingRequestsForUser(userId: string): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
-      where: {
+      where: { 
         recipientId: userId,
-        status: RequestStatus.PENDING,
+        status: HugRequestStatus.PENDING 
       },
       relations: ['requester', 'recipient'],
+      order: { createdAt: 'DESC' }
     });
   }
 
   async findCommunityRequests(): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
-      where: {
+      where: { 
         isCommunityRequest: true,
-        status: RequestStatus.PENDING,
+        status: HugRequestStatus.PENDING 
       },
       relations: ['requester'],
+      order: { createdAt: 'DESC' }
     });
   }
 
   async respondToHugRequest(respondToRequestInput: RespondToRequestInput, userId: string): Promise<HugRequest> {
-    const request = await this.findHugRequestById(respondToRequestInput.requestId);
+    const request = await this.hugRequestsRepository.findOne({
+      where: { id: respondToRequestInput.requestId },
+      relations: ['requester', 'recipient'],
+    });
 
-    // Only the recipient can respond to a personal request
+    if (!request) {
+      throw new NotFoundException(`Hug request with id ${respondToRequestInput.requestId} not found`);
+    }
+
     if (!request.isCommunityRequest && request.recipientId !== userId) {
-      throw new Error('You cannot respond to this request');
+      throw new ForbiddenException('You can only respond to your own hug requests');
     }
 
-    // For community requests, anyone can respond
-    if (respondToRequestInput.accept) {
-      // If accepting, create a hug
+    if (request.status !== HugRequestStatus.PENDING) {
+      throw new ForbiddenException('This request has already been processed');
+    }
+
+    if (respondToRequestInput.status === HugRequestStatus.ACCEPTED) {
+      // Send a hug to the requester
       await this.sendHug({
-        message: respondToRequestInput.message || `Responding to your hug request: "${request.message}"`,
-        requestId: request.id,
         recipientId: request.requesterId,
+        type: HugType.SUPPORTIVE,
+        message: respondToRequestInput.message || `In response to your request: "${request.message}"`,
       }, userId);
-
-      request.status = RequestStatus.FULFILLED;
+      
+      request.status = HugRequestStatus.ACCEPTED;
     } else {
-      // If declining
-      request.status = RequestStatus.DECLINED;
+      request.status = HugRequestStatus.DECLINED;
     }
 
+    request.respondedAt = new Date();
     return this.hugRequestsRepository.save(request);
   }
 
   async cancelHugRequest(requestId: string, userId: string): Promise<HugRequest> {
-    const request = await this.findHugRequestById(requestId);
+    const request = await this.hugRequestsRepository.findOne({
+      where: { id: requestId },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Hug request with id ${requestId} not found`);
+    }
 
     if (request.requesterId !== userId) {
-      throw new Error('You can only cancel your own requests');
+      throw new ForbiddenException('You can only cancel your own hug requests');
     }
 
-    if (request.status !== RequestStatus.PENDING) {
-      throw new Error('You can only cancel pending requests');
+    if (request.status !== HugRequestStatus.PENDING) {
+      throw new ForbiddenException('This request has already been processed');
     }
 
-    request.status = RequestStatus.CANCELLED;
+    request.status = HugRequestStatus.CANCELLED;
     return this.hugRequestsRepository.save(request);
   }
 }

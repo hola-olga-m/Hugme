@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./entities/user.entity");
+const bcrypt = require("bcrypt");
 const uuid_1 = require("uuid");
 let UsersService = class UsersService {
     usersRepository;
@@ -27,53 +28,68 @@ let UsersService = class UsersService {
         return this.usersRepository.find();
     }
     async findOne(id) {
-        return this.usersRepository.findOne({ where: { id } });
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException(`User with ID ${id} not found`);
+        }
+        return user;
     }
     async findByEmail(email) {
-        if (!email)
-            return null;
-        return this.usersRepository.findOne({ where: { email } });
+        const user = await this.usersRepository.findOne({ where: { email } });
+        if (!user) {
+            throw new common_1.NotFoundException(`User with email ${email} not found`);
+        }
+        return user;
     }
     async findByUsername(username) {
-        if (!username)
-            return null;
-        return this.usersRepository.findOne({ where: { username } });
+        const user = await this.usersRepository.findOne({ where: { username } });
+        if (!user) {
+            throw new common_1.NotFoundException(`User with username ${username} not found`);
+        }
+        return user;
     }
     async create(createUserData) {
-        if (createUserData.email) {
-            const emailExists = await this.findByEmail(createUserData.email);
-            if (emailExists) {
-                throw new Error('Email already exists');
-            }
+        if (createUserData.password) {
+            const salt = await bcrypt.genSalt();
+            createUserData.password = await bcrypt.hash(createUserData.password, salt);
         }
-        if (createUserData.username) {
-            const usernameExists = await this.findByUsername(createUserData.username);
-            if (usernameExists) {
-                throw new Error('Username already exists');
-            }
-        }
-        const user = this.usersRepository.create(createUserData);
+        const user = this.usersRepository.create({
+            ...createUserData,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
         return this.usersRepository.save(user);
     }
     async update(id, updateUserData) {
-        await this.usersRepository.update(id, updateUserData);
-        const updatedUser = await this.findOne(id);
-        if (!updatedUser) {
-            throw new Error('User not found');
+        const user = await this.findOne(id);
+        if (updateUserData.password) {
+            const salt = await bcrypt.genSalt();
+            updateUserData.password = await bcrypt.hash(updateUserData.password, salt);
         }
-        return updatedUser;
+        Object.assign(user, {
+            ...updateUserData,
+            updatedAt: new Date(),
+        });
+        return this.usersRepository.save(user);
     }
     async remove(id) {
         const result = await this.usersRepository.delete(id);
-        return result.affected ? result.affected > 0 : false;
+        if (result.affected && result.affected > 0) {
+            return true;
+        }
+        throw new common_1.NotFoundException(`User with ID ${id} not found`);
     }
     async createAnonymousUser(nickname, avatarUrl) {
+        const randomId = (0, uuid_1.v4)().substring(0, 8);
+        const username = `anon_${randomId}`;
+        const email = `anon_${randomId}@anonymous.com`;
         return this.create({
-            id: (0, uuid_1.v4)(),
-            username: `anon_${(0, uuid_1.v4)().slice(0, 8)}`,
-            nickname,
-            avatarUrl: avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${(0, uuid_1.v4)().slice(0, 8)}`,
+            username,
+            email,
+            name: nickname,
+            avatarUrl,
             isAnonymous: true,
+            password: await bcrypt.hash((0, uuid_1.v4)(), 10),
         });
     }
 };

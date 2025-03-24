@@ -90,11 +90,11 @@ type Mood {
 
 type Mutation {
   anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthResponse!
-  cancelHugRequest(id: ID!): HugRequest!
+  cancelHugRequest(requestId: ID!): HugRequest!
   createHugRequest(createHugRequestInput: CreateHugRequestInput!): HugRequest!
   createMood(createMoodInput: CreateMoodInput!): Mood!
   login(loginInput: LoginInput!): AuthResponse!
-  markHugAsRead(id: ID!): Hug!
+  markHugAsRead(hugId: ID!): Hug!
   register(registerInput: RegisterInput!): AuthResponse!
   removeMood(id: ID!): Boolean!
   removeUser: Boolean!
