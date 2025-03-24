@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../apollo/client';
 
 const HomePage = () => {
   const { isAuthenticated } = useAuth();
@@ -15,13 +14,20 @@ const HomePage = () => {
     const fetchAppInfo = async () => {
       try {
         setLoading(true);
-        // Use relative path with Vite proxy
-        const response = await fetch('/info', {
+        console.log('Fetching app info from /info endpoint...');
+        
+        // Use relative path with Vite proxy - showing debug URL
+        const url = '/info';
+        console.log('Request URL:', url);
+        
+        const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-          }
+          },
+          // Ensure we're not using cache
+          cache: 'no-cache'
         });
         
         if (!response.ok) {
@@ -85,14 +91,14 @@ const HomePage = () => {
               {appInfo?.description || 'Track your emotions and connect with supportive community through virtual hugs'}
             </p>
             
-            {!isAuthenticated() && (
+            {!isAuthenticated && (
               <div className="hero-buttons">
                 <Link to="/register" className="btn btn-primary btn-lg">Get Started</Link>
                 <Link to="/login" className="btn btn-outline btn-lg">Sign In</Link>
               </div>
             )}
             
-            {isAuthenticated() && (
+            {isAuthenticated && (
               <div className="hero-buttons">
                 <Link to="/dashboard" className="btn btn-primary btn-lg">Go to Dashboard</Link>
               </div>
@@ -187,14 +193,14 @@ const HomePage = () => {
               Join our community today and start your emotional wellness journey.
             </p>
             
-            {!isAuthenticated() && (
+            {!isAuthenticated && (
               <div className="cta-buttons">
                 <Link to="/register" className="btn btn-primary btn-lg">Create Account</Link>
                 <Link to="/login" className="btn btn-outline btn-lg">Sign In</Link>
               </div>
             )}
             
-            {isAuthenticated() && (
+            {isAuthenticated && (
               <div className="cta-buttons">
                 <Link to="/dashboard" className="btn btn-primary btn-lg">Go to Dashboard</Link>
               </div>

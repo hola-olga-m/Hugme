@@ -17,15 +17,19 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false
       },
       '/info': {
         target: 'http://localhost:3000',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
       },
       '/graphql': {
         target: 'http://localhost:3000',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false
       }
     }
   },
