@@ -50,7 +50,7 @@ args = "cd hugmenow/web && npm start"
 waitForPort = 3001
 
 [deployment]
-run = ["sh", "-c", "cd hugmenow/api && npm run start:dev"]
+run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
 
 [[ports]]
 localPort = 3000

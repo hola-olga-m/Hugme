@@ -10,9 +10,9 @@ export default defineConfig({
     port: 3001,
     strictPort: true,
     hmr: {
-      clientPort: 443
+      clientPort: 443,
+      host: 'www.replit.com'
     },
-    // Allow all hosts to access the server
     cors: true,
     proxy: {
       '/api': {
