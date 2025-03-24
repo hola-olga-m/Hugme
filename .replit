@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && npm start"
+args = "cd hugmenow/web && npm run start"
 waitForPort = 3001
 
 [deployment]

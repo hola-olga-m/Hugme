@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vite --port 3001",
-    "start": "vite --port 3001",
+    "start": "node vite-express-server.js",
+    "start:vite": "vite --port 3001",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
