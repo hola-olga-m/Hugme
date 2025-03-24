@@ -1,9 +1,14 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
+
+// Import error handling components
+import ErrorBoundary from './components/errors/ErrorBoundary';
+import AnimatedErrorState from './components/errors/AnimatedErrorState';
+import RouteErrorPage from './components/errors/RouteErrorPage';
 
 // Import page components
 import HomePage from './pages/HomePage';
@@ -18,6 +23,7 @@ import NotFoundPage from './pages/NotFoundPage';
 
 // Import styles
 import './styles/main.css';
+import './styles/components/error-states.css';
 
 // ScrollToTop component to handle scroll position on navigation
 function ScrollToTop() {
@@ -45,59 +51,84 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="loading-fallback">
+    <div className="spinner"></div>
+    <p>Loading...</p>
+  </div>
+);
+
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Error routes */}
+          <Route path="/error" element={<RouteErrorPage />} />
 
-      {/* Protected routes */}
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/mood-tracker" 
-        element={
-          <ProtectedRoute>
-            <MoodTrackerPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/hug-center" 
-        element={
-          <ProtectedRoute>
-            <HugCenterPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/profile" 
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/mood-history" 
-        element={
-          <ProtectedRoute>
-            <MoodHistoryPage />
-          </ProtectedRoute>
-        } 
-      />
+          {/* Protected routes */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <DashboardPage />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mood-tracker" 
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <MoodTrackerPage />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hug-center" 
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <HugCenterPage />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <ProfilePage />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mood-history" 
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <MoodHistoryPage />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            } 
+          />
 
-      {/* Not found route */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+          {/* Not found route */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { withRouter } from '../routing/withRouter';
 import AnimatedErrorState from './AnimatedErrorState';
+import { detectErrorType, getErrorMessage, logError, getErrorRedirect } from '../../utils/errorHandling';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -9,7 +10,11 @@ class ErrorBoundary extends Component {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorType: 'route' // default to route error
+      errorType: 'route', // default to route error
+      errorDetails: {
+        title: "Something went wrong",
+        description: "We encountered an unexpected error. Please try again."
+      }
     };
   }
 
@@ -19,33 +24,24 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
-    this.setState({ errorInfo });
+    // Log the error for debugging
+    const context = {
+      component: this.props.componentName || 'ErrorBoundary',
+      location: this.props.location,
+      path: this.props.location?.pathname
+    };
     
-    // Determine error type based on error message or other criteria
-    this.determineErrorType(error);
-  }
-
-  determineErrorType(error) {
-    const errorMessage = error.message || '';
+    logError(error, context);
     
-    if (errorMessage.includes('Failed to fetch') || 
-        errorMessage.includes('NetworkError') || 
-        errorMessage.includes('Network request failed')) {
-      this.setState({ errorType: 'network' });
-    } else if (errorMessage.includes('Unauthorized') || 
-               errorMessage.includes('Authentication failed') ||
-               errorMessage.includes('not logged in')) {
-      this.setState({ errorType: 'auth' });
-    } else if (errorMessage.includes('Cannot read property') || 
-               errorMessage.includes('undefined is not an object') ||
-               errorMessage.includes('is not a function')) {
-      this.setState({ errorType: 'data' });
-    } else {
-      // Default to route error
-      this.setState({ errorType: 'route' });
-    }
+    // Determine error type based on error message and context
+    const errorType = detectErrorType(error, context);
+    const errorDetails = getErrorMessage(errorType);
+    
+    this.setState({ 
+      errorInfo, 
+      errorType,
+      errorDetails
+    });
   }
 
   resetError = () => {
@@ -68,38 +64,29 @@ class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      const { errorType } = this.state;
-      let title, description;
-      
-      switch (errorType) {
-        case 'network':
-          title = "Network Error";
-          description = "Unable to connect to our servers. Please check your internet connection and try again.";
-          break;
-        case 'auth':
-          title = "Authentication Error";
-          description = "You need to be logged in to view this page or your session may have expired.";
-          break;
-        case 'data':
-          title = "Data Loading Error";
-          description = "We couldn't load the data for this page. Please try again later.";
-          break;
-        default:
-          title = "Page Not Found";
-          description = "The page you're looking for might be unavailable or doesn't exist.";
-      }
+      const { errorType, errorDetails } = this.state;
+      const { title, description } = errorDetails;
 
       // Get current location
       const { pathname } = this.props.location;
       const isOnErrorPage = pathname === '/error' || pathname === '/not-found';
+      
+      // Determine appropriate action based on error type
+      const primaryAction = errorType === 'auth' ? {
+        text: "Log In",
+        link: "/login"
+      } : {
+        text: "Go Home",
+        link: "/"
+      };
       
       return (
         <AnimatedErrorState
           title={title}
           description={description}
           errorType={errorType}
-          actionText={errorType === 'auth' ? "Log In" : "Go Home"}
-          actionLink={errorType === 'auth' ? "/login" : "/"}
+          actionText={primaryAction.text}
+          actionLink={primaryAction.link}
           secondaryAction={
             !isOnErrorPage ? 
             {
