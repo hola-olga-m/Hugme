@@ -11,6 +11,14 @@ export default defineConfig({
     strictPort: true,
     hmr: {
       clientPort: 443
+    },
+    // Allow all hosts to access the server
+    cors: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
     }
   },
   preview: {
