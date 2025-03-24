@@ -6,6 +6,15 @@ export interface AppInfo {
         graphql: string;
         api: string;
     };
+    paths: {
+        login: string;
+        register: string;
+        dashboard: string;
+        moodTracker: string;
+        hugCenter: string;
+        profile: string;
+        info: string;
+    };
     features: string[];
     status: string;
 }

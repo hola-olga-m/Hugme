@@ -8,6 +8,15 @@ export interface AppInfo {
     graphql: string;
     api: string;
   };
+  paths: {
+    login: string;
+    register: string;
+    dashboard: string;
+    moodTracker: string;
+    hugCenter: string;
+    profile: string;
+    info: string;
+  };
   features: string[];
   status: string;
 }
@@ -26,6 +35,15 @@ export class AppService {
       endpoints: {
         graphql: '/graphql',
         api: '/api',
+      },
+      paths: {
+        login: '/login',
+        register: '/register',
+        dashboard: '/dashboard',
+        moodTracker: '/mood-tracker',
+        hugCenter: '/hug-center',
+        profile: '/profile',
+        info: '/info'
       },
       features: [
         'User authentication with JWT',

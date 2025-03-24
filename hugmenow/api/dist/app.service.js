@@ -21,6 +21,15 @@ let AppService = class AppService {
                 graphql: '/graphql',
                 api: '/api',
             },
+            paths: {
+                login: '/login',
+                register: '/register',
+                dashboard: '/dashboard',
+                moodTracker: '/mood-tracker',
+                hugCenter: '/hug-center',
+                profile: '/profile',
+                info: '/info'
+            },
             features: [
                 'User authentication with JWT',
                 'Mood tracking and history',

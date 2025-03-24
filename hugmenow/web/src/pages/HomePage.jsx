@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext';
+import './HomePage.css';
 
 const HomePage = () => {
   const { isAuthenticated } = useAuth();
@@ -54,6 +55,15 @@ const HomePage = () => {
           endpoints: {
             graphql: '/graphql',
             api: '/api',
+          },
+          paths: {
+            login: '/login',
+            register: '/register',
+            dashboard: '/dashboard',
+            moodTracker: '/mood-tracker',
+            hugCenter: '/hug-center',
+            profile: '/profile',
+            info: '/info'
           },
           features: [
             'User authentication with JWT',
@@ -181,6 +191,17 @@ const HomePage = () => {
                     <li key={name}><strong>{name}:</strong> {path}</li>
                   ))}
                 </ul>
+                
+                {appInfo.paths && (
+                  <>
+                    <p><strong>Application Paths:</strong></p>
+                    <ul className="paths-list">
+                      {Object.entries(appInfo.paths).map(([name, path]) => (
+                        <li key={name}><strong>{name}:</strong> {path}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </div>
             </div>
           )}
