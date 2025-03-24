@@ -19,5 +19,7 @@ export interface AppInfo {
     status: string;
 }
 export declare class AppService {
+    getHome(): string;
+    getHomeContent(): string;
     getAppInfo(): AppInfo;
 }

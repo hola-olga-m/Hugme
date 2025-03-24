@@ -23,6 +23,16 @@ export interface AppInfo {
 
 @Injectable()
 export class AppService {
+  getHome(): string {
+    // create Home page content from HomePage.tsx
+    return this.getHomeContent();
+  }
+
+  getHomeContent(): string {
+    return `
+    <Home />
+    `;
+  }
   getAppInfo(): AppInfo {
     return {
       name: 'Hug Me Now',
