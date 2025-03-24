@@ -20,6 +20,7 @@ import HugCenterPage from './pages/HugCenterPage';
 import ProfilePage from './pages/ProfilePage';
 import MoodHistoryPage from './pages/MoodHistoryPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ProtocolErrorPage from './pages/ProtocolErrorPage';
 
 // Import styles
 import './styles/main.css';
@@ -71,6 +72,7 @@ function AppRoutes() {
           
           {/* Error routes */}
           <Route path="/error" element={<RouteErrorPage />} />
+          <Route path="/protocol-error" element={<ProtocolErrorPage />} />
 
           {/* Protected routes */}
           <Route 
