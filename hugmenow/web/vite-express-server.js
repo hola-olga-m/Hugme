@@ -1,5 +1,4 @@
 const express = require('express');
-const { createServer: createViteServer } = require('vite');
 const fs = require('fs');
 const path = require('path');
 const history = require('connect-history-api-fallback');
@@ -8,16 +7,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 async function createServer() {
   const app = express();
   
-  // Create Vite server in middleware mode
-  const vite = await createViteServer({
-    server: { 
-      middlewareMode: true,
-      port: 3001
-    },
-    appType: 'spa'
-  });
-
-  // Configure API proxies
+  // Configure API proxies first (before history API fallback)
   app.use('/api', createProxyMiddleware({
     target: 'http://localhost:3000',
     changeOrigin: true,
@@ -53,36 +43,50 @@ async function createServer() {
       {
         from: /^\/graphql$/,
         to: context => context.parsedUrl.pathname
-      },
-      // Rewrite all other routes to index.html
-      {
-        from: /^\/.*$/,
-        to: '/index.html'
       }
     ]
   }));
 
-  // Use vite's connect instance as middleware
-  app.use(vite.middlewares);
-
-  // Serve static files from the public directory
+  // Serve static files from the dist directory when in production
+  // or from public directory in development
+  app.use(express.static(path.resolve(__dirname, 'dist')));
   app.use(express.static(path.resolve(__dirname, 'public')));
 
   // Fallback: direct all other requests to index.html
-  app.use('*', (req, res, next) => {
-    console.log(`Catch-all route hit: ${req.originalUrl}`);
-    const indexPath = path.resolve(__dirname, 'index.html');
+  app.get('*', (req, res) => {
+    console.log(`Serving index.html for: ${req.originalUrl}`);
+    // In production, serve from dist/index.html, otherwise serve from root index.html
+    const indexPath = fs.existsSync(path.resolve(__dirname, 'dist/index.html')) 
+      ? path.resolve(__dirname, 'dist/index.html')
+      : path.resolve(__dirname, 'index.html');
+    
     try {
       const html = fs.readFileSync(indexPath, 'utf-8');
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
     } catch (e) {
       console.error('Error reading index.html:', e);
-      next(e);
+      // Fallback HTML if we can't read the index.html file
+      res.status(200).set({ 'Content-Type': 'text/html' }).send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Hug Me Now</title>
+        </head>
+        <body>
+          <div id="root"></div>
+          <script type="module" src="/src/main.jsx"></script>
+        </body>
+        </html>
+      `);
     }
   });
 
-  app.listen(3001, () => {
-    console.log('Server running at http://localhost:3001');
+  // Start server
+  const PORT = 3001;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://localhost:${PORT}`);
     console.log('Configured for SPA with client-side routing support');
   });
 }
