@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -18,6 +18,17 @@ import NotFoundPage from './pages/NotFoundPage';
 
 // Import styles
 import './styles/main.css';
+
+// ScrollToTop component to handle scroll position on navigation
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {

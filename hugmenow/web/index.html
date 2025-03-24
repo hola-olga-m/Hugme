@@ -95,5 +95,21 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Client-side routing support for direct URL access -->
+    <script>
+      // This script handles direct navigation to routes other than the root
+      (function() {
+        // Simple check to avoid executing when loaded by React
+        if (window.location.pathname !== '/' && !window.location.pathname.includes('.')) {
+          console.log('Direct URL access detected, handling client-side routing');
+          
+          // When page first loads at a non-root URL, let the app handle routing
+          // The React Router will take care of the rest
+          
+          // This is just a fallback to ensure routing works properly
+          window.__INITIAL_PATH__ = window.location.pathname;
+        }
+      })();
+    </script>
   </body>
 </html>
