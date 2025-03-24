@@ -19,6 +19,5 @@ export interface AppInfo {
     status: string;
 }
 export declare class AppService {
-    getHello(): string;
     getAppInfo(): AppInfo;
 }

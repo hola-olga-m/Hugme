@@ -9,9 +9,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
 let AppService = class AppService {
-    getHello() {
-        return 'Welcome to Hug Me Now API!';
-    }
     getAppInfo() {
         return {
             name: 'Hug Me Now',
@@ -28,7 +25,7 @@ let AppService = class AppService {
                 moodTracker: '/mood-tracker',
                 hugCenter: '/hug-center',
                 profile: '/profile',
-                info: '/info'
+                info: '/info',
             },
             features: [
                 'User authentication with JWT',
@@ -37,7 +34,7 @@ let AppService = class AppService {
                 'Hug requests',
                 'Public and private mood sharing',
             ],
-            status: 'online'
+            status: 'online',
         };
     }
 };
