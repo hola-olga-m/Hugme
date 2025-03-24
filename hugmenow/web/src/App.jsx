@@ -102,10 +102,19 @@ function AppRoutes() {
 }
 
 function App() {
+  // Check if we have an initial path from direct navigation
+  useEffect(() => {
+    if (window.__INITIAL_PATH__) {
+      console.log('Initial path detected:', window.__INITIAL_PATH__);
+      // The router will handle this automatically once mounted
+    }
+  }, []);
+
   return (
     <ApolloProvider client={client}>
       <Router>
         <AuthProvider>
+          <ScrollToTop />
           <div className="app-container">
             <AppRoutes />
           </div>

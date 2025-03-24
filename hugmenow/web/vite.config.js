@@ -1,35 +1,40 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import fs from 'fs';
-import path from 'path';
+import history from 'connect-history-api-fallback';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(),
-    // Custom plugin to handle SPA routing - serve index.html for any route
+  plugins: [
+    react(),
     {
-      name: 'spa-fallback',
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          // Skip API and asset requests
-          if (req.url.startsWith('/api') || 
-              req.url.startsWith('/info') || 
-              req.url.startsWith('/graphql') ||
-              req.url.includes('.')) {
-            return next();
-          }
-          
-          // For all other routes, send index.html
-          const indexPath = path.join(__dirname, 'index.html');
-          if (fs.existsSync(indexPath)) {
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'text/html');
-            res.end(fs.readFileSync(indexPath));
-            return;
-          }
-          
-          next();
-        });
+      name: 'configure-response-headers',
+      configureServer: (server) => {
+        // Add history API fallback middleware
+        server.middlewares.use(
+          history({
+            // Explicitly specify paths to redirect to index.html
+            rewrites: [
+              // Avoid serving index.html for API requests and static assets
+              { 
+                from: /^\/api\/.*$/,
+                to: context => context.parsedUrl.pathname
+              },
+              { 
+                from: /^\/info$/,
+                to: context => context.parsedUrl.pathname
+              },
+              { 
+                from: /^\/graphql$/,
+                to: context => context.parsedUrl.pathname
+              },
+              // For everything else, serve index.html
+              { 
+                from: /^\/.*$/,
+                to: '/index.html'
+              }
+            ]
+          })
+        );
       }
     }
   ],
