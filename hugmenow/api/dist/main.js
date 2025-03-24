@@ -27,6 +27,18 @@ async function bootstrap() {
                 res.setHeader('X-Protocol-Used', req.headers['accept-protocol']);
             }
         }
+        res.setHeader('X-Protocol-Compatibility', 'HTTP/1.1');
+        const upgradeHeader = req.headers.upgrade;
+        if (upgradeHeader && typeof upgradeHeader === 'string' && upgradeHeader.toLowerCase().includes('http')) {
+            console.log(`Protocol upgrade requested: ${upgradeHeader}`);
+            res.setHeader('X-Protocol-Handler', 'compatibility-mode');
+        }
+        if (req.headers['x-retry-attempt']) {
+            const retryAttempt = parseInt(req.headers['x-retry-attempt']) || 1;
+            console.log(`Request retry attempt ${retryAttempt} with protocol compatibility headers`);
+            res.setHeader('X-Retry-Status', 'accepted');
+            res.setHeader('X-Protocol-Version', 'HTTP/1.1');
+        }
         next();
     });
     const port = process.env.PORT || 3000;

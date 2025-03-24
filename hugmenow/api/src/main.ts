@@ -38,6 +38,28 @@ async function bootstrap() {
       }
     }
     
+    // Set HTTP protocol compatibility header to avoid 426 errors
+    res.setHeader('X-Protocol-Compatibility', 'HTTP/1.1');
+    
+    // Handle protocol upgrade attempts specifically
+    const upgradeHeader = req.headers.upgrade;
+    if (upgradeHeader && typeof upgradeHeader === 'string' && upgradeHeader.toLowerCase().includes('http')) {
+      console.log(`Protocol upgrade requested: ${upgradeHeader}`);
+      
+      // Instead of returning 426, we'll accept the request with current protocol
+      res.setHeader('X-Protocol-Handler', 'compatibility-mode');
+    }
+    
+    // Handle 426 errors with special response
+    if (req.headers['x-retry-attempt']) {
+      const retryAttempt = parseInt(req.headers['x-retry-attempt'] as string) || 1;
+      console.log(`Request retry attempt ${retryAttempt} with protocol compatibility headers`);
+      
+      // Add information about retry status
+      res.setHeader('X-Retry-Status', 'accepted');
+      res.setHeader('X-Protocol-Version', 'HTTP/1.1');
+    }
+    
     next();
   });
   
