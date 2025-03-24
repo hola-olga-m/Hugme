@@ -1,5 +1,5 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 export enum HugRequestStatus {
@@ -12,40 +12,40 @@ export enum HugRequestStatus {
 
 registerEnumType(HugRequestStatus, {
   name: 'HugRequestStatus',
-  description: 'Status of a hug request',
+  description: 'The status of a hug request',
 });
 
 @ObjectType()
 @Entity('hug_requests')
 export class HugRequest {
   @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string;
 
-  @Field()
+  @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   message?: string;
 
   @Field(() => User)
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: 'requesterId' })
+  @JoinColumn({ name: 'requester_id' })
   requester: User;
 
   @Field()
-  @Column()
+  @Column({ name: 'requester_id' })
   requesterId: string;
 
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, { eager: true, nullable: true })
-  @JoinColumn({ name: 'recipientId' })
+  @JoinColumn({ name: 'recipient_id' })
   recipient?: User;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ name: 'recipient_id', nullable: true })
   recipientId?: string;
 
-  @Field()
-  @Column({ default: true })
+  @Field(() => Boolean)
+  @Column({ default: false })
   isCommunityRequest: boolean;
 
   @Field(() => HugRequestStatus)
@@ -56,11 +56,11 @@ export class HugRequest {
   })
   status: HugRequestStatus;
 
-  @Field()
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
-  
-  @Field({ nullable: true })
+
+  @Field(() => Date, { nullable: true })
   @Column({ nullable: true })
   respondedAt?: Date;
 }

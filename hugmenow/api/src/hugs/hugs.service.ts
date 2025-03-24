@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Hug } from './entities/hug.entity';
+import { Hug, HugType } from './entities/hug.entity';
 import { HugRequest, HugRequestStatus } from './entities/hug-request.entity';
 import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
 import { UsersService } from '../users/users.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class HugsService {
@@ -23,13 +24,20 @@ export class HugsService {
     const sender = await this.usersService.findOne(senderId);
     const recipient = await this.usersService.findOne(sendHugInput.recipientId);
 
+    if (!recipient) {
+      throw new NotFoundException(`Recipient with ID ${sendHugInput.recipientId} not found`);
+    }
+
     const hug = this.hugsRepository.create({
-      ...sendHugInput,
-      senderId,
+      id: uuidv4(),
+      type: sendHugInput.type,
+      message: sendHugInput.message,
       sender,
+      senderId: sender.id,
       recipient,
-      recipientId: sendHugInput.recipientId,
+      recipientId: recipient.id,
       isRead: false,
+      createdAt: new Date()
     });
 
     return this.hugsRepository.save(hug);
@@ -37,15 +45,14 @@ export class HugsService {
 
   async findAllHugs(): Promise<Hug[]> {
     return this.hugsRepository.find({
-      relations: ['sender', 'recipient'],
-      order: { createdAt: 'DESC' },
+      relations: ['sender', 'recipient']
     });
   }
 
   async findHugById(id: string): Promise<Hug> {
     const hug = await this.hugsRepository.findOne({
       where: { id },
-      relations: ['sender', 'recipient'],
+      relations: ['sender', 'recipient']
     });
 
     if (!hug) {
@@ -59,7 +66,7 @@ export class HugsService {
     return this.hugsRepository.find({
       where: { senderId },
       relations: ['sender', 'recipient'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC' }
     });
   }
 
@@ -67,7 +74,7 @@ export class HugsService {
     return this.hugsRepository.find({
       where: { recipientId },
       relations: ['sender', 'recipient'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC' }
     });
   }
 
@@ -75,15 +82,11 @@ export class HugsService {
     const hug = await this.findHugById(hugId);
 
     if (hug.recipientId !== userId) {
-      throw new ForbiddenException('You can only mark your own received hugs as read');
+      throw new ForbiddenException('You can only mark hugs sent to you as read');
     }
 
-    if (!hug.isRead) {
-      hug.isRead = true;
-      await this.hugsRepository.save(hug);
-    }
-
-    return hug;
+    hug.isRead = true;
+    return this.hugsRepository.save(hug);
   }
 
   // Hug Requests
@@ -93,33 +96,37 @@ export class HugsService {
     let recipient = null;
     if (createHugRequestInput.recipientId) {
       recipient = await this.usersService.findOne(createHugRequestInput.recipientId);
-    } else if (!createHugRequestInput.isCommunityRequest) {
-      throw new NotFoundException('A recipient is required for non-community requests');
+      if (!recipient) {
+        throw new NotFoundException(`Recipient with ID ${createHugRequestInput.recipientId} not found`);
+      }
     }
 
-    const hugRequest = this.hugRequestsRepository.create({
-      ...createHugRequestInput,
-      requesterId,
+    const request = this.hugRequestsRepository.create({
+      id: uuidv4(),
+      message: createHugRequestInput.message,
       requester,
+      requesterId: requester.id,
       recipient,
-      recipientId: createHugRequestInput.recipientId,
+      recipientId: recipient?.id,
+      isCommunityRequest: createHugRequestInput.isCommunityRequest,
       status: HugRequestStatus.PENDING,
+      createdAt: new Date()
     });
 
-    return this.hugRequestsRepository.save(hugRequest);
+    return this.hugRequestsRepository.save(request);
   }
 
   async findAllHugRequests(): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
       relations: ['requester', 'recipient'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC' }
     });
   }
 
   async findHugRequestById(id: string): Promise<HugRequest> {
     const request = await this.hugRequestsRepository.findOne({
       where: { id },
-      relations: ['requester', 'recipient'],
+      relations: ['requester', 'recipient']
     });
 
     if (!request) {
@@ -131,66 +138,66 @@ export class HugsService {
 
   async findHugRequestsByUser(userId: string): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
-      where: [
-        { requesterId: userId },
-        { recipientId: userId },
-      ],
+      where: { requesterId: userId },
       relations: ['requester', 'recipient'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC' }
     });
   }
 
   async findPendingRequestsForUser(userId: string): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
-      where: {
+      where: { 
         recipientId: userId,
-        status: HugRequestStatus.PENDING,
+        status: HugRequestStatus.PENDING
       },
-      relations: ['requester'],
-      order: { createdAt: 'DESC' },
+      relations: ['requester', 'recipient'],
+      order: { createdAt: 'DESC' }
     });
   }
 
   async findCommunityRequests(): Promise<HugRequest[]> {
     return this.hugRequestsRepository.find({
-      where: {
+      where: { 
         isCommunityRequest: true,
-        status: HugRequestStatus.PENDING,
+        status: HugRequestStatus.PENDING
       },
       relations: ['requester'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC' }
     });
   }
 
   async respondToHugRequest(respondToRequestInput: RespondToRequestInput, userId: string): Promise<HugRequest> {
     const request = await this.findHugRequestById(respondToRequestInput.requestId);
 
-    // Check if the user is authorized to respond to this request
-    if (request.isCommunityRequest) {
-      // Anyone can respond to community requests
-    } else if (request.recipientId !== userId) {
-      throw new ForbiddenException('You are not authorized to respond to this request');
+    // Check if this is a community request or if the user is the designated recipient
+    if (!request.isCommunityRequest && request.recipientId !== userId) {
+      throw new ForbiddenException('You cannot respond to this request');
     }
 
-    // Check if the request is still pending
+    // If it's already resolved, throw an error
     if (request.status !== HugRequestStatus.PENDING) {
-      throw new ForbiddenException('This request has already been processed');
+      throw new ForbiddenException(`This request has already been ${request.status.toLowerCase()}`);
     }
 
-    // Update the request status
     request.status = respondToRequestInput.status;
     request.respondedAt = new Date();
 
-    // If accepted, create a hug
+    // If accepting, create a hug
     if (respondToRequestInput.status === HugRequestStatus.ACCEPTED) {
-      await this.sendHug(
-        {
-          recipientId: request.requesterId,
-          type: 'SUPPORTIVE', // Default type, can be customized
-          message: respondToRequestInput.message || request.message,
-        },
-        userId,
-      );
+      const recipient = await this.usersService.findOne(request.requesterId);
+      const sender = await this.usersService.findOne(userId);
+
+      await this.hugsRepository.save({
+        id: uuidv4(),
+        type: HugType.SUPPORTIVE, // Default type for request responses
+        message: respondToRequestInput.message || 'Responding to your hug request',
+        sender,
+        senderId: sender.id,
+        recipient,
+        recipientId: recipient.id,
+        isRead: false,
+        createdAt: new Date()
+      });
     }
 
     return this.hugRequestsRepository.save(request);
@@ -204,7 +211,7 @@ export class HugsService {
     }
 
     if (request.status !== HugRequestStatus.PENDING) {
-      throw new ForbiddenException('This request has already been processed');
+      throw new ForbiddenException(`This request has already been ${request.status.toLowerCase()}`);
     }
 
     request.status = HugRequestStatus.CANCELLED;

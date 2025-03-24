@@ -11,7 +11,7 @@ import { UsersModule } from '../users/users.module';
     TypeOrmModule.forFeature([Hug, HugRequest]),
     UsersModule,
   ],
-  providers: [HugsService, HugsResolver],
-  exports: [HugsService],
+  providers: [HugsResolver, HugsService],
+  exports: [HugsService]
 })
 export class HugsModule {}

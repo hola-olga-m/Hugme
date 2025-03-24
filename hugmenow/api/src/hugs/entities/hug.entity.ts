@@ -1,5 +1,5 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 export enum HugType {
@@ -13,14 +13,14 @@ export enum HugType {
 
 registerEnumType(HugType, {
   name: 'HugType',
-  description: 'Types of hugs that can be sent',
+  description: 'The type of hug sent',
 });
 
 @ObjectType()
 @Entity('hugs')
 export class Hug {
   @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string;
 
   @Field(() => HugType)
@@ -31,33 +31,33 @@ export class Hug {
   })
   type: HugType;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   message?: string;
 
   @Field(() => User)
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: 'senderId' })
+  @JoinColumn({ name: 'sender_id' })
   sender: User;
 
   @Field()
-  @Column()
+  @Column({ name: 'sender_id' })
   senderId: string;
 
   @Field(() => User)
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: 'recipientId' })
+  @JoinColumn({ name: 'recipient_id' })
   recipient: User;
 
   @Field()
-  @Column()
+  @Column({ name: 'recipient_id' })
   recipientId: string;
 
-  @Field()
+  @Field(() => Boolean)
   @Column({ default: false })
   isRead: boolean;
 
-  @Field()
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 }

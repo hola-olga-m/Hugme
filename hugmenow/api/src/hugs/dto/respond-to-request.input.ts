@@ -1,21 +1,21 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsString, IsUUID, IsOptional, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
 import { HugRequestStatus } from '../entities/hug-request.entity';
 
 @InputType()
 export class RespondToRequestInput {
   @Field()
-  @IsUUID()
+  @IsNotEmpty()
+  @IsString()
   requestId: string;
 
-  @Field(() => String)
-  @IsEnum(HugRequestStatus, {
-    message: 'Status must be either ACCEPTED, DECLINED, or CANCELLED',
-  })
+  @Field(() => HugRequestStatus)
+  @IsNotEmpty()
+  @IsEnum(HugRequestStatus)
   status: HugRequestStatus;
 
   @Field({ nullable: true })
-  @IsString()
   @IsOptional()
+  @IsString()
   message?: string;
 }

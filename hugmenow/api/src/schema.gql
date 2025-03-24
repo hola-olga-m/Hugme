@@ -1,0 +1,166 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AnonymousLoginInput {
+  avatarUrl: String
+  nickname: String!
+}
+
+type AuthResponse {
+  accessToken: String!
+  user: User!
+}
+
+input CreateHugRequestInput {
+  isCommunityRequest: Boolean!
+  message: String
+  recipientId: String
+}
+
+input CreateMoodInput {
+  isPublic: Boolean!
+  note: String
+  score: Int!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Hug {
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  message: String
+  recipient: User!
+  recipientId: String!
+  sender: User!
+  senderId: String!
+  type: HugType!
+}
+
+type HugRequest {
+  createdAt: DateTime!
+  id: ID!
+  isCommunityRequest: Boolean!
+  message: String
+  recipient: User
+  recipientId: String
+  requester: User!
+  requesterId: String!
+  respondedAt: DateTime
+  status: HugRequestStatus!
+}
+
+"""The status of a hug request"""
+enum HugRequestStatus {
+  ACCEPTED
+  CANCELLED
+  DECLINED
+  EXPIRED
+  PENDING
+}
+
+"""The type of hug sent"""
+enum HugType {
+  CELEBRATORY
+  COMFORTING
+  ENCOURAGING
+  QUICK
+  SUPPORTIVE
+  WARM
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mood {
+  createdAt: DateTime!
+  id: ID!
+  isPublic: Boolean!
+  note: String
+  score: Int!
+  user: User!
+  userId: String!
+}
+
+type Mutation {
+  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthResponse!
+  cancelHugRequest(id: ID!): HugRequest!
+  createHugRequest(createHugRequestInput: CreateHugRequestInput!): HugRequest!
+  createMood(createMoodInput: CreateMoodInput!): Mood!
+  login(loginInput: LoginInput!): AuthResponse!
+  markHugAsRead(id: ID!): Hug!
+  register(registerInput: RegisterInput!): AuthResponse!
+  removeMood(id: ID!): Boolean!
+  removeUser: Boolean!
+  respondToHugRequest(respondToRequestInput: RespondToRequestInput!): HugRequest!
+  sendHug(sendHugInput: SendHugInput!): Hug!
+  updateMood(updateMoodInput: UpdateMoodInput!): Mood!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+}
+
+type Query {
+  communityHugRequests: [HugRequest!]!
+  hug(id: ID!): Hug!
+  hugRequest(id: ID!): HugRequest!
+  me: User!
+  mood(id: ID!): Mood!
+  moodStreak: Float!
+  myHugRequests: [HugRequest!]!
+  pendingHugRequests: [HugRequest!]!
+  publicMoods: [Mood!]!
+  receivedHugs: [Hug!]!
+  sentHugs: [Hug!]!
+  user(id: ID!): User!
+  userMoods: [Mood!]!
+  users: [User!]!
+}
+
+input RegisterInput {
+  avatarUrl: String
+  email: String!
+  name: String!
+  password: String!
+  username: String!
+}
+
+input RespondToRequestInput {
+  message: String
+  requestId: String!
+  status: HugRequestStatus!
+}
+
+input SendHugInput {
+  message: String
+  recipientId: String!
+  type: HugType!
+}
+
+input UpdateMoodInput {
+  id: ID!
+  isPublic: Boolean
+  note: String
+  score: Int
+}
+
+input UpdateUserInput {
+  avatarUrl: String
+  name: String
+  password: String
+}
+
+type User {
+  avatarUrl: String
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  isAnonymous: Boolean!
+  name: String!
+  updatedAt: DateTime!
+  username: String!
+}
