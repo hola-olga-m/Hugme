@@ -16,10 +16,29 @@ async function bootstrap() {
     origin: ['http://localhost:3001', 'http://localhost:5000', process.env.FRONTEND_URL || '*'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-    exposedHeaders: 'Authorization',
+    allowedHeaders: 'Content-Type, Accept, Authorization, Accept-Protocol, Connection, X-Protocol-Hint, X-Client-Version, X-Retry-Attempt',
+    exposedHeaders: 'Authorization, Accept-Protocol, X-Protocol-Used',
     preflightContinue: false,
     optionsSuccessStatus: 204,
+  });
+  
+  // Add middleware to handle protocol compatibility headers
+  app.use((req, res, next) => {
+    // Add protocol compatibility headers to all responses
+    res.setHeader('Connection', 'keep-alive');
+    
+    // Check for protocol compatibility headers in request
+    if (req.headers['accept-protocol'] || req.headers['x-protocol-hint']) {
+      // Client is requesting specific protocol compatibility
+      res.setHeader('Vary', 'Accept-Protocol, X-Protocol-Hint');
+      
+      // Acknowledge the requested protocol
+      if (req.headers['accept-protocol']) {
+        res.setHeader('X-Protocol-Used', req.headers['accept-protocol']);
+      }
+    }
+    
+    next();
   });
   
   const port = process.env.PORT || 3000;

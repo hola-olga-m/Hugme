@@ -58,25 +58,69 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
     const errorMsg = networkError.message || '';
     const statusCode = networkError.statusCode || networkError.response?.status;
     
+    // Store retry attempts for this operation
+    if (!window.__protocolRetryAttempts) {
+      window.__protocolRetryAttempts = new Map();
+    }
+    
+    const operationId = operation.operationName || 'anonymous';
+    const retryCount = window.__protocolRetryAttempts.get(operationId) || 0;
+    
     if (
       statusCode === PROTOCOL_ERRORS.UPGRADE_REQUIRED ||
       errorMsg.includes('426') || 
       errorMsg.includes('Upgrade Required') ||
       errorMsg.includes('HTTP version')
     ) {
-      console.warn('Detected protocol compatibility issue, retrying with protocol workarounds...');
+      console.warn(`Detected protocol compatibility issue (attempt ${retryCount + 1}), applying workarounds...`);
       
-      // Apply protocol compatibility headers
-      operation.setContext(({ headers: oldHeaders = {} }) => ({
-        headers: {
-          ...oldHeaders,
-          'Accept-Protocol': 'HTTP/1.1',
-          'Connection': 'keep-alive',
-          'X-Protocol-Hint': 'HTTP1.1'
+      // Only retry a limited number of times before redirecting to the error page
+      if (retryCount < 2) {
+        // Increment retry counter
+        window.__protocolRetryAttempts.set(operationId, retryCount + 1);
+        
+        // Apply protocol compatibility headers
+        operation.setContext(({ headers: oldHeaders = {} }) => ({
+          headers: {
+            ...oldHeaders,
+            'Accept-Protocol': 'HTTP/1.1',
+            'Connection': 'keep-alive',
+            'X-Protocol-Hint': 'HTTP1.1',
+            'X-Retry-Attempt': retryCount + 1
+          }
+        }));
+        
+        return forward(operation);
+      } else {
+        // After multiple failed attempts, redirect to protocol error page
+        console.error('Maximum protocol compatibility retry attempts reached, redirecting to error page');
+        
+        // Clear retry count for future attempts
+        window.__protocolRetryAttempts.delete(operationId);
+        
+        // Redirect to protocol error page with details
+        setTimeout(() => {
+          const currentPath = window.location.pathname;
+          const redirectURL = `/protocol-error?code=${statusCode}&message=${encodeURIComponent(errorMsg)}&from=${encodeURIComponent(currentPath)}`;
+          
+          // Only redirect if we're not already on the error page
+          if (!window.location.pathname.includes('/protocol-error')) {
+            window.location.href = redirectURL;
+          }
+        }, 100);
+      }
+    } else if (statusCode === PROTOCOL_ERRORS.HTTP_VERSION_NOT_SUPPORTED) {
+      // Handle HTTP version not supported (505) similarly
+      console.warn('HTTP version not supported, redirecting to protocol error page');
+      
+      setTimeout(() => {
+        const currentPath = window.location.pathname;
+        const redirectURL = `/protocol-error?code=${statusCode}&message=${encodeURIComponent('HTTP Version Not Supported')}&from=${encodeURIComponent(currentPath)}`;
+        
+        if (!window.location.pathname.includes('/protocol-error')) {
+          window.location.href = redirectURL;
         }
-      }));
-      
-      return forward(operation);
+      }, 100);
     }
   }
 });

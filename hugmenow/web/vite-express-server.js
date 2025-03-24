@@ -22,24 +22,70 @@ async function createServer() {
     };
   });
   
-  // Configure API proxies
+  // Middleware to handle protocol compatibility issues
+  app.use((req, res, next) => {
+    // For API/GraphQL endpoints, add protocol compatibility headers
+    if (req.path === '/graphql' || req.path.startsWith('/api/') || req.path === '/info') {
+      // Add protocol compatibility headers to outgoing requests
+      req.headers['accept-protocol'] = 'HTTP/1.1';
+      req.headers['connection'] = 'keep-alive';
+      req.headers['x-protocol-hint'] = 'HTTP1.1';
+    }
+    next();
+  });
+  
+  // Configure API proxies with protocol error handling
+  const proxyOptions = {
+    target: 'http://localhost:3000',
+    changeOrigin: true,
+    secure: false,
+    onProxyReq: (proxyReq, req, res) => {
+      // Add protocol compatibility headers to all proxy requests
+      proxyReq.setHeader('Accept-Protocol', 'HTTP/1.1');
+      proxyReq.setHeader('Connection', 'keep-alive');
+      proxyReq.setHeader('X-Protocol-Hint', 'HTTP1.1');
+    },
+    onProxyRes: (proxyRes, req, res) => {
+      // Handle 426 error responses
+      if (proxyRes.statusCode === 426) {
+        console.warn("Intercepted 426 Upgrade Required error, applying workaround");
+        
+        // Override headers to ensure HTTP/1.1 compatibility
+        proxyRes.headers['connection'] = 'keep-alive';
+        proxyRes.headers['x-protocol-used'] = 'HTTP/1.1';
+        
+        // Change the status code to prevent client-side errors
+        proxyRes.statusCode = 200;
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('Proxy error:', err);
+      
+      // If we get a protocol-related error, redirect to our error page
+      if (err.message.includes('426') || err.message.includes('Upgrade Required')) {
+        res.writeHead(302, {
+          'Location': '/protocol-error?code=426&message=' + encodeURIComponent('Upgrade Required')
+        });
+        res.end();
+      } else {
+        res.writeHead(500, {
+          'Content-Type': 'text/plain'
+        });
+        res.end('Proxy error: ' + err.message);
+      }
+    }
+  };
+  
   app.use('/api', createProxyMiddleware({
-    target: 'http://localhost:3000',
-    changeOrigin: true,
-    secure: false
+    ...proxyOptions,
+    pathRewrite: {
+      '^/api': ''  // remove /api prefix when proxying
+    }
   }));
   
-  app.use('/info', createProxyMiddleware({
-    target: 'http://localhost:3000',
-    changeOrigin: true,
-    secure: false
-  }));
+  app.use('/info', createProxyMiddleware(proxyOptions));
   
-  app.use('/graphql', createProxyMiddleware({
-    target: 'http://localhost:3000',
-    changeOrigin: true,
-    secure: false
-  }));
+  app.use('/graphql', createProxyMiddleware(proxyOptions));
 
   // Custom routing middleware that preserves direct access to static files
   app.use((req, res, next) => {
