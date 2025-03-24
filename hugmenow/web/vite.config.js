@@ -31,10 +31,28 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       }
+    },
+    // Handle client-side routing - return index.html for all paths
+    fs: {
+      allow: ['.']
     }
   },
   preview: {
     host: '0.0.0.0',
     port: 3001
+  },
+  // This is crucial for SPA routing - ensure history API fallback
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
+  // Important for client-side routing
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
   }
 });
