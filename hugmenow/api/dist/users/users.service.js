@@ -17,7 +17,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./entities/user.entity");
-const bcrypt = require("bcrypt");
+const uuid_1 = require("uuid");
 let UsersService = class UsersService {
     usersRepository;
     constructor(usersRepository) {
@@ -27,55 +27,54 @@ let UsersService = class UsersService {
         return this.usersRepository.find();
     }
     async findOne(id) {
-        const user = await this.usersRepository.findOne({ where: { id } });
-        if (!user) {
-            throw new common_1.NotFoundException(`User with ID ${id} not found`);
-        }
-        return user;
+        return this.usersRepository.findOne({ where: { id } });
     }
     async findByEmail(email) {
+        if (!email)
+            return null;
         return this.usersRepository.findOne({ where: { email } });
     }
     async findByUsername(username) {
+        if (!username)
+            return null;
         return this.usersRepository.findOne({ where: { username } });
     }
     async create(createUserData) {
-        const emailExists = await this.findByEmail(createUserData.email);
-        if (emailExists) {
-            throw new common_1.ConflictException('Email already in use');
+        if (createUserData.email) {
+            const emailExists = await this.findByEmail(createUserData.email);
+            if (emailExists) {
+                throw new Error('Email already exists');
+            }
         }
-        const usernameExists = await this.findByUsername(createUserData.username);
-        if (usernameExists) {
-            throw new common_1.ConflictException('Username already in use');
-        }
-        if (createUserData.password) {
-            createUserData.password = await bcrypt.hash(createUserData.password, 10);
+        if (createUserData.username) {
+            const usernameExists = await this.findByUsername(createUserData.username);
+            if (usernameExists) {
+                throw new Error('Username already exists');
+            }
         }
         const user = this.usersRepository.create(createUserData);
         return this.usersRepository.save(user);
     }
     async update(id, updateUserData) {
-        await this.findOne(id);
-        if (updateUserData.password) {
-            updateUserData.password = await bcrypt.hash(updateUserData.password, 10);
-        }
         await this.usersRepository.update(id, updateUserData);
-        return this.findOne(id);
+        const updatedUser = await this.findOne(id);
+        if (!updatedUser) {
+            throw new Error('User not found');
+        }
+        return updatedUser;
     }
     async remove(id) {
         const result = await this.usersRepository.delete(id);
-        return result.affected > 0;
+        return result.affected ? result.affected > 0 : false;
     }
     async createAnonymousUser(nickname, avatarUrl) {
-        const anonymousUser = this.usersRepository.create({
-            username: `anon_${Date.now()}`,
-            email: `anon_${Date.now()}@anonymous.com`,
-            name: nickname,
-            password: await bcrypt.hash(Math.random().toString(36), 10),
-            avatarUrl,
+        return this.create({
+            id: (0, uuid_1.v4)(),
+            username: `anon_${(0, uuid_1.v4)().slice(0, 8)}`,
+            nickname,
+            avatarUrl: avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${(0, uuid_1.v4)().slice(0, 8)}`,
             isAnonymous: true,
         });
-        return this.usersRepository.save(anonymousUser);
     }
 };
 exports.UsersService = UsersService;

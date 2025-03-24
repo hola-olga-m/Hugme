@@ -27,10 +27,13 @@ let MoodsService = class MoodsService {
     }
     async create(createMoodInput, userId) {
         const user = await this.usersService.findOne(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
         const mood = this.moodsRepository.create({
             ...createMoodInput,
-            userId,
             user,
+            userId,
         });
         return this.moodsRepository.save(mood);
     }
@@ -48,7 +51,7 @@ let MoodsService = class MoodsService {
     async findByUser(userId) {
         return this.moodsRepository.find({
             where: { userId },
-            order: { createdAt: 'DESC' },
+            relations: ['user'],
         });
     }
     async findOne(id) {
@@ -57,36 +60,25 @@ let MoodsService = class MoodsService {
             relations: ['user'],
         });
         if (!mood) {
-            throw new common_1.NotFoundException(`Mood with ID ${id} not found`);
+            throw new Error('Mood not found');
         }
         return mood;
     }
     async update(id, updateMoodInput, userId) {
-        const mood = await this.moodsRepository.findOne({
-            where: { id },
-        });
-        if (!mood) {
-            throw new common_1.NotFoundException(`Mood with ID ${id} not found`);
-        }
+        const mood = await this.findOne(id);
         if (mood.userId !== userId) {
-            throw new common_1.NotFoundException('You can only update your own moods');
+            throw new Error('You do not have permission to update this mood');
         }
-        const { id: moodId, ...updateData } = updateMoodInput;
-        await this.moodsRepository.update(id, updateData);
+        await this.moodsRepository.update(id, updateMoodInput);
         return this.findOne(id);
     }
     async remove(id, userId) {
-        const mood = await this.moodsRepository.findOne({
-            where: { id },
-        });
-        if (!mood) {
-            throw new common_1.NotFoundException(`Mood with ID ${id} not found`);
-        }
+        const mood = await this.findOne(id);
         if (mood.userId !== userId) {
-            throw new common_1.NotFoundException('You can only delete your own moods');
+            throw new Error('You do not have permission to delete this mood');
         }
         const result = await this.moodsRepository.delete(id);
-        return result.affected > 0;
+        return result.affected ? result.affected > 0 : false;
     }
     async getUserMoodStreak(userId) {
         const moods = await this.moodsRepository.find({
@@ -96,25 +88,19 @@ let MoodsService = class MoodsService {
         if (moods.length === 0) {
             return 0;
         }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const latestMood = moods[0];
-        const latestMoodDate = new Date(latestMood.createdAt);
-        latestMoodDate.setHours(0, 0, 0, 0);
-        if (latestMoodDate.getTime() !== today.getTime()) {
-            return 0;
-        }
         let streak = 1;
-        let currentDate = today;
+        let currentDate = new Date(moods[0].createdAt);
+        currentDate.setHours(0, 0, 0, 0);
         for (let i = 1; i < moods.length; i++) {
-            currentDate = new Date(currentDate);
-            currentDate.setDate(currentDate.getDate() - 1);
             const moodDate = new Date(moods[i].createdAt);
             moodDate.setHours(0, 0, 0, 0);
-            if (moodDate.getTime() === currentDate.getTime()) {
+            const diffTime = Math.abs(currentDate.getTime() - moodDate.getTime());
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) {
                 streak++;
+                currentDate = moodDate;
             }
-            else {
+            else if (diffDays > 1) {
                 break;
             }
         }

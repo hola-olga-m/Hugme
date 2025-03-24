@@ -4,9 +4,9 @@ export declare class UsersService {
     private usersRepository;
     constructor(usersRepository: Repository<User>);
     findAll(): Promise<User[]>;
-    findOne(id: string): Promise<User>;
-    findByEmail(email: string): Promise<User>;
-    findByUsername(username: string): Promise<User>;
+    findOne(id: string): Promise<User | null>;
+    findByEmail(email: string | undefined): Promise<User | null>;
+    findByUsername(username: string | undefined): Promise<User | null>;
     create(createUserData: Partial<User>): Promise<User>;
     update(id: string, updateUserData: Partial<User>): Promise<User>;
     remove(id: string): Promise<boolean>;
