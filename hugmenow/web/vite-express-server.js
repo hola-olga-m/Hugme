@@ -1,13 +1,28 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const history = require('connect-history-api-fallback');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const { createServer: createViteServer } = require('vite');
 
 async function createServer() {
   const app = express();
   
-  // Configure API proxies first (before history API fallback)
+  // Create Vite server in middleware mode with HMR disabled to avoid WebSocket errors
+  const vite = await createViteServer({
+    server: { 
+      middlewareMode: true,
+      hmr: false // Disable HMR to avoid WebSocket connection errors
+    },
+    appType: 'spa'
+  }).catch(e => {
+    console.error('Vite server creation error:', e);
+    // Return a minimal object if Vite fails to initialize
+    return {
+      middlewares: (req, res, next) => next()
+    };
+  });
+  
+  // Configure API proxies
   app.use('/api', createProxyMiddleware({
     target: 'http://localhost:3000',
     changeOrigin: true,
@@ -25,61 +40,62 @@ async function createServer() {
     changeOrigin: true,
     secure: false
   }));
+
+  // Custom routing middleware that preserves direct access to static files
+  app.use((req, res, next) => {
+    const requestPath = req.path;
+    
+    // Let these static asset requests pass through
+    if (
+      requestPath.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|eot)$/) || 
+      requestPath.startsWith('/src/') ||
+      requestPath.startsWith('/assets/') ||
+      requestPath.startsWith('/node_modules/') ||
+      requestPath.startsWith('/@fs/') ||
+      requestPath.startsWith('/@vite/') ||
+      requestPath.startsWith('/@id/') ||
+      requestPath === '/favicon.svg'
+    ) {
+      console.log(`Allowing static file request: ${requestPath}`);
+      return next();
+    }
+    
+    // Skip API endpoints
+    if (
+      requestPath.startsWith('/api/') || 
+      requestPath === '/info' || 
+      requestPath === '/graphql'
+    ) {
+      console.log(`Allowing API request: ${requestPath}`);
+      return next();
+    }
+    
+    // For all other requests (route navigation), rewrite to index.html
+    if (requestPath !== '/' && !requestPath.includes('.')) {
+      console.log(`Rewriting route for SPA: ${requestPath} -> /`);
+      req.url = '/';
+    }
+    
+    next();
+  });
   
-  // Apply history API fallback middleware
-  app.use(history({
-    verbose: true,
-    disableDotRule: true,
-    rewrites: [
-      // Don't rewrite API requests
-      {
-        from: /^\/api\//,
-        to: context => context.parsedUrl.pathname
-      },
-      {
-        from: /^\/info$/,
-        to: context => context.parsedUrl.pathname
-      },
-      {
-        from: /^\/graphql$/,
-        to: context => context.parsedUrl.pathname
-      }
-    ]
-  }));
-
-  // Serve static files from the dist directory when in production
-  // or from public directory in development
-  app.use(express.static(path.resolve(__dirname, 'dist')));
+  // Use Vite's middlewares to handle all the development needs
+  app.use(vite.middlewares);
+  
+  // Serve static files
   app.use(express.static(path.resolve(__dirname, 'public')));
-
-  // Fallback: direct all other requests to index.html
+  
+  // Catch-all route handler for client-side routing
   app.get('*', (req, res) => {
-    console.log(`Serving index.html for: ${req.originalUrl}`);
-    // In production, serve from dist/index.html, otherwise serve from root index.html
-    const indexPath = fs.existsSync(path.resolve(__dirname, 'dist/index.html')) 
-      ? path.resolve(__dirname, 'dist/index.html')
-      : path.resolve(__dirname, 'index.html');
+    const indexPath = path.resolve(__dirname, 'index.html');
     
     try {
+      // Read the base HTML file
       const html = fs.readFileSync(indexPath, 'utf-8');
       res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
     } catch (e) {
       console.error('Error reading index.html:', e);
-      // Fallback HTML if we can't read the index.html file
-      res.status(200).set({ 'Content-Type': 'text/html' }).send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Hug Me Now</title>
-        </head>
-        <body>
-          <div id="root"></div>
-          <script type="module" src="/src/main.jsx"></script>
-        </body>
-        </html>
-      `);
+      res.status(500).send('Server Error');
     }
   });
 
