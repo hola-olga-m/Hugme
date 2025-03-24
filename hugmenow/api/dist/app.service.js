@@ -12,6 +12,25 @@ let AppService = class AppService {
     getHello() {
         return 'Welcome to Hug Me Now API!';
     }
+    getAppInfo() {
+        return {
+            name: 'Hug Me Now',
+            version: '1.0.0',
+            description: 'A platform for emotional wellness through virtual hugs and mood tracking',
+            endpoints: {
+                graphql: '/graphql',
+                api: '/api',
+            },
+            features: [
+                'User authentication with JWT',
+                'Mood tracking and history',
+                'Virtual hugs exchange',
+                'Hug requests',
+                'Public and private mood sharing',
+            ],
+            status: 'online'
+        };
+    }
 };
 exports.AppService = AppService;
 exports.AppService = AppService = __decorate([
