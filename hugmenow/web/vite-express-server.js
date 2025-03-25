@@ -1,80 +1,74 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
+const { createServer: createViteServer } = require('vite');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const path = require('path');
 
-// Simple Express server for serving the React app
-const app = express();
+async function startServer() {
+  try {
+    const app = express();
+    
+    // Create Vite server in middleware mode
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+      configFile: path.resolve(__dirname, 'vite.config.js'),
+    });
 
-// API proxy middleware for backend NestJS server
-const apiProxy = createProxyMiddleware({
-  target: 'http://localhost:3000',
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api': '' // remove /api prefix when proxying
+    // Use Vite's connect instance as middleware
+    app.use(vite.middlewares);
+    
+    // API proxy for the NestJS backend
+    app.use('/api', createProxyMiddleware({
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+      logLevel: 'debug',
+      pathRewrite: {
+        '^/api': '' // remove /api prefix when proxying
+      }
+    }));
+    
+    app.use('/graphql', createProxyMiddleware({
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+      logLevel: 'debug'
+    }));
+    
+    app.use('/info', createProxyMiddleware({
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+      logLevel: 'debug'
+    }));
+
+    // Define a list of client-side routes that should be handled by React Router
+    const clientRoutes = [
+      '/login',
+      '/register',
+      '/dashboard',
+      '/mood-tracker',
+      '/hug-center',
+      '/profile',
+      '/mood-history'
+    ];
+
+    // Create explicit handlers for each client-side route
+    clientRoutes.forEach(route => {
+      app.use(route, (req, res, next) => {
+        // Let Vite handle these routes for SPA navigation
+        console.log(`Handling client-side route: ${route}`);
+        req.url = '/'; // Rewrite to root to serve index.html
+        next();
+      });
+    });
+
+    const PORT = 3001;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`⚡️ Vite + Express server running at http://localhost:${PORT}`);
+      console.log(`🔄 Client-side routes configured for React Router`);
+    });
+  } catch (error) {
+    console.error('Error starting server:', error);
+    process.exit(1);
   }
-});
+}
 
-// Set up API routes
-app.use('/api', apiProxy);
-app.use('/graphql', createProxyMiddleware({ target: 'http://localhost:3000', changeOrigin: true }));
-app.use('/info', createProxyMiddleware({ target: 'http://localhost:3000', changeOrigin: true }));
-
-// Set correct MIME types for JavaScript modules
-app.use((req, res, next) => {
-  if (req.path.endsWith('.js') || req.path.endsWith('.mjs') || req.path.endsWith('.jsx')) {
-    res.set('Content-Type', 'application/javascript');
-  }
-  next();
-});
-
-// Explicitly serve JavaScript files with correct MIME type
-app.get('*.js', (req, res, next) => {
-  res.set('Content-Type', 'application/javascript');
-  next();
-});
-
-// Define a list of client-side routes that should be handled by React Router
-const clientRoutes = [
-  '/login',
-  '/register',
-  '/dashboard',
-  '/mood-tracker',
-  '/hug-center',
-  '/profile',
-  '/mood-history'
-];
-
-// Create explicit handlers for each client-side route
-clientRoutes.forEach(route => {
-  app.get(route, (req, res) => {
-    console.log(`Handling client-side route: ${route}`);
-    res.sendFile(path.resolve(__dirname, 'index.html'));
-  });
-});
-
-// Serve static files from the public directory
-app.use(express.static(path.resolve(__dirname, 'public')));
-
-// Serve static files from src directory for development
-app.use('/src', express.static(path.resolve(__dirname, 'src')));
-
-// Serve the React app's index.html for all other routes
-app.get('*', (req, res, next) => {
-  // Only handle non-file requests to support client-side routing
-  if (!req.path.includes('.')) {
-    console.log(`Serving index.html for route: ${req.path}`);
-    res.sendFile(path.resolve(__dirname, 'index.html'));
-  } else {
-    // For unknown file requests, pass to next handler which will 404
-    next();
-  }
-});
-
-// Start the server
-const PORT = 3001;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-  console.log('Using simplified express server for React app');
-  console.log('Client-side routes configured:', clientRoutes.join(', '));
-});
+startServer();
