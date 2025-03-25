@@ -1,73 +1,118 @@
-// Simple API server for demonstration purposes
-const express = require('express');
-const cors = require('cors');
-const app = express();
-const PORT = process.env.PORT || 3002;
+// simple-server.js - A minimal NestJS server substitute for Replit
+const http = require('http');
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: ['http://localhost:3001', 'http://0.0.0.0:3001', '*'],
-  credentials: true
-}));
+const PORT = 3002;
 
-// Simple routes for testing
-app.get('/', (req, res) => {
-  res.json({
-    message: 'NestJS API Server Placeholder',
-    status: 'running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get('/info', (req, res) => {
-  res.json({
-    name: 'HugMeNow API',
-    version: '1.0.0',
-    description: 'NestJS API for HugMeNow application',
-    status: 'running on simple server',
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Sample GraphQL endpoint
-app.post('/graphql', (req, res) => {
-  const query = req.body.query || '';
+// Create a simple HTTP server for the API
+const server = http.createServer((req, res) => {
+  console.log(`API Request received: ${req.method} ${req.url}`);
   
-  // Very simple mock response
-  if (query.includes('me')) {
-    res.json({
-      data: {
-        me: {
-          id: 'user-1',
-          name: 'Sample User',
-          email: 'user@example.com'
-        }
+  // Add CORS headers to allow cross-origin requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
+  }
+  
+  // Health check endpoint
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      status: 'ok',
+      service: 'API',
+      time: new Date().toISOString()
+    }));
+  }
+  
+  // Root endpoint
+  if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      name: 'HugMeNow API',
+      version: '0.1.0',
+      status: 'running',
+      endpoints: ['/health', '/api/auth/login', '/graphql']
+    }));
+  }
+  
+  // Mock login endpoint
+  if (req.url === '/api/auth/login' && req.method === 'POST') {
+    let body = '';
+    
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          token: 'mock-jwt-token',
+          user: {
+            id: 'user-123',
+            name: 'Demo User',
+            email: data.email || 'demo@example.com'
+          }
+        }));
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid request body' }));
       }
     });
-  } else {
-    res.json({
-      data: null,
-      errors: [{
-        message: 'Not implemented in simple server'
-      }]
-    });
+    
+    return;
   }
+  
+  // Basic GraphQL endpoint
+  if (req.url === '/graphql' && req.method === 'POST') {
+    let body = '';
+    
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        
+        // Mock GraphQL response
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          data: {
+            hello: 'world',
+            serverTime: new Date().toISOString()
+          }
+        }));
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid GraphQL request' }));
+      }
+    });
+    
+    return;
+  }
+  
+  // Fallback for unknown endpoints
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Endpoint not found' }));
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Start the server
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Simple API server running on http://0.0.0.0:${PORT}`);
   console.log(`Server started at: ${new Date().toISOString()}`);
   console.log(`Server is listening on port: ${PORT}`);
   console.log(`Server is bound to address: 0.0.0.0`);
-  console.log('Simple API Server is ready to accept connections');
+  console.log(`Simple API Server is ready to accept connections`);
+});
+
+// Handle errors
+server.on('error', (error) => {
+  console.error('Server error:', error.message);
 });
