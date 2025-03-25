@@ -1,41 +1,73 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { currentUser, logout } = useAuth();
-
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Redirect will be handled by protected route
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+  
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Welcome to Your Dashboard</h1>
-        {currentUser && (
-          <div className="user-welcome">
-            <p>Hello, {currentUser.name || currentUser.username || 'User'}!</p>
-            <button className="btn btn-secondary" onClick={logout}>
-              Logout
-            </button>
-          </div>
-        )}
+      <div className="app-header">
+        <h1>{t('app.name')}</h1>
+        
+        <div className="header-actions">
+          <LanguageSwitcher />
+          <button onClick={handleLogout} className="btn btn-outline">
+            {t('auth.logout')}
+          </button>
+        </div>
       </div>
       
-      <div className="dashboard-content">
-        <div className="dashboard-card">
-          <h2>Your Mood Tracker</h2>
-          <p>Track your daily moods and see patterns over time.</p>
-          <button className="btn btn-primary">Record Mood</button>
+      <div className="app-content">
+        <div className="dashboard-header">
+          <div className="user-welcome">
+            <h2>{t('dashboard.welcome', { name: currentUser?.name || currentUser?.username })}</h2>
+          </div>
         </div>
         
-        <div className="dashboard-card">
-          <h2>Hug Center</h2>
-          <p>Send and receive virtual hugs to support others.</p>
-          <button className="btn btn-primary">Send a Hug</button>
+        <div className="dashboard-content">
+          {/* Mood tracking card */}
+          <div className="dashboard-card">
+            <h3>{t('dashboard.yourMoods')}</h3>
+            <p>{t('mood.track')}</p>
+            <a href="/mood-tracker" className="btn btn-primary">
+              {t('dashboard.trackMood')}
+            </a>
+          </div>
+          
+          {/* Hugs card */}
+          <div className="dashboard-card">
+            <h3>{t('dashboard.yourHugs')}</h3>
+            <p>{t('hugs.send')}</p>
+            <a href="/hug-center" className="btn btn-primary">
+              {t('dashboard.newHug')}
+            </a>
+          </div>
+          
+          {/* Profile card */}
+          <div className="dashboard-card">
+            <h3>{t('profile.myProfile')}</h3>
+            <p>{t('profile.editProfile')}</p>
+            <a href="/profile" className="btn btn-primary">
+              {t('profile.editProfile')}
+            </a>
+          </div>
         </div>
-        
-        <div className="dashboard-card">
-          <h2>Community</h2>
-          <p>Connect with others and share support.</p>
-          <button className="btn btn-primary">View Community</button>
-        </div>
+      </div>
+      
+      <div className="app-footer">
+        <p>&copy; 2025 {t('app.name')}</p>
       </div>
     </div>
   );

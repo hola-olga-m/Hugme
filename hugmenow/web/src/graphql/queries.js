@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
-// User Queries
+// User queries
 export const GET_ME = gql`
-  query GetMe {
+  query me {
     me {
       id
       username
@@ -11,12 +11,13 @@ export const GET_ME = gql`
       avatarUrl
       isAnonymous
       createdAt
+      updatedAt
     }
   }
 `;
 
 export const GET_USER = gql`
-  query GetUser($id: ID!) {
+  query user($id: ID!) {
     user(id: $id) {
       id
       username
@@ -25,12 +26,13 @@ export const GET_USER = gql`
       avatarUrl
       isAnonymous
       createdAt
+      updatedAt
     }
   }
 `;
 
 export const GET_USERS = gql`
-  query GetUsers {
+  query users {
     users {
       id
       username
@@ -41,21 +43,22 @@ export const GET_USERS = gql`
   }
 `;
 
-// Mood Queries
+// Mood queries
 export const GET_USER_MOODS = gql`
-  query GetUserMoods {
+  query userMoods {
     userMoods {
       id
       score
       note
       isPublic
       createdAt
+      userId
     }
   }
 `;
 
 export const GET_PUBLIC_MOODS = gql`
-  query GetPublicMoods {
+  query publicMoods {
     publicMoods {
       id
       score
@@ -72,31 +75,27 @@ export const GET_PUBLIC_MOODS = gql`
 `;
 
 export const GET_MOOD = gql`
-  query GetMood($id: ID!) {
+  query mood($id: ID!) {
     mood(id: $id) {
       id
       score
       note
       isPublic
       createdAt
-      user {
-        id
-        username
-        name
-      }
+      userId
     }
   }
 `;
 
 export const GET_MOOD_STREAK = gql`
-  query GetMoodStreak {
+  query moodStreak {
     moodStreak
   }
 `;
 
-// Hug Queries
+// Hug queries
 export const GET_SENT_HUGS = gql`
-  query GetSentHugs {
+  query sentHugs {
     sentHugs {
       id
       type
@@ -107,13 +106,14 @@ export const GET_SENT_HUGS = gql`
         id
         username
         name
+        avatarUrl
       }
     }
   }
 `;
 
 export const GET_RECEIVED_HUGS = gql`
-  query GetReceivedHugs {
+  query receivedHugs {
     receivedHugs {
       id
       type
@@ -124,13 +124,14 @@ export const GET_RECEIVED_HUGS = gql`
         id
         username
         name
+        avatarUrl
       }
     }
   }
 `;
 
 export const GET_HUG = gql`
-  query GetHug($id: ID!) {
+  query hug($id: ID!) {
     hug(id: $id) {
       id
       type
@@ -151,9 +152,9 @@ export const GET_HUG = gql`
   }
 `;
 
-// Hug Request Queries
+// Hug Request queries
 export const GET_MY_HUG_REQUESTS = gql`
-  query GetMyHugRequests {
+  query myHugRequests {
     myHugRequests {
       id
       message
@@ -165,13 +166,14 @@ export const GET_MY_HUG_REQUESTS = gql`
         id
         username
         name
+        avatarUrl
       }
     }
   }
 `;
 
 export const GET_PENDING_HUG_REQUESTS = gql`
-  query GetPendingHugRequests {
+  query pendingHugRequests {
     pendingHugRequests {
       id
       message
@@ -182,29 +184,32 @@ export const GET_PENDING_HUG_REQUESTS = gql`
         id
         username
         name
+        avatarUrl
       }
     }
   }
 `;
 
 export const GET_COMMUNITY_HUG_REQUESTS = gql`
-  query GetCommunityHugRequests {
+  query communityHugRequests {
     communityHugRequests {
       id
       message
+      isCommunityRequest
       status
       createdAt
       requester {
         id
         username
         name
+        avatarUrl
       }
     }
   }
 `;
 
 export const GET_HUG_REQUEST = gql`
-  query GetHugRequest($id: ID!) {
+  query hugRequest($id: ID!) {
     hugRequest(id: $id) {
       id
       message
@@ -216,30 +221,30 @@ export const GET_HUG_REQUEST = gql`
         id
         username
         name
+        avatarUrl
       }
       recipient {
         id
         username
         name
+        avatarUrl
       }
     }
   }
 `;
 
-// Stats Queries
+// Stats queries
 export const GET_USER_STATS = gql`
-  query GetUserStats {
+  query userStats {
+    me {
+      id
+      receivedHugs {
+        id
+      }
+      sentHugs {
+        id
+      }
+    }
     moodStreak
-    sentHugs {
-      id
-    }
-    receivedHugs {
-      id
-    }
-    userMoods {
-      id
-      score
-      createdAt
-    }
   }
 `;

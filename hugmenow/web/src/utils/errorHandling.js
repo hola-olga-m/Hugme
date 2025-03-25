@@ -9,49 +9,59 @@
  * @returns {string} Error type: 'route', 'network', 'auth', 'data'
  */
 export const detectErrorType = (error, context = {}) => {
-  const { location, component } = context;
-  const errorMessage = error?.message || '';
-  
-  // Network errors
-  if (
-    errorMessage.includes('Failed to fetch') || 
-    errorMessage.includes('NetworkError') || 
-    errorMessage.includes('Network request failed') ||
-    errorMessage.includes('Unable to connect')
-  ) {
-    return 'network';
-  }
+  const message = error?.message?.toLowerCase() || '';
   
   // Authentication errors
   if (
-    errorMessage.includes('Unauthorized') || 
-    errorMessage.includes('Authentication failed') ||
-    errorMessage.includes('not logged in') ||
-    errorMessage.includes('JWT')
+    message.includes('unauthorized') ||
+    message.includes('unauthenticated') ||
+    message.includes('auth') ||
+    message.includes('login') ||
+    message.includes('token') ||
+    error?.status === 401 ||
+    error?.statusCode === 401
   ) {
     return 'auth';
   }
   
-  // Data errors
+  // Network errors
   if (
-    errorMessage.includes('Cannot read property') || 
-    errorMessage.includes('undefined is not an object') ||
-    errorMessage.includes('is not a function') ||
-    errorMessage.includes('Cannot find')
+    message.includes('network') ||
+    message.includes('connection') ||
+    message.includes('offline') ||
+    message.includes('failed to fetch') ||
+    error.name === 'NetworkError' ||
+    context.isNetworkError
   ) {
-    return 'data';
+    return 'network';
   }
   
-  // Check if it's a routing error based on context
+  // Routing errors
   if (
-    location?.pathname && 
-    (component === 'Router' || errorMessage.includes('No route matched'))
+    message.includes('not found') ||
+    message.includes('404') ||
+    message.includes('route') ||
+    error?.status === 404 ||
+    error?.statusCode === 404 ||
+    context.isRouteError
   ) {
     return 'route';
   }
   
-  // Default to route error
-  return 'route';
+  // Data errors (validation, database, etc.)
+  if (
+    message.includes('validation') ||
+    message.includes('invalid') ||
+    message.includes('data') ||
+    message.includes('database') ||
+    message.includes('constraint') ||
+    context.isDataError
+  ) {
+    return 'data';
+  }
+  
+  // Default to general error
+  return 'general';
 };
 
 /**
@@ -61,26 +71,30 @@ export const detectErrorType = (error, context = {}) => {
  */
 export const getErrorMessage = (errorType) => {
   switch (errorType) {
-    case 'network':
-      return {
-        title: "Network Error",
-        description: "Unable to connect to our servers. Please check your internet connection and try again."
-      };
     case 'auth':
       return {
-        title: "Authentication Error",
-        description: "You need to be logged in to view this page or your session may have expired."
+        title: 'Authentication Error',
+        description: 'Your session may have expired. Please log in again.'
+      };
+    case 'network':
+      return {
+        title: 'Network Error',
+        description: 'Unable to connect to the server. Please check your internet connection.'
+      };
+    case 'route':
+      return {
+        title: 'Page Not Found',
+        description: 'The page you are looking for does not exist or has been moved.'
       };
     case 'data':
       return {
-        title: "Data Loading Error",
-        description: "We couldn't load the data for this page. Please try again later."
+        title: 'Data Error',
+        description: 'There was a problem with the data. Please try again with valid information.'
       };
-    case 'route':
     default:
       return {
-        title: "Page Not Found",
-        description: "The page you're looking for might be unavailable or doesn't exist."
+        title: 'Something Went Wrong',
+        description: 'An unexpected error occurred. Please try again later.'
       };
   }
 };
@@ -91,17 +105,16 @@ export const getErrorMessage = (errorType) => {
  * @param {Object} context - Additional context
  */
 export const logError = (error, context = {}) => {
-  const { component, location, action } = context;
+  const errorType = detectErrorType(error, context);
+  const { title } = getErrorMessage(errorType);
   
-  console.error(`[ERROR][${component || 'App'}]`, {
-    message: error?.message,
-    stack: error?.stack,
-    location: location?.pathname,
-    action,
-    timestamp: new Date().toISOString(),
-  });
+  console.group(`Error: ${title}`);
+  console.error('Error object:', error);
+  console.error('Error type:', errorType);
+  console.error('Error context:', context);
+  console.groupEnd();
   
-  // Could be extended to log to an external service or store errors in localStorage
+  // Could add additional logging here, e.g. to an error tracking service
 };
 
 /**
@@ -113,11 +126,12 @@ export const getErrorRedirect = (errorType) => {
   switch (errorType) {
     case 'auth':
       return '/login';
+    case 'route':
+      return '/';
     case 'network':
     case 'data':
-      return '/error';
-    case 'route':
     default:
-      return '/not-found';
+      // Stay on the current page for these errors
+      return null;
   }
 };

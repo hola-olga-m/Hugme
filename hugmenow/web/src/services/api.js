@@ -10,20 +10,45 @@
 export const API_BASE_URL = '';
 
 /**
+ * Helper function to create request headers with auth token
+ * @returns {Object} Headers object
+ */
+const getHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};
+
+/**
  * Helper function to handle API response with error checking
  * @param {Response} response - Fetch API response
  * @returns {Promise<Object>} Response data
  * @throws {Error} If response is not ok
  */
 const handleResponse = async (response) => {
-  const data = await response.json();
-  
   if (!response.ok) {
-    const error = (data && data.message) || response.statusText;
-    throw new Error(error);
+    // Try to parse error response
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch (e) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    // Throw error with message from the server if available
+    throw new Error(
+      errorData.message || errorData.error || `HTTP error ${response.status}: ${response.statusText}`
+    );
   }
   
-  return data;
+  return response.json();
 };
 
 /**
@@ -38,12 +63,11 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   login: async (credentials) => {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(credentials)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+      credentials: 'include'
     });
     
     return handleResponse(response);
@@ -60,12 +84,11 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   register: async (userData) => {
-    const response = await fetch(`${API_BASE_URL}/register`, {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(userData)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+      credentials: 'include'
     });
     
     return handleResponse(response);
@@ -79,12 +102,71 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   anonymousLogin: async (anonymousData) => {
-    const response = await fetch(`${API_BASE_URL}/anonymous-login`, {
+    const response = await fetch(`${API_BASE_URL}/auth/anonymous`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(anonymousData)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(anonymousData),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Get current user info using auth token
+   * @returns {Promise<Object>} Current user data
+   */
+  getCurrentUser: async () => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'GET',
+      headers: getHeaders(),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Update user profile
+   * @param {string} userId - User ID
+   * @param {Object} userData - User data to update
+   * @returns {Promise<Object>} Updated user data
+   */
+  updateProfile: async (userId, userData) => {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify(userData),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Delete user account
+   * @param {string} userId - User ID
+   * @returns {Promise<boolean>} Success status
+   */
+  deleteAccount: async (userId) => {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Logout user
+   * @returns {Promise<Object>} Logout response
+   */
+  logout: async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      headers: getHeaders(),
+      credentials: 'include'
     });
     
     return handleResponse(response);
@@ -96,17 +178,64 @@ export const authApi = {
  */
 export const userApi = {
   /**
-   * Get current user info using auth token
-   * @returns {Promise<Object>} Current user data
+   * Get user profile by ID
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} User data
    */
-  getCurrentUser: async () => {
-    const token = localStorage.getItem('authToken');
-    
-    const response = await fetch(`${API_BASE_URL}/api/users/me`, {
+  getUserProfile: async (userId) => {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getHeaders(),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Get all users
+   * @returns {Promise<Array>} List of users
+   */
+  getAllUsers: async () => {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'GET',
+      headers: getHeaders(),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  }
+};
+
+/**
+ * Mood API services
+ */
+export const moodApi = {
+  /**
+   * Create a new mood entry
+   * @param {Object} moodData - Mood data
+   * @returns {Promise<Object>} Created mood
+   */
+  createMood: async (moodData) => {
+    const response = await fetch(`${API_BASE_URL}/moods`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(moodData),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Get user mood streak
+   * @returns {Promise<Object>} Mood streak data
+   */
+  getMoodStreak: async () => {
+    const response = await fetch(`${API_BASE_URL}/moods/streak`, {
+      method: 'GET',
+      headers: getHeaders(),
+      credentials: 'include'
     });
     
     return handleResponse(response);
@@ -119,7 +248,16 @@ export const userApi = {
  */
 export const apiService = {
   auth: authApi,
-  user: userApi
+  user: userApi,
+  mood: moodApi,
+  
+  // Method to get service by name
+  get(serviceName) {
+    switch(serviceName) {
+      case 'auth': return this.auth;
+      case 'user': return this.user;
+      case 'mood': return this.mood;
+      default: throw new Error(`Unknown API service: ${serviceName}`);
+    }
+  }
 };
-
-export default apiService;

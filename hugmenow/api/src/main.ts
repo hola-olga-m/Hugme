@@ -63,11 +63,19 @@ async function bootstrap() {
     next();
   });
   
-  const port = process.env.PORT || 3000;
+  // Using port 3002 to avoid port conflicts
+  const port = process.env.PORT || 3002;
   await app.listen(port, '0.0.0.0');
   console.log(`Application is running on: http://localhost:${port}`);
   console.log(`API Info available at: http://localhost:${port}/info`);
   console.log(`GraphQL endpoint: http://localhost:${port}/graphql`);
+  
+  // Add more detailed logging for workflow detection
+  console.log(`Server started at: ${new Date().toISOString()}`);
+  console.log(`Server PID: ${process.pid}`);
+  console.log(`Server is listening on port: ${port}`);
+  console.log(`Server is bound to address: 0.0.0.0`);
+  console.log('================================');
 }
 
 bootstrap();
