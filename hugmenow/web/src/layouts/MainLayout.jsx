@@ -1,8 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 function MainLayout({ children }) {
+  const { t } = useTranslation();
   const { currentUser, logout, isAuthenticated } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -62,7 +65,7 @@ function MainLayout({ children }) {
                     to="/dashboard" 
                     className={location.pathname === '/dashboard' ? 'active' : ''}
                   >
-                    Dashboard
+                    {t('navigation.dashboard')}
                   </Link>
                 </li>
                 <li className="nav-item">
@@ -70,7 +73,7 @@ function MainLayout({ children }) {
                     to="/mood-tracker" 
                     className={location.pathname === '/mood-tracker' ? 'active' : ''}
                   >
-                    Mood Tracker
+                    {t('navigation.moodTracker')}
                   </Link>
                 </li>
                 <li className="nav-item">
@@ -78,7 +81,7 @@ function MainLayout({ children }) {
                     to="/hug-center" 
                     className={location.pathname === '/hug-center' ? 'active' : ''}
                   >
-                    Hug Center
+                    {t('navigation.hugCenter')}
                   </Link>
                 </li>
                 <li className="nav-item">
@@ -86,7 +89,7 @@ function MainLayout({ children }) {
                     to="/mood-history" 
                     className={location.pathname === '/mood-history' ? 'active' : ''}
                   >
-                    History
+                    {t('moodTracker.moodHistory')}
                   </Link>
                 </li>
               </ul>
@@ -118,10 +121,10 @@ function MainLayout({ children }) {
                     </div>
                     <ul className="dropdown-list">
                       <li className="dropdown-item">
-                        <Link to="/profile">Profile</Link>
+                        <Link to="/profile">{t('navigation.profile')}</Link>
                       </li>
                       <li className="dropdown-item">
-                        <button onClick={handleLogout}>Logout</button>
+                        <button onClick={handleLogout}>{t('navigation.logout')}</button>
                       </li>
                     </ul>
                   </div>
