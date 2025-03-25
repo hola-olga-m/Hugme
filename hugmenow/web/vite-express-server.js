@@ -87,13 +87,22 @@ async function createServer() {
   
   app.use('/graphql', createProxyMiddleware(proxyOptions));
 
+  // Middleware to set proper MIME types for module scripts
+  app.use((req, res, next) => {
+    // Set JavaScript module MIME type for ESM files
+    if (req.path.endsWith('.js') || req.path.endsWith('.mjs') || req.path.endsWith('.jsx')) {
+      res.type('application/javascript');
+    }
+    next();
+  });
+
   // Custom routing middleware that preserves direct access to static files
   app.use((req, res, next) => {
     const requestPath = req.path;
     
     // Let these static asset requests pass through
     if (
-      requestPath.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|eot)$/) || 
+      requestPath.match(/\.(js|jsx|mjs|css|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|eot)$/) || 
       requestPath.startsWith('/src/') ||
       requestPath.startsWith('/assets/') ||
       requestPath.startsWith('/node_modules/') ||
@@ -133,6 +142,16 @@ async function createServer() {
   
   // Catch-all route handler for client-side routing
   app.get('*', (req, res) => {
+    // If the request is for a JavaScript file, ensure the correct MIME type
+    if (req.path.endsWith('.js') || req.path.endsWith('.mjs') || req.path.endsWith('.jsx')) {
+      res.set('Content-Type', 'application/javascript');
+      // Try to serve the file if it exists
+      const filePath = path.resolve(__dirname, req.path.substring(1));
+      if (fs.existsSync(filePath)) {
+        return res.sendFile(filePath);
+      }
+    }
+    
     const indexPath = path.resolve(__dirname, 'index.html');
     
     try {
