@@ -14,6 +14,7 @@ export default {
     language: 'Язык',
     english: 'Английский',
     russian: 'Русский',
+    or: 'ИЛИ',
   },
   navigation: {
     home: 'Главная',

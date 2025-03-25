@@ -14,6 +14,7 @@ export default {
     language: 'Language',
     english: 'English',
     russian: 'Russian',
+    or: 'OR',
   },
   navigation: {
     home: 'Home',

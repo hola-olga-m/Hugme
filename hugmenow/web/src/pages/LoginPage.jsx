@@ -70,7 +70,7 @@ const LoginPage = () => {
       // If successful, navigation is handled in the AuthContext
       
     } catch (error) {
-      setErrorMessage(error.message || 'Login failed. Please try again.');
+      setErrorMessage(error.message || t('errors.auth.invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +83,7 @@ const LoginPage = () => {
       setErrorMessage('');
       
       // Generate a random nickname for guest users
-      const nickname = `Guest${Math.floor(Math.random() * 10000)}`;
+      const nickname = `${t('auth.nickname')}${Math.floor(Math.random() * 10000)}`;
       
       // Call anonymous login function from AuthContext
       await anonymousLogin(nickname);
@@ -91,7 +91,7 @@ const LoginPage = () => {
       // If successful, navigation is handled in the AuthContext
       
     } catch (error) {
-      setErrorMessage(error.message || 'Anonymous login failed. Please try again.');
+      setErrorMessage(error.message || t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -102,8 +102,8 @@ const LoginPage = () => {
       <div className="auth-page">
         <div className="form-container">
           <div className="form-header">
-            <h2>Welcome Back</h2>
-            <p>Sign in to your account to continue</p>
+            <h2>{t('auth.login')}</h2>
+            <p>{t('auth.signIn')} {t('auth.haveAccount')}</p>
           </div>
           
           {(errorMessage || authError) && (
@@ -114,7 +114,7 @@ const LoginPage = () => {
           
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email" className="form-label">Email</label>
+              <label htmlFor="email" className="form-label">{t('auth.email')}</label>
               <input
                 type="email"
                 id="email"
@@ -122,14 +122,14 @@ const LoginPage = () => {
                 className={`form-input ${errors.email ? 'has-error' : ''}`}
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder={`${t('auth.email')}`}
                 disabled={isLoading}
               />
               {errors.email && <div className="form-error">{errors.email}</div>}
             </div>
             
             <div className="form-group">
-              <label htmlFor="password" className="form-label">Password</label>
+              <label htmlFor="password" className="form-label">{t('auth.password')}</label>
               <input
                 type="password"
                 id="password"
@@ -137,7 +137,7 @@ const LoginPage = () => {
                 className={`form-input ${errors.password ? 'has-error' : ''}`}
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Enter your password"
+                placeholder={`${t('auth.password')}`}
                 disabled={isLoading}
               />
               {errors.password && <div className="form-error">{errors.password}</div>}
@@ -149,13 +149,13 @@ const LoginPage = () => {
                 className="btn btn-primary btn-block" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isLoading ? `${t('common.loading')}...` : t('auth.signIn')}
               </button>
             </div>
           </form>
           
           <div className="separator">
-            <span>OR</span>
+            <span>{t('common.or')}</span>
           </div>
           
           <button 
@@ -163,11 +163,11 @@ const LoginPage = () => {
             onClick={handleAnonymousLogin}
             disabled={isLoading}
           >
-            Continue as Guest
+            {t('auth.anonymousLogin')}
           </button>
           
           <div className="form-footer">
-            <p>Don't have an account? <Link to="/register" className="form-link">Sign Up</Link></p>
+            <p>{t('auth.noAccount')} <Link to="/register" className="form-link">{t('auth.signUp')}</Link></p>
           </div>
         </div>
       </div>
