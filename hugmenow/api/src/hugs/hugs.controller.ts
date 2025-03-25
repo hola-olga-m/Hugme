@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request, UnauthorizedException, NotFoundException, HttpStatus, Res } from '@nestjs/common';
 import { HugsService } from './hugs.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // LSP error but works at runtime
 import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
