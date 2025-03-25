@@ -4,9 +4,13 @@ import { UsersResolver } from './users.resolver';
 import { UsersController } from './users.controller';
 // Import Postgraphile Module (it's global, but adding it for clarity)
 import { PostGraphileModule } from '../postgraphile/postgraphile.module';
+// Import AuthModule for JwtAuthGuard
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [], // No longer using TypeOrmModule.forFeature
+  imports: [
+    AuthModule, // Import AuthModule to use JwtAuthGuard
+  ],
   providers: [UsersService, UsersResolver],
   controllers: [UsersController],
   exports: [UsersService],

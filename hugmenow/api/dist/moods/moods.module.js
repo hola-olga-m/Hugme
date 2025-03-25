@@ -12,6 +12,7 @@ const moods_service_1 = require("./moods.service");
 const moods_resolver_1 = require("./moods.resolver");
 const moods_controller_1 = require("./moods.controller");
 const users_module_1 = require("../users/users.module");
+const auth_module_1 = require("../auth/auth.module");
 let MoodsModule = class MoodsModule {
 };
 exports.MoodsModule = MoodsModule;
@@ -19,6 +20,7 @@ exports.MoodsModule = MoodsModule = __decorate([
     (0, common_1.Module)({
         imports: [
             users_module_1.UsersModule,
+            auth_module_1.AuthModule,
         ],
         controllers: [moods_controller_1.MoodsController],
         providers: [moods_service_1.MoodsService, moods_resolver_1.MoodsResolver],
