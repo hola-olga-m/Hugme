@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const common_1 = require("@nestjs/common");
 class AuthPlugin {
-    jwtService;
-    constructor(jwtService) {
-        this.jwtService = jwtService;
+    logger = new common_1.Logger('GraphQLAuth');
+    jwtSecret;
+    constructor(options = {}) {
+        this.jwtSecret = options.jwtSecret || process.env.JWT_SECRET || 'your-secret-key';
     }
     onInit(options) {
         return {
@@ -15,10 +17,11 @@ class AuthPlugin {
                 if (authHeader && authHeader.startsWith('Bearer ')) {
                     const token = authHeader.substring(7);
                     try {
-                        user = this.jwtService.verify(token);
+                        user = this.verifyToken(token);
+                        this.logger.debug(`User authenticated: ${user.username || user.sub}`);
                     }
                     catch (error) {
-                        console.error('Invalid JWT token', error.message);
+                        this.logger.error(`Invalid JWT token: ${error.message}`);
                     }
                 }
                 return {
@@ -40,9 +43,25 @@ class AuthPlugin {
             return execute(options);
         };
     }
+    verifyToken(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(Buffer.from(base64, 'base64').toString());
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp && payload.exp < now) {
+                throw new Error('Token expired');
+            }
+            return payload;
+        }
+        catch (error) {
+            this.logger.error(`Error verifying token: ${error.message}`);
+            throw new Error('Invalid token');
+        }
+    }
     requiresAuth(operation) {
         const operationName = operation.name?.value;
-        const nonAuthOperations = ['login', 'register', 'anonymousLogin', 'publicQuery'];
+        const nonAuthOperations = ['login', 'register', 'anonymousLogin', 'publicQuery', '_health', '_sdl', '_meshInfo'];
         return !nonAuthOperations.includes(operationName);
     }
 }

@@ -68,7 +68,12 @@ export class GraphQLSdkService implements OnModuleInit {
       getMyHugRequests: async () => this.execute('query { myHugRequests { id message isCommunityRequest status createdAt respondedAt recipient { id username name avatarUrl } } }'),
       getPendingHugRequests: async () => this.execute('query { pendingHugRequests { id message isCommunityRequest status createdAt requester { id username name avatarUrl } } }'),
       getCommunityHugRequests: async () => this.execute('query { communityHugRequests { id message isCommunityRequest status createdAt requester { id username name avatarUrl } } }'),
-      getHugRequest: async (id: string) => this.execute(`query { hugRequest(id: "${id}") { id message isCommunityRequest status createdAt respondedAt requester { id username name } recipient { id username name } } }`)
+      getHugRequest: async (id: string) => this.execute(`query { hugRequest(id: "${id}") { id message isCommunityRequest status createdAt respondedAt requester { id username name } recipient { id username name } } }`),
+      
+      // Mesh utility operations
+      HealthCheck: async () => this.execute('query { _health }'),
+      GetMeshInfo: async () => this.execute('query { _meshInfo { version sources transforms plugins } }'),
+      GetSDL: async () => this.execute('query { _sdl }')
     };
     
     this.sdk = operations;

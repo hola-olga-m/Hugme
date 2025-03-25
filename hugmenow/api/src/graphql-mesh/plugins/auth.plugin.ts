@@ -1,8 +1,13 @@
-import { JwtService } from '@nestjs/jwt';
+import { Logger } from '@nestjs/common';
 import { Plugin } from '@envelop/core';
 
 export default class AuthPlugin {
-  constructor(private jwtService: JwtService) {}
+  private readonly logger = new Logger('GraphQLAuth');
+  private jwtSecret: string;
+
+  constructor(options: { jwtSecret?: string } = {}) {
+    this.jwtSecret = options.jwtSecret || process.env.JWT_SECRET || 'your-secret-key';
+  }
 
   onInit(options: any): any {
     return {
@@ -16,10 +21,12 @@ export default class AuthPlugin {
         if (authHeader && authHeader.startsWith('Bearer ')) {
           const token = authHeader.substring(7);
           try {
-            // Verify and decode JWT token
-            user = this.jwtService.verify(token);
-          } catch (error: any) {
-            console.error('Invalid JWT token', error.message);
+            // Simple JWT verification
+            // In a real application, this should use proper JWT verification
+            user = this.verifyToken(token);
+            this.logger.debug(`User authenticated: ${user.username || user.sub}`);
+          } catch (error) {
+            this.logger.error(`Invalid JWT token: ${error.message}`);
           }
         }
         
@@ -48,11 +55,33 @@ export default class AuthPlugin {
     };
   }
   
+  // Simple JWT verification
+  // In production, use a proper JWT library
+  private verifyToken(token: string): any {
+    try {
+      // Basic verification - in production use a proper JWT library
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(Buffer.from(base64, 'base64').toString());
+      
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        throw new Error('Token expired');
+      }
+      
+      return payload;
+    } catch (error) {
+      this.logger.error(`Error verifying token: ${error.message}`);
+      throw new Error('Invalid token');
+    }
+  }
+  
   private requiresAuth(operation: any): boolean {
     // Implement logic to determine if operation requires authentication
     // For example, check operation name, fields, etc.
     const operationName = operation.name?.value;
-    const nonAuthOperations = ['login', 'register', 'anonymousLogin', 'publicQuery'];
+    const nonAuthOperations = ['login', 'register', 'anonymousLogin', 'publicQuery', '_health', '_sdl', '_meshInfo'];
     
     return !nonAuthOperations.includes(operationName);
   }

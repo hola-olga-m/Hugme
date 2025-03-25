@@ -6,8 +6,14 @@ export declare class GraphQLMeshService implements OnModuleInit {
     private mesh;
     private sdl;
     private schema;
+    private enhancedSchema;
+    private dbPool;
     constructor(configService: ConfigService);
     onModuleInit(): Promise<void>;
+    private createBaseSchema;
+    private enhanceSchema;
+    private setupEnvelop;
+    private generateSDL;
     getSchema(): any;
     getSDL(): string;
     execute({ query, variables, context }: {
