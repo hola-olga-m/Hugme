@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 
 // Setup Express
 const app = express();
-const PORT = 3001; // Use a fixed port for consistency
+const PORT = 3001;
 
 // Path to the build directory
 const distDir = join(__dirname, 'dist');
@@ -113,25 +113,12 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('Server is ready to accept connections!');
   console.log(`Server confirmed to be listening on port ${PORT}`);
   
-  // Extra debugging information for Replit detection
-  console.log('DEBUG: Environment variables:');
-  console.log(`PORT: ${process.env.PORT}`);
-  console.log(`REPL_ID: ${process.env.REPL_ID}`);
-  console.log(`REPL_OWNER: ${process.env.REPL_OWNER}`);
-  console.log(`REPL_SLUG: ${process.env.REPL_SLUG}`);
-  
   // Verify server properties
   console.log(`Server listening: ${server.listening}`);
   
   // Print all listening addresses
   const addressInfo = server.address();
   console.log('Server address info:', addressInfo);
-  
-  // Send explicit ready signals for Replit
-  if (process.send) {
-    console.log('Sending ready signal to parent process');
-    process.send('ready');
-  }
 });
 
 // Handle server errors
