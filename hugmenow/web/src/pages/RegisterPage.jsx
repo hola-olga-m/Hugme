@@ -5,6 +5,7 @@ import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext';
 
 function RegisterPage() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -27,12 +28,12 @@ function RegisterPage() {
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('errors.auth.passwordMismatch'));
       return false;
     }
     
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError(t('errors.auth.weakPassword'));
       return false;
     }
     
@@ -55,7 +56,7 @@ function RegisterPage() {
       await register(username, email, name, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -67,11 +68,11 @@ function RegisterPage() {
 
     try {
       // Generate a random nickname
-      const randomNickname = `Guest${Math.floor(Math.random() * 10000)}`;
+      const randomNickname = `${t('auth.nickname')}${Math.floor(Math.random() * 10000)}`;
       await anonymousLogin(randomNickname);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Anonymous login failed. Please try again.');
+      setError(err.message || t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -81,8 +82,8 @@ function RegisterPage() {
     <MainLayout>
       <div className="auth-page">
         <div className="auth-card">
-          <h2>Create Your Account</h2>
-          <p className="auth-subtitle">Start your wellness journey today.</p>
+          <h2>{t('auth.register')}</h2>
+          <p className="auth-subtitle">{t('auth.startJourney')}</p>
 
           {error && (
             <div className="alert alert-error">
@@ -95,7 +96,7 @@ function RegisterPage() {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label" htmlFor="username">
-                Username
+                {t('auth.username')}
               </label>
               <input
                 type="text"
@@ -104,13 +105,14 @@ function RegisterPage() {
                 className="form-input"
                 value={formData.username}
                 onChange={handleChange}
+                placeholder={t('auth.username')}
                 required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="email">
-                Email Address
+                {t('auth.email')}
               </label>
               <input
                 type="email"
@@ -119,13 +121,14 @@ function RegisterPage() {
                 className="form-input"
                 value={formData.email}
                 onChange={handleChange}
+                placeholder={t('auth.email')}
                 required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="name">
-                Full Name
+                {t('auth.name')}
               </label>
               <input
                 type="text"
@@ -134,13 +137,14 @@ function RegisterPage() {
                 className="form-input"
                 value={formData.name}
                 onChange={handleChange}
+                placeholder={t('auth.name')}
                 required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="password">
-                Password
+                {t('auth.password')}
               </label>
               <input
                 type="password"
@@ -149,13 +153,14 @@ function RegisterPage() {
                 className="form-input"
                 value={formData.password}
                 onChange={handleChange}
+                placeholder={t('auth.password')}
                 required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="confirmPassword">
-                Confirm Password
+                {t('auth.confirmPassword')}
               </label>
               <input
                 type="password"
@@ -164,6 +169,7 @@ function RegisterPage() {
                 className="form-input"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                placeholder={t('auth.confirmPassword')}
                 required
               />
             </div>
@@ -172,17 +178,17 @@ function RegisterPage() {
               <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
                 {loading ? (
                   <>
-                    <span className="btn-loader"></span> Creating Account...
+                    <span className="btn-loader"></span> {t('common.loading')}...
                   </>
                 ) : (
-                  'Sign Up'
+                  t('auth.signUp')
                 )}
               </button>
             </div>
           </form>
 
           <div className="auth-divider">
-            <span>OR</span>
+            <span>{t('common.or')}</span>
           </div>
 
           <button
@@ -190,14 +196,14 @@ function RegisterPage() {
             className="btn btn-outline btn-block"
             disabled={loading}
           >
-            Continue as Guest
+            {t('auth.anonymousLogin')}
           </button>
 
           <div className="auth-footer">
             <p>
-              Already have an account?{' '}
+              {t('auth.haveAccount')}{' '}
               <Link to="/login" className="auth-link">
-                Log In
+                {t('auth.signIn')}
               </Link>
             </p>
           </div>

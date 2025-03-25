@@ -44,6 +44,7 @@ export default {
     loginSuccess: 'Successfully logged in',
     registerSuccess: 'Registration successful',
     logoutSuccess: 'Successfully logged out',
+    startJourney: 'Start your wellness journey today.',
   },
   dashboard: {
     welcome: 'Welcome, {{name}}!',

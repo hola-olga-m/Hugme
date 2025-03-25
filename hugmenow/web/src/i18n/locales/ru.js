@@ -44,6 +44,7 @@ export default {
     loginSuccess: 'Вход выполнен успешно',
     registerSuccess: 'Регистрация прошла успешно',
     logoutSuccess: 'Выход выполнен успешно',
+    startJourney: 'Начните свой путь к благополучию сегодня.',
   },
   dashboard: {
     welcome: 'Добро пожаловать, {{name}}!',
