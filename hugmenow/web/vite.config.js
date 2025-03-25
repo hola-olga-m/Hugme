@@ -64,6 +64,10 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       }
+    },
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['..']
     }
   },
   preview: {
@@ -79,5 +83,10 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
+  },
+  // Fix for HTML parsing issues
+  assetsInclude: ['**/*.html'],
+  optimizeDeps: {
+    exclude: ['hugmenow-web']
   }
 });
