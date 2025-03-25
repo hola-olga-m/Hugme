@@ -24,14 +24,24 @@ export interface AppInfo {
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Welcome to Hug Me Now API!';
+    return `
+    <h1>Welcome to Hug Me Now</h1>
+    <p>
+      Hug Me Now is a platform for emotional wellness through virtual hugs and mood tracking.
+    </p>
+    <p>
+      <a href="/register">Register</a> or <a href="/login">Login</a> to get started.
+    </p>
+
+    `;
   }
 
   getAppInfo(): AppInfo {
     return {
       name: 'Hug Me Now',
       version: '1.0.0',
-      description: 'A platform for emotional wellness through virtual hugs and mood tracking',
+      description:
+        'A platform for emotional wellness through virtual hugs and mood tracking',
       endpoints: {
         graphql: '/graphql',
         api: '/api',
@@ -43,7 +53,7 @@ export class AppService {
         moodTracker: '/mood-tracker',
         hugCenter: '/hug-center',
         profile: '/profile',
-        info: '/info'
+        info: '/info',
       },
       features: [
         'User authentication with JWT',
@@ -52,7 +62,7 @@ export class AppService {
         'Hug requests',
         'Public and private mood sharing',
       ],
-      status: 'online'
+      status: 'online',
     };
   }
 }

@@ -38,6 +38,18 @@ let AppController = class AppController {
     getRegisterPage() {
         return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/register` : 'http://localhost:3001/register' };
     }
+    getDashboardPage() {
+        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/dashboard` : 'http://localhost:3001/dashboard' };
+    }
+    getMoodTrackerPage() {
+        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/mood-tracker` : 'http://localhost:3001/mood-tracker' };
+    }
+    getHugCenterPage() {
+        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/hug-center` : 'http://localhost:3001/hug-center' };
+    }
+    getProfilePage() {
+        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/profile` : 'http://localhost:3001/profile' };
+    }
     async login(loginInput, res) {
         try {
             const result = await this.authService.login(loginInput);
@@ -93,6 +105,34 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getRegisterPage", null);
+__decorate([
+    (0, common_1.Get)('dashboard'),
+    (0, common_1.Redirect)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getDashboardPage", null);
+__decorate([
+    (0, common_1.Get)('mood-tracker'),
+    (0, common_1.Redirect)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getMoodTrackerPage", null);
+__decorate([
+    (0, common_1.Get)('hug-center'),
+    (0, common_1.Redirect)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getHugCenterPage", null);
+__decorate([
+    (0, common_1.Get)('profile'),
+    (0, common_1.Redirect)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getProfilePage", null);
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),

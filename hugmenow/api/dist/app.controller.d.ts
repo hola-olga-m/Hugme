@@ -16,6 +16,18 @@ export declare class AppController {
     getRegisterPage(): {
         url: string;
     };
+    getDashboardPage(): {
+        url: string;
+    };
+    getMoodTrackerPage(): {
+        url: string;
+    };
+    getHugCenterPage(): {
+        url: string;
+    };
+    getProfilePage(): {
+        url: string;
+    };
     login(loginInput: LoginInput, res: Response): Promise<Response<any, Record<string, any>>>;
     register(registerInput: RegisterInput, res: Response): Promise<Response<any, Record<string, any>>>;
     anonymousLogin(anonymousLoginInput: AnonymousLoginInput, res: Response): Promise<Response<any, Record<string, any>>>;

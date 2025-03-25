@@ -42,6 +42,42 @@ export class AppController {
     // Return URL for redirection to frontend register page
     return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/register` : 'http://localhost:3001/register' };
   }
+  
+  /**
+   * Redirect to dashboard page
+   */
+  @Get('dashboard')
+  @Redirect()
+  getDashboardPage() {
+    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/dashboard` : 'http://localhost:3001/dashboard' };
+  }
+  
+  /**
+   * Redirect to mood tracker page
+   */
+  @Get('mood-tracker')
+  @Redirect()
+  getMoodTrackerPage() {
+    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/mood-tracker` : 'http://localhost:3001/mood-tracker' };
+  }
+  
+  /**
+   * Redirect to hug center page
+   */
+  @Get('hug-center')
+  @Redirect()
+  getHugCenterPage() {
+    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/hug-center` : 'http://localhost:3001/hug-center' };
+  }
+  
+  /**
+   * Redirect to profile page
+   */
+  @Get('profile')
+  @Redirect()
+  getProfilePage() {
+    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/profile` : 'http://localhost:3001/profile' };
+  }
 
   /**
    * Process login credentials through the REST API
