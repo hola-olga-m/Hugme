@@ -1,7 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
+import { ShieldMiddleware } from './shield.middleware';
+import { ContextBuilder } from './context.builder';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersModule } from '../users/users.module';
+import { MoodsModule } from '../moods/moods.module';
+import { HugsModule } from '../hugs/hugs.module';
 
 @Module({
   imports: [
@@ -13,8 +18,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    forwardRef(() => UsersModule),
+    forwardRef(() => MoodsModule),
+    forwardRef(() => HugsModule),
   ],
-  providers: [PermissionsService],
-  exports: [PermissionsService],
+  providers: [PermissionsService, ShieldMiddleware, ContextBuilder],
+  exports: [PermissionsService, ShieldMiddleware, ContextBuilder],
 })
 export class PermissionsModule {}
