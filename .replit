@@ -46,8 +46,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && npm run start"
-waitForPort = 3001
+args = "cd hugmenow/web && node vite-express-server.js"
+waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]

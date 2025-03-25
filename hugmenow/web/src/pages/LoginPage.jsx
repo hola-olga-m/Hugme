@@ -1,177 +1,104 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import MainLayout from '../layouts/MainLayout';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { detectErrorType, getErrorMessage, logError } from '../utils/errorHandling';
 
 const LoginPage = () => {
   const { t } = useTranslation();
-  const { login, anonymousLogin, error: authError } = useAuth();
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   
-  // Handle input changes
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  // Validate form
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.email) {
-      newErrors.email = t('errors.validation.required');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('errors.validation.email');
-    }
-    
-    if (!formData.password) {
-      newErrors.password = t('errors.validation.required');
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate form
-    if (!validateForm()) return;
+    setError('');
+    setIsLoading(true);
     
     try {
-      setIsLoading(true);
-      setErrorMessage('');
-      
-      // Call login function from AuthContext
       await login(formData.email, formData.password);
-      
-      // If successful, navigation is handled in the AuthContext
-      
+      navigate('/dashboard');
     } catch (error) {
-      setErrorMessage(error.message || t('errors.auth.invalidCredentials'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Handle anonymous login
-  const handleAnonymousLogin = async () => {
-    try {
-      setIsLoading(true);
-      setErrorMessage('');
-      
-      // Generate a random nickname for guest users
-      const nickname = `${t('auth.nickname')}${Math.floor(Math.random() * 10000)}`;
-      
-      // Call anonymous login function from AuthContext
-      await anonymousLogin(nickname);
-      
-      // If successful, navigation is handled in the AuthContext
-      
-    } catch (error) {
-      setErrorMessage(error.message || t('errors.generic'));
+      const errorType = detectErrorType(error, { context: 'login' });
+      const errorDetails = getErrorMessage(errorType);
+      setError(t(errorDetails.title));
+      logError(error, { context: 'login', email: formData.email });
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <MainLayout>
-      <div className="auth-page">
-        <div className="form-container">
-          <div className="form-header">
-            <h2>{t('auth.login')}</h2>
-            <p>{t('auth.signIn')} {t('auth.haveAccount')}</p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>{t('login.title')}</h2>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">{t('login.email')}</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
           </div>
           
-          {(errorMessage || authError) && (
-            <div className="auth-error">
-              {errorMessage || authError}
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">{t('auth.email')}</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className={`form-input ${errors.email ? 'has-error' : ''}`}
-                value={formData.email}
-                onChange={handleChange}
-                placeholder={`${t('auth.email')}`}
-                disabled={isLoading}
-              />
-              {errors.email && <div className="form-error">{errors.email}</div>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">{t('auth.password')}</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                className={`form-input ${errors.password ? 'has-error' : ''}`}
-                value={formData.password}
-                onChange={handleChange}
-                placeholder={`${t('auth.password')}`}
-                disabled={isLoading}
-              />
-              {errors.password && <div className="form-error">{errors.password}</div>}
-            </div>
-            
-            <div className="form-actions">
-              <button 
-                type="submit" 
-                className="btn btn-primary btn-block" 
-                disabled={isLoading}
-              >
-                {isLoading ? `${t('common.loading')}...` : t('auth.signIn')}
-              </button>
-            </div>
-          </form>
-          
-          <div className="separator">
-            <span>{t('common.or')}</span>
+          <div className="form-group">
+            <label htmlFor="password">{t('login.password')}</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
           </div>
           
           <button 
-            className="btn btn-outline btn-block anonymous-login-btn"
-            onClick={handleAnonymousLogin}
+            type="submit" 
+            className="submit-button"
             disabled={isLoading}
           >
-            {t('auth.anonymousLogin')}
+            {isLoading ? t('common.loading') : t('login.loginButton')}
           </button>
-          
-          <div className="form-footer">
-            <p>{t('auth.noAccount')} <Link to="/register" className="form-link">{t('auth.signUp')}</Link></p>
-          </div>
+        </form>
+        
+        <div className="auth-links">
+          <Link to="/register" className="auth-link">
+            {t('login.noAccount')}
+          </Link>
+          <Link to="/anonymous" className="auth-link">
+            {t('login.continueAnonymously')}
+          </Link>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

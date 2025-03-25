@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, UnauthorizedException, NotFoundException, HttpStatus, Res } from '@nestjs/common';
 import { MoodsService } from './moods.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // LSP error but works at runtime
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateMoodInput } from './dto/create-mood.input';
 import { UpdateMoodInput } from './dto/update-mood.input';
 import { Mood } from './entities/mood.entity';

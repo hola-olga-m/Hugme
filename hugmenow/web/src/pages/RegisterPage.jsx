@@ -1,216 +1,163 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import MainLayout from '../layouts/MainLayout';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { detectErrorType, getErrorMessage, logError } from '../utils/errorHandling';
 
-function RegisterPage() {
+const RegisterPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { register, isAuthenticated } = useAuth();
+  
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     name: '',
     password: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const { register, anonymousLogin } = useAuth();
-  const navigate = useNavigate();
-
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-
-  const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError(t('errors.auth.passwordMismatch'));
-      return false;
-    }
-    
-    if (formData.password.length < 6) {
-      setError(t('errors.auth.weakPassword'));
-      return false;
-    }
-    
-    return true;
-  };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
-    if (!validateForm()) {
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError(t('register.passwordsMismatch'));
       return;
     }
-
-    setLoading(true);
-    setError(null);
-
+    
+    setIsLoading(true);
+    
     try {
-      const { username, email, name, password } = formData;
-      // Pass individual fields to match the register function signature
-      await register(username, email, name, password);
+      await register(
+        formData.username,
+        formData.email,
+        formData.name,
+        formData.password
+      );
       navigate('/dashboard');
-    } catch (err) {
-      setError(err.message || t('errors.generic'));
+    } catch (error) {
+      const errorType = detectErrorType(error, { context: 'register' });
+      const errorDetails = getErrorMessage(errorType);
+      setError(t(errorDetails.title));
+      logError(error, { 
+        context: 'register', 
+        email: formData.email,
+        username: formData.username 
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
-  const handleAnonymousLogin = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Generate a random nickname
-      const randomNickname = `${t('auth.nickname')}${Math.floor(Math.random() * 10000)}`;
-      await anonymousLogin(randomNickname);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.message || t('errors.generic'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   return (
-    <MainLayout>
-      <div className="auth-page">
-        <div className="auth-card">
-          <h2>{t('auth.register')}</h2>
-          <p className="auth-subtitle">{t('auth.startJourney')}</p>
-
-          {error && (
-            <div className="alert alert-error">
-              <div className="alert-content">
-                <span>{error}</span>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="username">
-                {t('auth.username')}
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                className="form-input"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder={t('auth.username')}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="email">
-                {t('auth.email')}
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="form-input"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder={t('auth.email')}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="name">
-                {t('auth.name')}
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                className="form-input"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder={t('auth.name')}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="password">
-                {t('auth.password')}
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                className="form-input"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder={t('auth.password')}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="confirmPassword">
-                {t('auth.confirmPassword')}
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                className="form-input"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder={t('auth.confirmPassword')}
-                required
-              />
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                {loading ? (
-                  <>
-                    <span className="btn-loader"></span> {t('common.loading')}...
-                  </>
-                ) : (
-                  t('auth.signUp')
-                )}
-              </button>
-            </div>
-          </form>
-
-          <div className="auth-divider">
-            <span>{t('common.or')}</span>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>{t('register.title')}</h2>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="username">{t('register.username')}</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
           </div>
-
-          <button
-            onClick={handleAnonymousLogin}
-            className="btn btn-outline btn-block"
-            disabled={loading}
+          
+          <div className="form-group">
+            <label htmlFor="email">{t('register.email')}</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="name">{t('register.fullName')}</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">{t('register.password')}</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="confirmPassword">{t('register.confirmPassword')}</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            className="submit-button"
+            disabled={isLoading}
           >
-            {t('auth.anonymousLogin')}
+            {isLoading ? t('common.loading') : t('register.registerButton')}
           </button>
-
-          <div className="auth-footer">
-            <p>
-              {t('auth.haveAccount')}{' '}
-              <Link to="/login" className="auth-link">
-                {t('auth.signIn')}
-              </Link>
-            </p>
-          </div>
+        </form>
+        
+        <div className="auth-links">
+          <Link to="/login" className="auth-link">
+            {t('register.haveAccount')}
+          </Link>
+          <Link to="/anonymous" className="auth-link">
+            {t('register.continueAnonymously')}
+          </Link>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
-}
+};
 
 export default RegisterPage;

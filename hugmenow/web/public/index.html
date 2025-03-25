@@ -1,18 +1,4 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
 
-// Create a simple HTTP server with minimal dependencies
-const PORT = 5000;
-
-// Ensure public directory exists
-const publicDir = path.join(__dirname, 'public');
-if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
-}
-
-// Create a simple HTML file
-const indexHtml = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,7 +20,7 @@ const indexHtml = `
 </head>
 <body>
   <h1>HugMeNow Server Test</h1>
-  <p>This simple server is running on port ${PORT}.</p>
+  <p>This simple server is running on port 5000.</p>
   
   <div class="nav">
     <a href="/">Home</a>
@@ -54,7 +40,7 @@ const indexHtml = `
     const path = window.location.pathname;
     
     if (path === '/login') {
-      contentDiv.innerHTML = \`
+      contentDiv.innerHTML = `
         <div class="login-form">
           <h2>Login</h2>
           <div class="form-group">
@@ -67,9 +53,9 @@ const indexHtml = `
           </div>
           <button id="login-btn">Login</button>
         </div>
-      \`;
+      `;
     } else if (path === '/register') {
-      contentDiv.innerHTML = \`
+      contentDiv.innerHTML = `
         <div class="register-form">
           <h2>Register</h2>
           <div class="form-group">
@@ -90,43 +76,14 @@ const indexHtml = `
           </div>
           <button id="register-btn">Register</button>
         </div>
-      \`;
+      `;
     } else if (path === '/dashboard') {
-      contentDiv.innerHTML = \`
+      contentDiv.innerHTML = `
         <h2>Dashboard</h2>
         <p>This is a protected dashboard page.</p>
         <p>You would need to be authenticated to view this in the real app.</p>
-      \`;
+      `;
     }
   </script>
 </body>
 </html>
-`;
-
-// Write the index.html file to the public directory
-fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml);
-
-// Create the HTTP server
-const server = http.createServer((req, res) => {
-  console.log(`Request: ${req.method} ${req.url}`);
-  
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  // Always serve the index.html file
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(indexHtml);
-});
-
-// Start the server
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Address: ${JSON.stringify(server.address())}`);
-  
-  // Register the "listening" event explicitly
-  server.on('listening', () => {
-    console.log('Server is officially listening!');
-  });
-});

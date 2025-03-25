@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import { VitePluginFonts } from 'vite-plugin-fonts';
 import { resolve } from 'path';
+import history from 'connect-history-api-fallback';
 
 // Load environment variables
 export default defineConfig(({ mode }) => {
@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
       assetsDir: 'assets',
       emptyOutDir: true,
       sourcemap: true,
-      minify: 'esbuild',
+      minify: true,
       rollupOptions: {
         output: {
           manualChunks: {
@@ -68,13 +68,7 @@ export default defineConfig(({ mode }) => {
           secure: false,
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
-              console.log('proxy error', err);
-            });
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              console.log('Sending Request:', req.method, req.url);
-            });
-            proxy.on('proxyRes', (proxyRes, req, _res) => {
-              console.log('Received Response:', proxyRes.statusCode, req.url);
+              console.log('Proxy error:', err.message);
             });
           }
         },
@@ -88,6 +82,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false
         },
+        // Proxy POST requests for login and register
         '/login': {
           target: apiUrl,
           changeOrigin: true,
@@ -119,11 +114,7 @@ export default defineConfig(({ mode }) => {
     // Plugins Configuration
     plugins: [
       react(),
-      VitePluginFonts({
-        google: {
-          families: ['Inter', 'Roboto', 'Open Sans']
-        }
-      }),
+      // Title transformation plugin
       {
         name: 'html-transform',
         transformIndexHtml: (html) => {
@@ -133,26 +124,38 @@ export default defineConfig(({ mode }) => {
           );
         }
       },
+      // History API fallback for client-side routing
       {
         name: 'client-side-routing',
         configureServer(server) {
+          // Add history API fallback middleware
+          server.middlewares.use(
+            history({
+              verbose: true,
+              // Explicitly specify paths to redirect to index.html
+              rewrites: [
+                // Don't rewrite API requests
+                { 
+                  from: /^\/(api|graphql|info|assets)\/.*$/,
+                  to: context => context.parsedUrl.pathname
+                },
+                // For client routes, serve index.html
+                { 
+                  from: new RegExp(`^(${CLIENT_ROUTES.join('|')})($|/|\\?)`),
+                  to: '/index.html' 
+                },
+                // For everything else, serve index.html (catch-all for SPA)
+                { 
+                  from: /^\/.*$/,
+                  to: '/index.html'
+                }
+              ]
+            })
+          );
+          
+          // Add request logging
           server.middlewares.use((req, res, next) => {
-            const url = req.url.split('?')[0];
-            
-            // Skip API requests
-            if (url.startsWith('/api') || 
-                url.startsWith('/graphql') || 
-                url.startsWith('/info') ||
-                url.startsWith('/assets')) {
-              return next();
-            }
-            
-            // If this is a client-side route, serve the index.html
-            if (CLIENT_ROUTES.some(route => url.startsWith(route))) {
-              console.log(`Rewriting client route ${url} to index.html`);
-              req.url = '/index.html';
-            }
-            
+            console.log(`Request: ${req.method} ${req.url}`);
             next();
           });
         }

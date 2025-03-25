@@ -1,167 +1,76 @@
-
-import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
-import { AuthProvider, useAuth } from './context/AuthContext';
-// Import i18n configuration
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+// Import i18n
 import './i18n';
-import { useTranslation } from 'react-i18next';
 
-// Import error handling components
-import ErrorBoundary from './components/errors/ErrorBoundary';
-import AnimatedErrorState from './components/errors/AnimatedErrorState';
-import RouteErrorPage from './components/errors/RouteErrorPage';
-
-// Import page components
-import HomePage from './pages/HomePage';
+// Import pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import MoodTrackerPage from './pages/MoodTrackerPage';
-import HugCenterPage from './pages/HugCenterPage';
-import ProfilePage from './pages/ProfilePage';
-import MoodHistoryPage from './pages/MoodHistoryPage';
-import NotFoundPage from './pages/NotFoundPage';
-import ProtocolErrorPage from './pages/ProtocolErrorPage';
 
-// Import styles
-import './styles/main.css';
-import './styles/components/error-states.css';
+// Import components
+import LanguageSwitcher from './components/LanguageSwitcher';
 
-// ScrollToTop component to handle scroll position on navigation
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  
-  return null;
-}
-
-// Protected Route component
+// Protected route component
 const ProtectedRoute = ({ children }) => {
-  const { t } = useTranslation();
   const { isAuthenticated, loading } = useAuth();
-
+  
   if (loading) {
-    return <div className="loading-screen">{t('common.loading')}</div>;
+    return <div>Loading...</div>;
   }
-
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
   }
-
+  
   return children;
 };
 
-// Loading fallback component
-const LoadingFallback = () => {
-  const { t } = useTranslation();
+// Main App component
+const AppContent = () => {
   return (
-    <div className="loading-fallback">
-      <div className="spinner"></div>
-      <p>{t('common.loading')}</p>
-    </div>
+    <Router>
+      <div className="app-container">
+        <header className="app-header">
+          <h1>HugMeNow</h1>
+          <LanguageSwitcher />
+        </header>
+        
+        <main className="app-content">
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            {/* Protected routes - will be added later */}
+            
+            {/* Default redirect */}
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </main>
+        
+        <footer className="app-footer">
+          <p>&copy; 2025 HugMeNow. All rights reserved.</p>
+        </footer>
+      </div>
+    </Router>
   );
 };
 
-function AppRoutes() {
-  return (
-    <ErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Error routes */}
-          <Route path="/error" element={<RouteErrorPage />} />
-          <Route path="/protocol-error" element={<ProtocolErrorPage />} />
-
-          {/* Protected routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <ErrorBoundary>
-                  <DashboardPage />
-                </ErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mood-tracker" 
-            element={
-              <ProtectedRoute>
-                <ErrorBoundary>
-                  <MoodTrackerPage />
-                </ErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hug-center" 
-            element={
-              <ProtectedRoute>
-                <ErrorBoundary>
-                  <HugCenterPage />
-                </ErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <ErrorBoundary>
-                  <ProfilePage />
-                </ErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mood-history" 
-            element={
-              <ProtectedRoute>
-                <ErrorBoundary>
-                  <MoodHistoryPage />
-                </ErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Not found route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
-    </ErrorBoundary>
-  );
-}
-
-function App() {
-  // Check if we have an initial path from direct navigation
-  useEffect(() => {
-    if (window.__INITIAL_PATH__) {
-      console.log('Initial path detected:', window.__INITIAL_PATH__);
-      // The router will handle this automatically once mounted
-    }
-  }, []);
-
+// Wrap the app with required providers
+const App = () => {
   return (
     <ApolloProvider client={client}>
-      <Router>
+      <Suspense fallback={<div>Loading...</div>}>
         <AuthProvider>
-          <ScrollToTop />
-          <div className="app-container">
-            <AppRoutes />
-          </div>
+          <AppContent />
         </AuthProvider>
-      </Router>
+      </Suspense>
     </ApolloProvider>
   );
-}
+};
 
 export default App;
