@@ -27,7 +27,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node replit-optimized-server.js"
+args = "node single-file-server.js"
 waitForPort = 5000
 
 [deployment]
