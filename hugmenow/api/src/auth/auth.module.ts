@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsersModule } from '../users/users.module';
 // Import Postgraphile Module (it's global, but adding it for clarity)
 import { PostGraphileModule } from '../postgraphile/postgraphile.module';
@@ -24,7 +25,7 @@ import { PostGraphileModule } from '../postgraphile/postgraphile.module';
     }),
     UsersModule, // Import UsersModule instead of TypeOrmModule
   ],
-  providers: [AuthService, AuthResolver, JwtStrategy],
-  exports: [JwtStrategy, PassportModule, AuthService],
+  providers: [AuthService, AuthResolver, JwtStrategy, JwtAuthGuard],
+  exports: [JwtStrategy, PassportModule, AuthService, JwtAuthGuard],
 })
 export class AuthModule {}

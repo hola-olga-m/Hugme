@@ -10,6 +10,7 @@ exports.HugsModule = void 0;
 const common_1 = require("@nestjs/common");
 const hugs_service_1 = require("./hugs.service");
 const hugs_resolver_1 = require("./hugs.resolver");
+const hugs_controller_1 = require("./hugs.controller");
 const users_module_1 = require("../users/users.module");
 let HugsModule = class HugsModule {
 };
@@ -19,6 +20,7 @@ exports.HugsModule = HugsModule = __decorate([
         imports: [
             users_module_1.UsersModule,
         ],
+        controllers: [hugs_controller_1.HugsController],
         providers: [hugs_service_1.HugsService, hugs_resolver_1.HugsResolver],
         exports: [hugs_service_1.HugsService],
     })

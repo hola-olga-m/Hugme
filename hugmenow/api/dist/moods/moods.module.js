@@ -10,6 +10,7 @@ exports.MoodsModule = void 0;
 const common_1 = require("@nestjs/common");
 const moods_service_1 = require("./moods.service");
 const moods_resolver_1 = require("./moods.resolver");
+const moods_controller_1 = require("./moods.controller");
 const users_module_1 = require("../users/users.module");
 let MoodsModule = class MoodsModule {
 };
@@ -19,6 +20,7 @@ exports.MoodsModule = MoodsModule = __decorate([
         imports: [
             users_module_1.UsersModule,
         ],
+        controllers: [moods_controller_1.MoodsController],
         providers: [moods_service_1.MoodsService, moods_resolver_1.MoodsResolver],
         exports: [moods_service_1.MoodsService],
     })
