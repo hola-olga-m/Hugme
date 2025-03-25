@@ -1,23 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { PostGraphileService } from '../postgraphile/postgraphile.service';
 
 @Injectable()
 export class UsersService {
+  private readonly usersTable = 'users';
+  
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private postgraphileService: PostGraphileService,
   ) {}
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return await this.postgraphileService.findAll(this.usersTable) as User[];
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+    const user = await this.postgraphileService.findById(this.usersTable, id) as User;
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -25,7 +25,8 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { email } });
+    const users = await this.postgraphileService.findWhere(this.usersTable, { email }) as User[];
+    const user = users[0];
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
@@ -33,7 +34,8 @@ export class UsersService {
   }
 
   async findByUsername(username: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { username } });
+    const users = await this.postgraphileService.findWhere(this.usersTable, { username }) as User[];
+    const user = users[0];
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found`);
     }
@@ -47,17 +49,20 @@ export class UsersService {
       createUserData.password = await bcrypt.hash(createUserData.password, salt);
     }
 
-    const user = this.usersRepository.create({
+    // Add timestamps
+    const userData = {
       ...createUserData,
+      id: createUserData.id || uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    };
 
-    return this.usersRepository.save(user);
+    return await this.postgraphileService.insert(this.usersTable, userData) as User;
   }
 
   async update(id: string, updateUserData: Partial<User>): Promise<User> {
-    const user = await this.findOne(id);
+    // Verify user exists
+    await this.findOne(id);
 
     // If password is provided, hash it
     if (updateUserData.password) {
@@ -65,20 +70,21 @@ export class UsersService {
       updateUserData.password = await bcrypt.hash(updateUserData.password, salt);
     }
 
-    Object.assign(user, { 
+    // Add update timestamp
+    const userData = {
       ...updateUserData,
       updatedAt: new Date(),
-    });
+    };
 
-    return this.usersRepository.save(user);
+    return await this.postgraphileService.update(this.usersTable, id, userData) as User;
   }
 
   async remove(id: string): Promise<boolean> {
-    const result = await this.usersRepository.delete(id);
-    if (result.affected && result.affected > 0) {
-      return true;
+    const success = await this.postgraphileService.delete(this.usersTable, id);
+    if (!success) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-    throw new NotFoundException(`User with ID ${id} not found`);
+    return true;
   }
 
   async createAnonymousUser(nickname: string, avatarUrl?: string): Promise<User> {

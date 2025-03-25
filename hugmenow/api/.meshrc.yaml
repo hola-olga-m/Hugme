@@ -1,0 +1,24 @@
+sources:
+  - name: PostgreSQL
+    handler:
+      postgraphile:
+        connectionString: ${process.env.DATABASE_URL}
+        schemaName: 'public'
+        pgSettings:
+          role: 'postgres'
+        enableCors: true
+        dynamicJson: true
+        setofFunctionsContainNulls: false
+        ignoreRBAC: false
+        ignoreIndexes: true
+        includeExtensionResources: false
+        watch: false
+        exportGqlSchemaPath: './generated-schema.graphql'
+        appendPlugins:
+          - 'postgraphile-plugin-connection-filter'
+
+transforms:
+  - namingConvention:
+      typeNames: pascalCase
+      enumValues: upperCase
+      fieldNames: camelCase

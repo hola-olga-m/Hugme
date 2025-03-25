@@ -8,41 +8,39 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
-const user_entity_1 = require("./entities/user.entity");
 const bcrypt = require("bcrypt");
 const uuid_1 = require("uuid");
+const postgraphile_service_1 = require("../postgraphile/postgraphile.service");
 let UsersService = class UsersService {
-    usersRepository;
-    constructor(usersRepository) {
-        this.usersRepository = usersRepository;
+    postgraphileService;
+    usersTable = 'users';
+    constructor(postgraphileService) {
+        this.postgraphileService = postgraphileService;
     }
     async findAll() {
-        return this.usersRepository.find();
+        return await this.postgraphileService.findAll(this.usersTable);
     }
     async findOne(id) {
-        const user = await this.usersRepository.findOne({ where: { id } });
+        const user = await this.postgraphileService.findById(this.usersTable, id);
         if (!user) {
             throw new common_1.NotFoundException(`User with ID ${id} not found`);
         }
         return user;
     }
     async findByEmail(email) {
-        const user = await this.usersRepository.findOne({ where: { email } });
+        const users = await this.postgraphileService.findWhere(this.usersTable, { email });
+        const user = users[0];
         if (!user) {
             throw new common_1.NotFoundException(`User with email ${email} not found`);
         }
         return user;
     }
     async findByUsername(username) {
-        const user = await this.usersRepository.findOne({ where: { username } });
+        const users = await this.postgraphileService.findWhere(this.usersTable, { username });
+        const user = users[0];
         if (!user) {
             throw new common_1.NotFoundException(`User with username ${username} not found`);
         }
@@ -53,31 +51,32 @@ let UsersService = class UsersService {
             const salt = await bcrypt.genSalt();
             createUserData.password = await bcrypt.hash(createUserData.password, salt);
         }
-        const user = this.usersRepository.create({
+        const userData = {
             ...createUserData,
+            id: createUserData.id || (0, uuid_1.v4)(),
             createdAt: new Date(),
             updatedAt: new Date(),
-        });
-        return this.usersRepository.save(user);
+        };
+        return await this.postgraphileService.insert(this.usersTable, userData);
     }
     async update(id, updateUserData) {
-        const user = await this.findOne(id);
+        await this.findOne(id);
         if (updateUserData.password) {
             const salt = await bcrypt.genSalt();
             updateUserData.password = await bcrypt.hash(updateUserData.password, salt);
         }
-        Object.assign(user, {
+        const userData = {
             ...updateUserData,
             updatedAt: new Date(),
-        });
-        return this.usersRepository.save(user);
+        };
+        return await this.postgraphileService.update(this.usersTable, id, userData);
     }
     async remove(id) {
-        const result = await this.usersRepository.delete(id);
-        if (result.affected && result.affected > 0) {
-            return true;
+        const success = await this.postgraphileService.delete(this.usersTable, id);
+        if (!success) {
+            throw new common_1.NotFoundException(`User with ID ${id} not found`);
         }
-        throw new common_1.NotFoundException(`User with ID ${id} not found`);
+        return true;
     }
     async createAnonymousUser(nickname, avatarUrl) {
         const randomId = (0, uuid_1.v4)().substring(0, 8);
@@ -96,7 +95,6 @@ let UsersService = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [postgraphile_service_1.PostGraphileService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map
