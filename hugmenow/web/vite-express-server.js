@@ -181,21 +181,8 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke on the server!');
 });
 
-// Add a dedicated health check endpoint for Replit workflow
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    port: PORT, 
-    time: new Date().toISOString(),
-    workflow: 'React Frontend',
-    hasReactApp: true
-  });
-});
-
 // Explicitly print a message that will help workflow detection
 console.log(`Starting server on port ${PORT}...`);
-console.log(`Server will listen on http://0.0.0.0:${PORT}`);
-console.log(`Health check available at http://0.0.0.0:${PORT}/health`);
 
 // Start the server with a connection test to the backend
 const server = app.listen(PORT, '0.0.0.0', () => {
