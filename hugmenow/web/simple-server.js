@@ -1,122 +1,121 @@
-// simple-server.js - A very basic HTTP server specifically optimized for Replit
-import http from 'http';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// simple-server.js - A minimal server for HugMeNow frontend
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
-// Get directory name properly in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const PORT = 3001;
+const PORT = 5000;
 
 // Create a simple HTTP server
 const server = http.createServer((req, res) => {
   console.log(`Request received: ${req.method} ${req.url}`);
   
-  // Health check endpoint
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({
-      status: 'ok',
-      time: new Date().toISOString()
-    }));
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
   }
   
-  // Always serve the same HTML for any other route
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(`
-    <!DOCTYPE html>
-    <html lang="en">
+  // Serve HTML for root path
+  if (req.url === '/' || req.url === '/index.html') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    return res.end(`
+      <!DOCTYPE html>
+      <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>HugMeNow</title>
         <style>
           body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background-color: #f5f5f5;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f8ff;
+            color: #333;
           }
           .container {
-            max-width: 800px;
-            padding: 20px;
+            max-width: 500px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
           }
           h1 {
-            color: #4a6fa5;
+            color: #4a62b3;
             margin-bottom: 10px;
           }
-          .card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin: 20px 0;
-            width: 100%;
+          .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4a62b3;
+          }
+          p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+          }
+          .button {
+            background-color: #4a62b3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 5px;
+          }
+          .button:hover {
+            background-color: #3a4f9a;
           }
           .status {
-            display: inline-block;
-            background-color: #47b475;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-          }
-          .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-          }
-          .feature {
-            background-color: #e9f0f8;
-            padding: 10px;
-            border-radius: 4px;
-            width: 150px;
-            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
           }
         </style>
       </head>
       <body>
         <div class="container">
-          <h1>HugMeNow Web App</h1>
-          <div class="card">
-            <span class="status">Server Online</span>
-            <h3>Welcome to HugMeNow!</h3>
-            <p>Your emotional wellness and support platform</p>
-            <p>Server time: ${new Date().toISOString()}</p>
+          <div class="logo">🤗</div>
+          <h1>HugMeNow</h1>
+          <p>The emotional wellness platform that connects people through virtual support and mood tracking.</p>
+          <p>Our infrastructure is ready! Choose what to develop next:</p>
+          <div>
+            <button class="button" onclick="alert('Coming soon!')">Login / Register</button>
+            <button class="button" onclick="alert('Coming soon!')">Mood Tracker</button>
+            <button class="button" onclick="alert('Coming soon!')">Send a Hug</button>
           </div>
-          
-          <div class="card">
-            <h3>Coming Soon Features</h3>
-            <div class="features">
-              <div class="feature">Mood Tracking</div>
-              <div class="feature">Virtual Hugs</div>
-              <div class="feature">Community Support</div>
-              <div class="feature">Wellness Tips</div>
-              <div class="feature">Personal Analytics</div>
-              <div class="feature">Journal Entries</div>
-            </div>
+          <div class="status">
+            <p>Frontend Server: Running on port ${PORT}</p>
+            <p>Backend Server: Running on port 3002</p>
+            <p>Server Time: ${new Date().toISOString()}</p>
           </div>
         </div>
         <script>
-          console.log('HugMeNow simple server page loaded');
-          // Add a message to show the page has loaded
-          window.onload = function() {
-            console.log('Page fully loaded at: ' + new Date().toISOString());
-          };
+          console.log("HugMeNow simple server page loaded");
+          console.log("Page fully loaded at: " + new Date().toISOString());
         </script>
       </body>
-    </html>
-  `);
+      </html>
+    `);
+  }
+  
+  // Fallback for all other routes
+  res.writeHead(404, { 'Content-Type': 'text/plain' });
+  res.end('Not Found');
 });
 
 // Start the server
@@ -126,7 +125,12 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Ready to receive connections`);
 });
 
-// Keep the process alive and log heartbeats
+// Send heartbeat logs periodically
 setInterval(() => {
   console.log(`Server heartbeat at ${new Date().toISOString()}`);
 }, 10000);
+
+// Handle errors
+server.on('error', (err) => {
+  console.error('Server error:', err);
+});

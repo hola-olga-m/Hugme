@@ -1,130 +1,108 @@
-// replit-server.js - A minimal server specifically for Replit environment
+// replit-server.js - A Replit optimized server for HugMeNow frontend
 import express from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import fs from 'fs';
 
-// Get directory name properly in ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-// Setup Express
 const app = express();
-const PORT = 5000; // Replit prefers port 5000
+const PORT = 5000;
 
-// Path to the build directory
-const distDir = path.join(__dirname, 'dist');
-const publicDir = path.join(__dirname, 'public');
+// Serve static files from the public directory
+app.use(express.static('public'));
 
-// Log server startup
-console.log(`*********************************************************`);
-console.log(`* Starting HugMeNow web server on port ${PORT}           *`);
-console.log(`* Using dist directory: ${distDir}                       *`);
-console.log(`*********************************************************`);
+// For Vite-built projects, serve from the dist directory if it exists
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// Basic health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    time: new Date().toISOString(),
-    message: 'HugMeNow web server is running'
-  });
-});
-
-// Setup API proxy to NestJS
-app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:3002',
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api': '', // Remove /api prefix when forwarding
-  },
-}));
-
-// Proxy GraphQL requests to NestJS
-app.use('/graphql', createProxyMiddleware({
-  target: 'http://localhost:3002',
-  changeOrigin: true,
-}));
-
-// Serve static files from the dist and public directories
-app.use(express.static(distDir));
-app.use(express.static(publicDir));
-
-// For any other request, send the index.html file
+// Single page application fallback
 app.get('*', (req, res) => {
-  // Check if index.html exists, if not return a simple HTML
-  const indexPath = path.join(distDir, 'index.html');
+  // First, try to send the index.html from dist if it exists
+  const distIndexPath = path.join(__dirname, 'dist', 'index.html');
+  const publicIndexPath = path.join(__dirname, 'public', 'index.html');
+  const fallbackPage = path.join(__dirname, 'index.html');
   
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
+  try {
+    if (fs.existsSync(distIndexPath)) {
+      return res.sendFile(distIndexPath);
+    } else if (fs.existsSync(publicIndexPath)) {
+      return res.sendFile(publicIndexPath);
+    } else if (fs.existsSync(fallbackPage)) {
+      return res.sendFile(fallbackPage);
+    } else {
+      // If no index.html is found, send a basic HTML response
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>HugMeNow</title>
           <style>
-            body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-            .message { margin: 20px; padding: 20px; background-color: #f7f7f7; border-radius: 5px; }
-            h1 { color: #4a6fa5; }
-            .status { color: #47b475; font-weight: bold; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              padding: 20px;
+              text-align: center;
+              background-color: #f9f9f9;
+              color: #333;
+            }
+            .container {
+              max-width: 600px;
+              padding: 20px;
+              background-color: white;
+              border-radius: 8px;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+              color: #4a62b3;
+            }
+            p {
+              line-height: 1.6;
+            }
+            .status {
+              margin-top: 20px;
+              font-size: 0.9em;
+              color: #666;
+            }
           </style>
         </head>
         <body>
-          <h1>HugMeNow Web App</h1>
-          <div class="message">
-            <p class="status">Server Status: Online</p>
-            <p>Basic web server running successfully!</p>
-            <p>Timestamp: ${new Date().toISOString()}</p>
+          <div class="container">
+            <h1>HugMeNow App</h1>
+            <p>The emotional wellness platform that connects people through virtual support.</p>
+            <p>Our server is running, but we're still setting up the frontend application.</p>
+            <div class="status">
+              <p>Server Status: Running</p>
+              <p>Server Time: ${new Date().toISOString()}</p>
+              <p>Port: ${PORT}</p>
+            </div>
           </div>
           <script>
-            console.log('HugMeNow static page loaded successfully');
+            console.log("HugMeNow simple server page loaded");
+            console.log("Page fully loaded at: " + new Date().toISOString());
           </script>
         </body>
-      </html>
-    `);
+        </html>
+      `);
+    }
+  } catch (error) {
+    console.error('Error serving index file:', error);
+    res.status(500).send('Server Error');
   }
 });
 
-// Start server
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-  console.log('API proxy configured to: http://localhost:3002');
-  console.log('Ready to accept connections');
-  
-  // Signal that the server is ready (for Replit)
-  if (process.send) {
-    console.log('Sending ready signal to parent process');
-    process.send('ready');
-  }
-});
-
-// Handle server errors
-server.on('error', (error) => {
-  console.error('Server error:', error.message);
-});
-
-// Log server status periodically to show it's still running
-setInterval(() => {
-  console.log(`Server health check: running on port ${PORT} at ${new Date().toISOString()}`);
-}, 30000);
-
-// Additional debug info
-console.log('DEBUG: Server environment details:');
-console.log(`Node.js version: ${process.version}`);
-console.log(`Process ID: ${process.pid}`);
-console.log(`Working directory: ${process.cwd()}`);
-console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-
-// Keep the process alive
-process.on('SIGINT', () => {
-  console.log('Server shutting down...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
+// Start the server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`HugMeNow frontend running on http://0.0.0.0:${PORT}`);
+  console.log(`Server started at: ${new Date().toISOString()}`);
+  console.log(`Server is listening on port: ${PORT}`);
+  console.log(`Server is bound to address: 0.0.0.0`);
+  console.log(`Ready to serve the HugMeNow frontend application`);
 });
