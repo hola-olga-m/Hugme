@@ -6,10 +6,12 @@ export declare class PostGraphileService implements OnModuleInit, OnModuleDestro
     onModuleInit(): Promise<void>;
     onModuleDestroy(): Promise<void>;
     query(text: string, params?: any[]): Promise<import("pg").QueryResult<any>>;
-    findById(table: string, id: string): Promise<any>;
-    findAll(table: string): Promise<any[]>;
-    findWhere(table: string, conditions: Record<string, any>): Promise<any[]>;
-    insert(table: string, data: Record<string, any>): Promise<any>;
-    update(table: string, id: string, data: Record<string, any>): Promise<any>;
+    private snakeToCamel;
+    private camelToSnake;
+    findById(table: string, id: string): Promise<Record<string, any> | null>;
+    findAll(table: string): Promise<Record<string, any>[]>;
+    findWhere(table: string, conditions: Record<string, any>): Promise<Record<string, any>[]>;
+    insert(table: string, data: Record<string, any>): Promise<Record<string, any>>;
+    update(table: string, id: string, data: Record<string, any>): Promise<Record<string, any> | null>;
     delete(table: string, id: string): Promise<boolean>;
 }

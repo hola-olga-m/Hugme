@@ -35,19 +35,43 @@ export class PostGraphileService implements OnModuleInit, OnModuleDestroy {
   }
 
   // Helper methods for database operations
+  // Helper function to convert object keys from snake_case to camelCase
+  private snakeToCamel(obj: Record<string, any>): Record<string, any> {
+    const result = {};
+    Object.keys(obj).forEach(key => {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      result[camelKey] = obj[key];
+    });
+    return result;
+  }
+
+  // Helper function to convert object keys from camelCase to snake_case
+  private camelToSnake(obj: Record<string, any>): Record<string, any> {
+    const result = {};
+    Object.keys(obj).forEach(key => {
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      result[snakeKey] = obj[key];
+    });
+    return result;
+  }
+
   async findById(table: string, id: string) {
     const { rows } = await this.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    return this.snakeToCamel(rows[0]);
   }
 
   async findAll(table: string) {
     const { rows } = await this.query(`SELECT * FROM ${table}`);
-    return rows;
+    return rows.map(row => this.snakeToCamel(row));
   }
 
   async findWhere(table: string, conditions: Record<string, any>) {
-    const keys = Object.keys(conditions);
-    const values = Object.values(conditions);
+    // Convert conditions from camelCase to snake_case
+    const snakeConditions = this.camelToSnake(conditions);
+    
+    const keys = Object.keys(snakeConditions);
+    const values = Object.values(snakeConditions);
     
     if (keys.length === 0) {
       return this.findAll(table);
@@ -56,12 +80,15 @@ export class PostGraphileService implements OnModuleInit, OnModuleDestroy {
     const whereClause = keys.map((key, i) => `${key} = $${i + 1}`).join(' AND ');
     const { rows } = await this.query(`SELECT * FROM ${table} WHERE ${whereClause}`, values);
     
-    return rows;
+    return rows.map(row => this.snakeToCamel(row));
   }
 
   async insert(table: string, data: Record<string, any>) {
-    const keys = Object.keys(data);
-    const values = Object.values(data);
+    // Convert camelCase to snake_case for column names
+    const snakeCaseData = this.camelToSnake(data);
+    
+    const keys = Object.keys(snakeCaseData);
+    const values = Object.values(snakeCaseData);
     const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
     const columns = keys.join(', ');
     
@@ -70,12 +97,16 @@ export class PostGraphileService implements OnModuleInit, OnModuleDestroy {
       values,
     );
     
-    return rows[0];
+    // Convert back from snake_case to camelCase for the returned data
+    return this.snakeToCamel(rows[0]);
   }
 
   async update(table: string, id: string, data: Record<string, any>) {
-    const keys = Object.keys(data);
-    const values = Object.values(data);
+    // Convert camelCase to snake_case for column names
+    const snakeCaseData = this.camelToSnake(data);
+    
+    const keys = Object.keys(snakeCaseData);
+    const values = Object.values(snakeCaseData);
     
     if (keys.length === 0) {
       return this.findById(table, id);
@@ -87,7 +118,8 @@ export class PostGraphileService implements OnModuleInit, OnModuleDestroy {
       [...values, id],
     );
     
-    return rows[0];
+    // Convert back from snake_case to camelCase for the returned data
+    return this.snakeToCamel(rows[0]);
   }
 
   async delete(table: string, id: string) {

@@ -44,41 +44,62 @@ let PostGraphileService = class PostGraphileService {
             client.release();
         }
     }
+    snakeToCamel(obj) {
+        const result = {};
+        Object.keys(obj).forEach(key => {
+            const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+            result[camelKey] = obj[key];
+        });
+        return result;
+    }
+    camelToSnake(obj) {
+        const result = {};
+        Object.keys(obj).forEach(key => {
+            const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+            result[snakeKey] = obj[key];
+        });
+        return result;
+    }
     async findById(table, id) {
         const { rows } = await this.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
-        return rows[0] || null;
+        if (!rows[0])
+            return null;
+        return this.snakeToCamel(rows[0]);
     }
     async findAll(table) {
         const { rows } = await this.query(`SELECT * FROM ${table}`);
-        return rows;
+        return rows.map(row => this.snakeToCamel(row));
     }
     async findWhere(table, conditions) {
-        const keys = Object.keys(conditions);
-        const values = Object.values(conditions);
+        const snakeConditions = this.camelToSnake(conditions);
+        const keys = Object.keys(snakeConditions);
+        const values = Object.values(snakeConditions);
         if (keys.length === 0) {
             return this.findAll(table);
         }
         const whereClause = keys.map((key, i) => `${key} = $${i + 1}`).join(' AND ');
         const { rows } = await this.query(`SELECT * FROM ${table} WHERE ${whereClause}`, values);
-        return rows;
+        return rows.map(row => this.snakeToCamel(row));
     }
     async insert(table, data) {
-        const keys = Object.keys(data);
-        const values = Object.values(data);
+        const snakeCaseData = this.camelToSnake(data);
+        const keys = Object.keys(snakeCaseData);
+        const values = Object.values(snakeCaseData);
         const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
         const columns = keys.join(', ');
         const { rows } = await this.query(`INSERT INTO ${table} (${columns}) VALUES (${placeholders}) RETURNING *`, values);
-        return rows[0];
+        return this.snakeToCamel(rows[0]);
     }
     async update(table, id, data) {
-        const keys = Object.keys(data);
-        const values = Object.values(data);
+        const snakeCaseData = this.camelToSnake(data);
+        const keys = Object.keys(snakeCaseData);
+        const values = Object.values(snakeCaseData);
         if (keys.length === 0) {
             return this.findById(table, id);
         }
         const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
         const { rows } = await this.query(`UPDATE ${table} SET ${setClause} WHERE id = $${keys.length + 1} RETURNING *`, [...values, id]);
-        return rows[0];
+        return this.snakeToCamel(rows[0]);
     }
     async delete(table, id) {
         const result = await this.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
