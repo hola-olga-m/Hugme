@@ -49,8 +49,9 @@ function RegisterPage() {
     setError(null);
 
     try {
-      const { confirmPassword, ...userData } = formData;
-      await register(userData);
+      const { username, email, name, password } = formData;
+      // Pass individual fields to match the register function signature
+      await register(username, email, name, password);
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');

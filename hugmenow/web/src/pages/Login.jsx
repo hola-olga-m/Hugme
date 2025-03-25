@@ -54,13 +54,13 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      const { success, error } = await login(formData.email, formData.password);
+      const user = await login(formData.email, formData.password);
       
-      if (success) {
+      if (user) {
         // Redirect to the original requested page or dashboard
         navigate(from, { replace: true });
       } else {
-        setFormErrors({ submit: error || 'Login failed. Please try again.' });
+        setFormErrors({ submit: 'Login failed. Please try again.' });
       }
     } catch (error) {
       setFormErrors({ submit: error.message || 'Login failed. Please try again.' });
@@ -76,12 +76,12 @@ const Login = () => {
       // Generate a random nickname for the anonymous user
       const nickname = `Guest${Math.floor(Math.random() * 10000)}`;
       
-      const { success, error } = await anonymousLogin(nickname);
+      const user = await anonymousLogin(nickname);
       
-      if (success) {
+      if (user) {
         navigate('/dashboard', { replace: true });
       } else {
-        setFormErrors({ submit: error || 'Anonymous login failed. Please try again.' });
+        setFormErrors({ submit: 'Anonymous login failed. Please try again.' });
       }
     } catch (error) {
       setFormErrors({ submit: error.message || 'Anonymous login failed. Please try again.' });

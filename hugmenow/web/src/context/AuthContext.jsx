@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useApolloClient } from '@apollo/client';
 import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
 import { GET_ME } from '../graphql/queries';
+import apiService from '../services/api';
 
 // Create the context
 const AuthContext = createContext(null);
@@ -70,22 +71,38 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setError(null);
     try {
-      const { data } = await loginMutation({
-        variables: {
-          loginInput: {
-            email,
-            password
-          }
-        }
-      });
-      
-      if (data?.login) {
-        localStorage.setItem('authToken', data.login.accessToken);
-        setCurrentUser(data.login.user);
+      // Try REST API first
+      try {
+        const response = await apiService.auth.login({ email, password });
         
-        // Redirect to dashboard
-        navigate('/dashboard');
-        return data.login.user;
+        if (response) {
+          localStorage.setItem('authToken', response.accessToken);
+          setCurrentUser(response.user);
+          
+          // Redirect to dashboard
+          navigate('/dashboard');
+          return response.user;
+        }
+      } catch (restError) {
+        console.warn('REST API login failed, falling back to GraphQL:', restError);
+        // Fallback to GraphQL if REST API fails
+        const { data } = await loginMutation({
+          variables: {
+            loginInput: {
+              email,
+              password
+            }
+          }
+        });
+        
+        if (data?.login) {
+          localStorage.setItem('authToken', data.login.accessToken);
+          setCurrentUser(data.login.user);
+          
+          // Redirect to dashboard
+          navigate('/dashboard');
+          return data.login.user;
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -97,25 +114,44 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, name, password, avatarUrl) => {
     setError(null);
     try {
-      const { data } = await registerMutation({
-        variables: {
-          registerInput: {
-            username,
-            email,
-            name,
-            password,
-            avatarUrl: avatarUrl || undefined
-          }
-        }
-      });
-      
-      if (data?.register) {
-        localStorage.setItem('authToken', data.register.accessToken);
-        setCurrentUser(data.register.user);
+      // Try REST API first
+      try {
+        const userData = { username, email, name, password };
+        if (avatarUrl) userData.avatarUrl = avatarUrl;
         
-        // Redirect to dashboard
-        navigate('/dashboard');
-        return data.register.user;
+        const response = await apiService.auth.register(userData);
+        
+        if (response) {
+          localStorage.setItem('authToken', response.accessToken);
+          setCurrentUser(response.user);
+          
+          // Redirect to dashboard
+          navigate('/dashboard');
+          return response.user;
+        }
+      } catch (restError) {
+        console.warn('REST API registration failed, falling back to GraphQL:', restError);
+        // Fallback to GraphQL if REST API fails
+        const { data } = await registerMutation({
+          variables: {
+            registerInput: {
+              username,
+              email,
+              name,
+              password,
+              avatarUrl: avatarUrl || undefined
+            }
+          }
+        });
+        
+        if (data?.register) {
+          localStorage.setItem('authToken', data.register.accessToken);
+          setCurrentUser(data.register.user);
+          
+          // Redirect to dashboard
+          navigate('/dashboard');
+          return data.register.user;
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -127,22 +163,41 @@ export const AuthProvider = ({ children }) => {
   const anonymousLogin = async (nickname, avatarUrl) => {
     setError(null);
     try {
-      const { data } = await anonymousLoginMutation({
-        variables: {
-          anonymousLoginInput: {
-            nickname,
-            avatarUrl: avatarUrl || undefined
-          }
-        }
-      });
-      
-      if (data?.anonymousLogin) {
-        localStorage.setItem('authToken', data.anonymousLogin.accessToken);
-        setCurrentUser(data.anonymousLogin.user);
+      // Try REST API first
+      try {
+        const anonymousData = { nickname };
+        if (avatarUrl) anonymousData.avatarUrl = avatarUrl;
         
-        // Redirect to dashboard
-        navigate('/dashboard');
-        return data.anonymousLogin.user;
+        const response = await apiService.auth.anonymousLogin(anonymousData);
+        
+        if (response) {
+          localStorage.setItem('authToken', response.accessToken);
+          setCurrentUser(response.user);
+          
+          // Redirect to dashboard
+          navigate('/dashboard');
+          return response.user;
+        }
+      } catch (restError) {
+        console.warn('REST API anonymous login failed, falling back to GraphQL:', restError);
+        // Fallback to GraphQL if REST API fails
+        const { data } = await anonymousLoginMutation({
+          variables: {
+            anonymousLoginInput: {
+              nickname,
+              avatarUrl: avatarUrl || undefined
+            }
+          }
+        });
+        
+        if (data?.anonymousLogin) {
+          localStorage.setItem('authToken', data.anonymousLogin.accessToken);
+          setCurrentUser(data.anonymousLogin.user);
+          
+          // Redirect to dashboard
+          navigate('/dashboard');
+          return data.anonymousLogin.user;
+        }
       }
     } catch (err) {
       setError(err.message);
