@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../layouts/MainLayout';
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const { login, anonymousLogin, error: authError } = useAuth();
   const navigate = useNavigate();
   
@@ -38,13 +40,13 @@ const LoginPage = () => {
     const newErrors = {};
     
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('errors.validation.required');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+      newErrors.email = t('errors.validation.email');
     }
     
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('errors.validation.required');
     }
     
     setErrors(newErrors);

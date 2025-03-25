@@ -4,6 +4,9 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'r
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
+// Import i18n configuration
+import './i18n';
+import { useTranslation } from 'react-i18next';
 
 // Import error handling components
 import ErrorBoundary from './components/errors/ErrorBoundary';
@@ -39,10 +42,11 @@ function ScrollToTop() {
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
+  const { t } = useTranslation();
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <div className="loading-screen">Loading...</div>;
+    return <div className="loading-screen">{t('common.loading')}</div>;
   }
 
   if (!isAuthenticated()) {
@@ -53,12 +57,15 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // Loading fallback component
-const LoadingFallback = () => (
-  <div className="loading-fallback">
-    <div className="spinner"></div>
-    <p>Loading...</p>
-  </div>
-);
+const LoadingFallback = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="loading-fallback">
+      <div className="spinner"></div>
+      <p>{t('common.loading')}</p>
+    </div>
+  );
+};
 
 function AppRoutes() {
   return (

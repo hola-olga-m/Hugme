@@ -132,10 +132,12 @@ function MainLayout({ children }) {
               </div>
             ) : (
               <div className="auth-buttons">
-                <Link to="/login" className="btn btn-outline">Login</Link>
-                <Link to="/register" className="btn btn-primary">Sign Up</Link>
+                <Link to="/login" className="btn btn-outline">{t('navigation.login')}</Link>
+                <Link to="/register" className="btn btn-primary">{t('auth.signUp')}</Link>
               </div>
             )}
+            
+            <LanguageSwitcher />
             
             <button 
               className={`menu-toggle ${isMenuOpen ? 'open' : ''}`}
@@ -170,10 +172,10 @@ function MainLayout({ children }) {
               <div className="footer-links-column">
                 <h4>Platform</h4>
                 <ul>
-                  <li><Link to="/">Home</Link></li>
-                  <li><Link to="/dashboard">Dashboard</Link></li>
-                  <li><Link to="/mood-tracker">Mood Tracker</Link></li>
-                  <li><Link to="/hug-center">Hug Center</Link></li>
+                  <li><Link to="/">{t('navigation.home')}</Link></li>
+                  <li><Link to="/dashboard">{t('navigation.dashboard')}</Link></li>
+                  <li><Link to="/mood-tracker">{t('navigation.moodTracker')}</Link></li>
+                  <li><Link to="/hug-center">{t('navigation.hugCenter')}</Link></li>
                 </ul>
               </div>
               <div className="footer-links-column">
