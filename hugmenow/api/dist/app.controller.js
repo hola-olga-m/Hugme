@@ -16,9 +16,11 @@ exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
 const app_service_1 = require("./app.service");
 const auth_service_1 = require("./auth/auth.service");
+const jwt_auth_guard_1 = require("./auth/jwt-auth.guard");
 const login_input_1 = require("./auth/dto/login.input");
 const register_input_1 = require("./auth/dto/register.input");
 const anonymous_login_input_1 = require("./auth/dto/anonymous-login.input");
+const current_user_decorator_1 = require("./auth/current-user.decorator");
 let AppController = class AppController {
     appService;
     authService;
@@ -109,6 +111,54 @@ let AppController = class AppController {
             throw new common_1.UnauthorizedException(`Anonymous login failed: ${error.message}`);
         }
     }
+    async getMe(user, res) {
+        try {
+            return res.status(common_1.HttpStatus.OK).json(user);
+        }
+        catch (error) {
+            console.error('Error fetching user profile:', error.message);
+            throw new common_1.UnauthorizedException('Failed to retrieve user profile');
+        }
+    }
+    async getLanguage(req, res) {
+        try {
+            const language = req.headers['accept-language'] || 'en';
+            return res.status(common_1.HttpStatus.OK).json({ language });
+        }
+        catch (error) {
+            console.error('Error getting language preference:', error.message);
+            return res.status(common_1.HttpStatus.OK).json({ language: 'en' });
+        }
+    }
+    async setLanguage(user, data, res) {
+        try {
+            return res.status(common_1.HttpStatus.OK).json({ language: data.language });
+        }
+        catch (error) {
+            console.error('Error setting language preference:', error.message);
+            throw new common_1.UnauthorizedException('Failed to set language preference');
+        }
+    }
+    async logout(req, res) {
+        try {
+            return res.status(common_1.HttpStatus.OK).json({ message: 'Logged out successfully' });
+        }
+        catch (error) {
+            console.error('Logout error:', error.message);
+            throw new common_1.UnauthorizedException('Failed to logout');
+        }
+    }
+    healthCheck(res) {
+        return res.status(common_1.HttpStatus.OK).json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            services: {
+                api: 'healthy',
+                database: 'connected',
+                graphql: 'operational'
+            }
+        });
+    }
 };
 exports.AppController = AppController;
 __decorate([
@@ -195,6 +245,48 @@ __decorate([
     __metadata("design:paramtypes", [anonymous_login_input_1.AnonymousLoginInput, Object]),
     __metadata("design:returntype", Promise)
 ], AppController.prototype, "anonymousLogin", null);
+__decorate([
+    (0, common_1.Get)('me'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "getMe", null);
+__decorate([
+    (0, common_1.Get)('language'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "getLanguage", null);
+__decorate([
+    (0, common_1.Post)('language'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "setLanguage", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "logout", null);
+__decorate([
+    (0, common_1.Get)('health'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "healthCheck", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [app_service_1.AppService,

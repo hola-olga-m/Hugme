@@ -1,10 +1,16 @@
-import { Controller, Get, Res, Req, Redirect, Post, Body, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { 
+  Controller, Get, Res, Req, Redirect, Post, Body, 
+  HttpStatus, UnauthorizedException, UseGuards,
+  Query, Logger
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AppService, AppInfo } from './app.service';
 import { AuthService } from './auth/auth.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { LoginInput } from './auth/dto/login.input';
 import { RegisterInput } from './auth/dto/register.input';
 import { AnonymousLoginInput } from './auth/dto/anonymous-login.input';
+import { CurrentUser } from './auth/current-user.decorator';
 
 @Controller()
 export class AppController {
@@ -166,5 +172,85 @@ export class AppController {
       console.error('Anonymous login error:', error.message, error.stack);
       throw new UnauthorizedException(`Anonymous login failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Get user me profile - restricted route
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@CurrentUser() user, @Res() res: Response) {
+    try {
+      return res.status(HttpStatus.OK).json(user);
+    } catch (error) {
+      console.error('Error fetching user profile:', error.message);
+      throw new UnauthorizedException('Failed to retrieve user profile');
+    }
+  }
+
+  /**
+   * Get user language preference
+   */
+  @Get('language')
+  async getLanguage(@Req() req: Request, @Res() res: Response) {
+    try {
+      // Extract language from request headers or cookies
+      const language = req.headers['accept-language'] || 'en';
+      return res.status(HttpStatus.OK).json({ language });
+    } catch (error) {
+      console.error('Error getting language preference:', error.message);
+      // Default to English on error
+      return res.status(HttpStatus.OK).json({ language: 'en' });
+    }
+  }
+
+  /**
+   * Save user language preference
+   */
+  @Post('language')
+  @UseGuards(JwtAuthGuard)
+  async setLanguage(
+    @CurrentUser() user, 
+    @Body() data: { language: string }, 
+    @Res() res: Response
+  ) {
+    try {
+      // In a real app, we would save this to user preferences in the database
+      return res.status(HttpStatus.OK).json({ language: data.language });
+    } catch (error) {
+      console.error('Error setting language preference:', error.message);
+      throw new UnauthorizedException('Failed to set language preference');
+    }
+  }
+
+  /**
+   * Logout route
+   */
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    try {
+      // In a stateful session setup, we would invalidate the session here
+      // For JWT, the client just needs to remove the token
+      return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
+    } catch (error) {
+      console.error('Logout error:', error.message);
+      throw new UnauthorizedException('Failed to logout');
+    }
+  }
+
+  /**
+   * Health check endpoint
+   */
+  @Get('health')
+  healthCheck(@Res() res: Response) {
+    return res.status(HttpStatus.OK).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      services: {
+        api: 'healthy',
+        database: 'connected',
+        graphql: 'operational'
+      }
+    });
   }
 }

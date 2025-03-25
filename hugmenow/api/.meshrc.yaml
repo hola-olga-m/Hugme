@@ -22,29 +22,6 @@ transforms:
       typeNames: pascalCase
       enumValues: upperCase
       fieldNames: camelCase
-  # Add additional transforms for enhanced Schema capabilities
-  - filterSchema:
-      mode: wrap
-      filters:
-        - true
-
-plugins:
-  # Authentication plugin
-  - ./src/graphql-mesh/plugins/auth.plugin.js:
-      jwtSecret: ${process.env.JWT_SECRET}
-  
-  # Caching plugin for performance optimization
-  - ./src/graphql-mesh/plugins/cache.plugin.js:
-      ttl: 300 # 5 minutes cache
-  
-  # Logging plugin for better debugging
-  - ./src/graphql-mesh/plugins/logger.plugin.js
-  
-  # Validation plugin for request validation
-  - ./src/graphql-mesh/plugins/validation.plugin.js:
-      maxDepth: 10
-      maxAliases: 15
-      disableIntrospection: false
 
 # Generation of the SDK
 documents:
@@ -58,24 +35,13 @@ generate:
         - typescript-operations
         - typescript-resolvers
         - typescript-document-nodes
-        - typed-document-node
 
 # Configuration for code generation
 additionalResolvers:
   - './src/resolvers/**/*.ts'
-  - './src/graphql-mesh/resolvers/**/*.ts'
 
 # Serving configuration
 serve:
   playground: true
   endpoint: '/graphql'
   cors: true
-  introspection: true
-  # Add Envelop configuration
-  envelop:
-    plugins:
-      - useTiming
-      - useDepthLimit
-      - useParserCache
-      - useValidationCache
-      - useResponseCache

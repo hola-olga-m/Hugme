@@ -34,4 +34,11 @@ export declare class AppController {
     login(loginInput: LoginInput, res: Response): Promise<Response<any, Record<string, any>>>;
     register(registerInput: RegisterInput, res: Response): Promise<Response<any, Record<string, any>>>;
     anonymousLogin(anonymousLoginInput: AnonymousLoginInput, res: Response): Promise<Response<any, Record<string, any>>>;
+    getMe(user: any, res: Response): Promise<Response<any, Record<string, any>>>;
+    getLanguage(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+    setLanguage(user: any, data: {
+        language: string;
+    }, res: Response): Promise<Response<any, Record<string, any>>>;
+    logout(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+    healthCheck(res: Response): Response<any, Record<string, any>>;
 }
