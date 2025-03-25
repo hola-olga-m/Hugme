@@ -12,6 +12,7 @@ const hugs_service_1 = require("./hugs.service");
 const hugs_resolver_1 = require("./hugs.resolver");
 const hugs_controller_1 = require("./hugs.controller");
 const users_module_1 = require("../users/users.module");
+const auth_module_1 = require("../auth/auth.module");
 let HugsModule = class HugsModule {
 };
 exports.HugsModule = HugsModule;
@@ -19,6 +20,7 @@ exports.HugsModule = HugsModule = __decorate([
     (0, common_1.Module)({
         imports: [
             users_module_1.UsersModule,
+            (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
         ],
         controllers: [hugs_controller_1.HugsController],
         providers: [hugs_service_1.HugsService, hugs_resolver_1.HugsResolver],

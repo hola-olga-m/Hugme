@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MoodsService } from './moods.service';
 import { MoodsResolver } from './moods.resolver';
 import { MoodsController } from './moods.controller';
@@ -11,7 +11,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [
     UsersModule,
-    AuthModule, // Import AuthModule to use JwtAuthGuard
+    forwardRef(() => AuthModule), // Use forwardRef to prevent circular dependency
   ],
   controllers: [MoodsController],
   providers: [MoodsService, MoodsResolver],

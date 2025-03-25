@@ -18,7 +18,7 @@ exports.UsersModule = UsersModule;
 exports.UsersModule = UsersModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            auth_module_1.AuthModule,
+            (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
         ],
         providers: [users_service_1.UsersService, users_resolver_1.UsersResolver],
         controllers: [users_controller_1.UsersController],

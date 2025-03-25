@@ -20,7 +20,7 @@ exports.MoodsModule = MoodsModule = __decorate([
     (0, common_1.Module)({
         imports: [
             users_module_1.UsersModule,
-            auth_module_1.AuthModule,
+            (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
         ],
         controllers: [moods_controller_1.MoodsController],
         providers: [moods_service_1.MoodsService, moods_resolver_1.MoodsResolver],

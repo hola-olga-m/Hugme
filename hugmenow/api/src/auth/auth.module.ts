@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -23,7 +23,7 @@ import { PostGraphileModule } from '../postgraphile/postgraphile.module';
         },
       }),
     }),
-    UsersModule, // Import UsersModule instead of TypeOrmModule
+    forwardRef(() => UsersModule), // Use forwardRef to prevent circular dependency
   ],
   providers: [AuthService, AuthResolver, JwtStrategy, JwtAuthGuard],
   exports: [JwtStrategy, PassportModule, AuthService, JwtAuthGuard],

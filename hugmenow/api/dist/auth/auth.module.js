@@ -33,7 +33,7 @@ exports.AuthModule = AuthModule = __decorate([
                     },
                 }),
             }),
-            users_module_1.UsersModule,
+            (0, common_1.forwardRef)(() => users_module_1.UsersModule),
         ],
         providers: [auth_service_1.AuthService, auth_resolver_1.AuthResolver, jwt_strategy_1.JwtStrategy, jwt_auth_guard_1.JwtAuthGuard],
         exports: [jwt_strategy_1.JwtStrategy, passport_1.PassportModule, auth_service_1.AuthService, jwt_auth_guard_1.JwtAuthGuard],
