@@ -21,6 +21,9 @@ import { wrapSchema } from '@graphql-tools/wrap';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ShieldMiddleware } from '../permissions/shield.middleware';
+import { PermissionsService } from '../permissions/permissions.service';
+import { MoodsService } from '../moods/moods.service';
+import { HugsService } from '../hugs/hugs.service';
 
 // Local plugin imports
 import AuthPlugin from './plugins/auth.plugin';
@@ -41,7 +44,9 @@ export class GraphQLMeshService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     @Inject(forwardRef(() => ShieldMiddleware))
-    private shieldMiddleware: ShieldMiddleware
+    private shieldMiddleware: ShieldMiddleware,
+    @Inject(forwardRef(() => PermissionsService))
+    private permissionsService: PermissionsService
   ) {}
 
   async onModuleInit() {
@@ -125,6 +130,9 @@ export class GraphQLMeshService implements OnModuleInit {
         scalar DateTime
         scalar JSON
         scalar JSONObject
+        
+        # Custom validation scalars
+        ${this.permissionsService.getCustomScalarTypeDefs()}
         
         # Additional types
         type MeshInfo {
@@ -258,7 +266,13 @@ export class GraphQLMeshService implements OnModuleInit {
             }
             return this.parseObject(ast);
           },
-        })
+        }),
+        
+        // Add custom validation scalars
+        Email: this.permissionsService.CustomScalars.Email,
+        URL: this.permissionsService.CustomScalars.URL,
+        Password: this.permissionsService.CustomScalars.Password,
+        UUID: this.permissionsService.CustomScalars.UUID
       }
     });
     

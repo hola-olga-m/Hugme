@@ -18,9 +18,183 @@ const graphql_1 = require("graphql");
 let PermissionsService = PermissionsService_1 = class PermissionsService {
     jwtService;
     logger = new common_1.Logger(PermissionsService_1.name);
+    CustomScalars = {
+        Email: new graphql_1.GraphQLScalarType({
+            name: 'Email',
+            description: 'Email scalar type',
+            serialize: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidEmail(stringValue)) {
+                    throw new graphql_1.GraphQLError('Invalid email format');
+                }
+                return stringValue;
+            },
+            parseValue: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidEmail(stringValue)) {
+                    throw new graphql_1.GraphQLError('Invalid email format');
+                }
+                return stringValue;
+            },
+            parseLiteral: (ast) => {
+                if (ast.kind !== graphql_1.Kind.STRING) {
+                    throw new graphql_1.GraphQLError('Email must be a string');
+                }
+                if (!this.isValidEmail(ast.value)) {
+                    throw new graphql_1.GraphQLError('Invalid email format');
+                }
+                return ast.value;
+            }
+        }),
+        URL: new graphql_1.GraphQLScalarType({
+            name: 'URL',
+            description: 'URL scalar type',
+            serialize: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidURL(stringValue)) {
+                    throw new graphql_1.GraphQLError('Invalid URL format');
+                }
+                return stringValue;
+            },
+            parseValue: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidURL(stringValue)) {
+                    throw new graphql_1.GraphQLError('Invalid URL format');
+                }
+                return stringValue;
+            },
+            parseLiteral: (ast) => {
+                if (ast.kind !== graphql_1.Kind.STRING) {
+                    throw new graphql_1.GraphQLError('URL must be a string');
+                }
+                if (!this.isValidURL(ast.value)) {
+                    throw new graphql_1.GraphQLError('Invalid URL format');
+                }
+                return ast.value;
+            }
+        }),
+        Password: new graphql_1.GraphQLScalarType({
+            name: 'Password',
+            description: 'Password scalar type with validation',
+            serialize: (value) => String(value),
+            parseValue: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidPassword(stringValue)) {
+                    throw new graphql_1.GraphQLError('Password must be at least 8 characters with a mix of letters, numbers, and symbols');
+                }
+                return stringValue;
+            },
+            parseLiteral: (ast) => {
+                if (ast.kind !== graphql_1.Kind.STRING) {
+                    throw new graphql_1.GraphQLError('Password must be a string');
+                }
+                if (!this.isValidPassword(ast.value)) {
+                    throw new graphql_1.GraphQLError('Password must be at least 8 characters with a mix of letters, numbers, and symbols');
+                }
+                return ast.value;
+            }
+        }),
+        UUID: new graphql_1.GraphQLScalarType({
+            name: 'UUID',
+            description: 'UUID scalar type',
+            serialize: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidUUID(stringValue)) {
+                    throw new graphql_1.GraphQLError('Invalid UUID format');
+                }
+                return stringValue;
+            },
+            parseValue: (value) => {
+                const stringValue = String(value);
+                if (!this.isValidUUID(stringValue)) {
+                    throw new graphql_1.GraphQLError('Invalid UUID format');
+                }
+                return stringValue;
+            },
+            parseLiteral: (ast) => {
+                if (ast.kind !== graphql_1.Kind.STRING) {
+                    throw new graphql_1.GraphQLError('UUID must be a string');
+                }
+                if (!this.isValidUUID(ast.value)) {
+                    throw new graphql_1.GraphQLError('Invalid UUID format');
+                }
+                return ast.value;
+            }
+        })
+    };
     constructor(jwtService) {
         this.jwtService = jwtService;
     }
+    getCustomScalarTypeDefs() {
+        return `
+      # Custom validation scalars
+      scalar Email
+      scalar URL
+      scalar Password
+      scalar UUID
+    `;
+    }
+    isValidEmail(email) {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailRegex.test(email);
+    }
+    isValidURL(url) {
+        try {
+            new URL(url);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+    isValidPassword(password) {
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        return passwordRegex.test(password);
+    }
+    isValidUUID(uuid) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+    }
+    validateRegisterInput = (0, graphql_shield_1.inputRule)()((yup) => {
+        return yup.object({
+            username: yup.string().required().min(3).max(30),
+            email: yup.string().required().email(),
+            name: yup.string().required().min(2).max(50),
+            password: yup.string().required().min(8).matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/, 'Password must contain at least one letter, one number, and one special character'),
+            avatarUrl: yup.string().url().nullable()
+        });
+    });
+    validateLoginInput = (0, graphql_shield_1.inputRule)()((yup) => {
+        return yup.object({
+            email: yup.string().required().email(),
+            password: yup.string().required()
+        });
+    });
+    validateMoodInput = (0, graphql_shield_1.inputRule)()((yup) => {
+        return yup.object({
+            score: yup.number().required().min(1).max(10),
+            note: yup.string().max(500).nullable(),
+            isPublic: yup.boolean().required()
+        });
+    });
+    validateHugInput = (0, graphql_shield_1.inputRule)()((yup) => {
+        return yup.object({
+            recipientId: yup.string().required().matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid UUID format'),
+            type: yup.string().required().oneOf(['QUICK', 'WARM', 'SUPPORTIVE', 'COMFORTING', 'ENCOURAGING', 'CELEBRATORY']),
+            message: yup.string().max(500).nullable()
+        });
+    });
+    validateHugRequestInput = (0, graphql_shield_1.inputRule)()((yup) => {
+        return yup.object({
+            recipientId: yup.string().when('isCommunityRequest', {
+                is: false,
+                then: yup.string().required().matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid UUID format'),
+                otherwise: yup.string().nullable()
+            }),
+            message: yup.string().max(500).nullable(),
+            isCommunityRequest: yup.boolean().required()
+        });
+    });
     isAuthenticated = (0, graphql_shield_1.rule)()(async (parent, args, context, info) => {
         return context.user !== null && context.user !== undefined;
     });
@@ -120,17 +294,17 @@ let PermissionsService = PermissionsService_1 = class PermissionsService {
                 hugRequest: (0, graphql_shield_1.and)(this.isAuthenticated, (0, graphql_shield_1.or)(this.isHugRequestRequesterOrRecipient, this.isCommunityHugRequest))
             },
             Mutation: {
-                login: graphql_shield_1.allow,
-                register: graphql_shield_1.allow,
+                login: this.validateLoginInput,
+                register: this.validateRegisterInput,
                 anonymousLogin: graphql_shield_1.allow,
                 updateUser: (0, graphql_shield_1.and)(this.isAuthenticated, this.isSelf),
                 removeUser: (0, graphql_shield_1.and)(this.isAuthenticated, this.isSelf),
-                createMood: this.isAuthenticated,
-                updateMood: (0, graphql_shield_1.and)(this.isAuthenticated, this.isOwnMood),
+                createMood: (0, graphql_shield_1.and)(this.isAuthenticated, this.validateMoodInput),
+                updateMood: (0, graphql_shield_1.and)(this.isAuthenticated, this.isOwnMood, this.validateMoodInput),
                 removeMood: (0, graphql_shield_1.and)(this.isAuthenticated, this.isOwnMood),
-                sendHug: this.isAuthenticated,
+                sendHug: (0, graphql_shield_1.and)(this.isAuthenticated, this.validateHugInput),
                 markHugAsRead: (0, graphql_shield_1.and)(this.isAuthenticated, this.isHugSenderOrRecipient),
-                createHugRequest: this.isAuthenticated,
+                createHugRequest: (0, graphql_shield_1.and)(this.isAuthenticated, this.validateHugRequestInput),
                 respondToHugRequest: (0, graphql_shield_1.and)(this.isAuthenticated, (0, graphql_shield_1.or)(this.isHugRequestRequesterOrRecipient, this.isCommunityHugRequest)),
                 cancelHugRequest: (0, graphql_shield_1.and)(this.isAuthenticated, this.isHugRequestRequesterOrRecipient)
             },

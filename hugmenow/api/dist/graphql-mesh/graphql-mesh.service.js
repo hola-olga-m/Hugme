@@ -28,6 +28,7 @@ const depth_limit_1 = require("@envelop/depth-limit");
 const path = require("path");
 const fs = require("fs");
 const shield_middleware_1 = require("../permissions/shield.middleware");
+const permissions_service_1 = require("../permissions/permissions.service");
 const auth_plugin_1 = require("./plugins/auth.plugin");
 const cache_plugin_1 = require("./plugins/cache.plugin");
 const logger_plugin_1 = require("./plugins/logger.plugin");
@@ -36,15 +37,17 @@ const directives_plugin_1 = require("./plugins/directives.plugin");
 let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
     configService;
     shieldMiddleware;
+    permissionsService;
     logger = new common_1.Logger(GraphQLMeshService_1.name);
     mesh;
     sdl;
     schema;
     enhancedSchema;
     dbPool;
-    constructor(configService, shieldMiddleware) {
+    constructor(configService, shieldMiddleware, permissionsService) {
         this.configService = configService;
         this.shieldMiddleware = shieldMiddleware;
+        this.permissionsService = permissionsService;
     }
     async onModuleInit() {
         try {
@@ -101,6 +104,9 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
         scalar DateTime
         scalar JSON
         scalar JSONObject
+        
+        # Custom validation scalars
+        ${this.permissionsService.getCustomScalarTypeDefs()}
         
         # Additional types
         type MeshInfo {
@@ -227,13 +233,17 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
                         }
                         return value;
                     },
-                    parseLiteral(ast) {
+                    parseLiteral: (ast) => {
                         if (ast.kind !== graphql_1.Kind.OBJECT) {
                             throw new Error('JSONObject must be an object');
                         }
-                        return parseObject(ast);
+                        return this.parseObject(ast);
                     },
-                })
+                }),
+                Email: this.permissionsService.CustomScalars.Email,
+                URL: this.permissionsService.CustomScalars.URL,
+                Password: this.permissionsService.CustomScalars.Password,
+                UUID: this.permissionsService.CustomScalars.UUID
             }
         });
         const stitchedSchema = (0, stitch_1.stitchSchemas)({
@@ -255,7 +265,7 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
     parseObject(ast) {
         const value = Object.create(null);
         ast.fields.forEach(field => {
-            value[field.name.value] = parseAst(field.value);
+            value[field.name.value] = this.parseAst(field.value);
         });
         return value;
     }
@@ -346,7 +356,9 @@ exports.GraphQLMeshService = GraphQLMeshService;
 exports.GraphQLMeshService = GraphQLMeshService = GraphQLMeshService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => shield_middleware_1.ShieldMiddleware))),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => permissions_service_1.PermissionsService))),
     __metadata("design:paramtypes", [config_1.ConfigService,
-        shield_middleware_1.ShieldMiddleware])
+        shield_middleware_1.ShieldMiddleware,
+        permissions_service_1.PermissionsService])
 ], GraphQLMeshService);
 //# sourceMappingURL=graphql-mesh.service.js.map
