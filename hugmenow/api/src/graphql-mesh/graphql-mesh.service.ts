@@ -1,10 +1,16 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { createPostGraphileSchema } from 'postgraphile';
 import { Pool } from 'pg';
-import { GraphQLSchema, printSchema } from 'graphql';
+import { 
+  GraphQLSchema, 
+  printSchema, 
+  GraphQLScalarType,
+  Kind,
+  GraphQLError
+} from 'graphql';
 import { createYoga } from 'graphql-yoga';
 import { envelop, useEngine, useSchema } from '@envelop/core';
 import { useParserCache } from '@envelop/parser-cache';
@@ -14,6 +20,7 @@ import { useResponseCache } from '@envelop/response-cache';
 import { wrapSchema } from '@graphql-tools/wrap';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ShieldMiddleware } from '../permissions/shield.middleware';
 
 // Local plugin imports
 import AuthPlugin from './plugins/auth.plugin';
@@ -31,7 +38,11 @@ export class GraphQLMeshService implements OnModuleInit {
   private enhancedSchema: any;
   private dbPool: Pool;
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    @Inject(forwardRef(() => ShieldMiddleware))
+    private shieldMiddleware: ShieldMiddleware
+  ) {}
 
   async onModuleInit() {
     try {
@@ -97,9 +108,23 @@ export class GraphQLMeshService implements OnModuleInit {
     const extensionSchema = makeExecutableSchema({
       typeDefs: `
         # Custom directives
-        directive @authenticated on FIELD_DEFINITION
-        directive @cacheControl(maxAge: Int, scope: String) on FIELD_DEFINITION
+        directive @authenticated on FIELD_DEFINITION | OBJECT
+        directive @cacheControl(maxAge: Int, scope: String) on FIELD_DEFINITION | OBJECT
         directive @deprecated(reason: String) on FIELD_DEFINITION
+        directive @requireAuth on FIELD_DEFINITION
+        directive @requireScope(scope: String!) on FIELD_DEFINITION
+        directive @trimString on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+        directive @rateLimit(
+          max: Int!
+          window: String!
+          message: String
+        ) on FIELD_DEFINITION
+        directive @noIntrospection on FIELD_DEFINITION
+        
+        # Standard scalars
+        scalar DateTime
+        scalar JSON
+        scalar JSONObject
         
         # Additional types
         type MeshInfo {
@@ -107,6 +132,22 @@ export class GraphQLMeshService implements OnModuleInit {
           sources: [String!]!
           transforms: [String!]!
           plugins: [String!]!
+          usesShield: Boolean!
+          cacheEnabled: Boolean!
+          performanceMetrics: PerformanceMetrics!
+        }
+        
+        type PerformanceMetrics {
+          avgResponseTime: Float!
+          cacheHitRate: Float!
+          requestsPerMinute: Int!
+          errorRate: Float!
+        }
+        
+        type ValidationStats {
+          validQueries: Int!
+          invalidQueries: Int!
+          mostCommonErrors: [String!]!
         }
         
         # Query extension
@@ -114,19 +155,110 @@ export class GraphQLMeshService implements OnModuleInit {
           _meshInfo: MeshInfo!
           _sdl: String!
           _health: Boolean!
+          _validationStats: ValidationStats!
+          _schemaStats: JSONObject!
+          _apiVersion: String!
         }
       `,
       resolvers: {
         Query: {
           _meshInfo: () => ({
             version: '1.0.0',
-            sources: ['PostgreSQL'],
-            transforms: ['NamingConvention'],
-            plugins: ['Auth', 'Cache', 'Logger', 'Validation', 'Directives']
+            sources: ['PostgreSQL', 'Custom Resolvers'],
+            transforms: ['NamingConvention', 'SchemaStitching', 'AuthorizationWrappers'],
+            plugins: ['Auth', 'Cache', 'Logger', 'Validation', 'Directives', 'Shield'],
+            usesShield: true,
+            cacheEnabled: true,
+            performanceMetrics: {
+              avgResponseTime: 42.5, // Sample metrics for now
+              cacheHitRate: 0.78,
+              requestsPerMinute: 120,
+              errorRate: 0.03
+            }
           }),
           _sdl: () => this.sdl,
-          _health: () => true
-        }
+          _health: () => true,
+          _validationStats: () => ({
+            validQueries: 1850, // Sample metrics for now
+            invalidQueries: 23,
+            mostCommonErrors: [
+              'Field does not exist on type',
+              'Fragment is never used',
+              'Variable is not used'
+            ]
+          }),
+          _schemaStats: () => ({
+            typeCount: Object.keys(baseSchema.getTypeMap()).length,
+            queryFieldCount: Object.keys(baseSchema.getQueryType()?.getFields() || {}).length,
+            mutationFieldCount: Object.keys(baseSchema.getMutationType()?.getFields() || {}).length,
+            directiveCount: baseSchema.getDirectives().length,
+          }),
+          _apiVersion: () => '1.0.0'
+        },
+        // Custom scalar resolvers
+        DateTime: new GraphQLScalarType({
+          name: 'DateTime',
+          description: 'DateTime custom scalar type',
+          serialize(value) {
+            return value instanceof Date ? value.toISOString() : value;
+          },
+          parseValue(value) {
+            return typeof value === 'string' || typeof value === 'number' 
+              ? new Date(value) 
+              : null;
+          },
+          parseLiteral: (ast) => {
+            if (ast.kind === Kind.STRING) {
+              return new Date(ast.value);
+            }
+            return null;
+          },
+        }),
+        JSON: new GraphQLScalarType({
+          name: 'JSON',
+          description: 'JSON custom scalar type',
+          serialize(value) {
+            return value;
+          },
+          parseValue(value) {
+            return value;
+          },
+          parseLiteral: (ast) => {
+            switch (ast.kind) {
+              case Kind.STRING:
+              case Kind.BOOLEAN:
+                return ast.value;
+              case Kind.INT:
+              case Kind.FLOAT:
+                return Number(ast.value);
+              case Kind.OBJECT:
+                return this.parseObject(ast);
+              case Kind.LIST:
+                return ast.values.map(value => this.parseAst(value));
+              default:
+                return null;
+            }
+          },
+        }),
+        JSONObject: new GraphQLScalarType({
+          name: 'JSONObject',
+          description: 'JSON object custom scalar type',
+          serialize(value) {
+            return value;
+          },
+          parseValue(value) {
+            if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+              throw new Error('JSONObject must be an object');
+            }
+            return value;
+          },
+          parseLiteral: (ast) => {
+            if (ast.kind !== Kind.OBJECT) {
+              throw new Error('JSONObject must be an object');
+            }
+            return this.parseObject(ast);
+          },
+        })
       }
     });
     
@@ -147,7 +279,39 @@ export class GraphQLMeshService implements OnModuleInit {
       mergeDirectives: true
     });
     
-    return stitchedSchema;
+    // Apply GraphQL Shield permissions - this wraps the schema with permission rules
+    const schemaWithPermissions = this.shieldMiddleware.applyShield(stitchedSchema);
+    
+    // Return the fully enhanced schema
+    return schemaWithPermissions;
+  }
+  
+  // Helper function for JSON scalar parsing
+  private parseObject(ast) {
+    const value = Object.create(null);
+    ast.fields.forEach(field => {
+      value[field.name.value] = this.parseAst(field.value);
+    });
+    return value;
+  }
+  
+  private parseAst(ast) {
+    switch (ast.kind) {
+      case Kind.STRING:
+      case Kind.BOOLEAN:
+        return ast.value;
+      case Kind.INT:
+      case Kind.FLOAT:
+        return Number(ast.value);
+      case Kind.OBJECT:
+        return this.parseObject(ast);
+      case Kind.LIST:
+        return ast.values.map(value => this.parseAst(value));
+      case Kind.NULL:
+        return null;
+      default:
+        return null;
+    }
   }
 
   /**

@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var GraphQLMeshService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GraphQLMeshService = void 0;
@@ -24,6 +27,7 @@ const validation_cache_1 = require("@envelop/validation-cache");
 const depth_limit_1 = require("@envelop/depth-limit");
 const path = require("path");
 const fs = require("fs");
+const shield_middleware_1 = require("../permissions/shield.middleware");
 const auth_plugin_1 = require("./plugins/auth.plugin");
 const cache_plugin_1 = require("./plugins/cache.plugin");
 const logger_plugin_1 = require("./plugins/logger.plugin");
@@ -31,14 +35,16 @@ const validation_plugin_1 = require("./plugins/validation.plugin");
 const directives_plugin_1 = require("./plugins/directives.plugin");
 let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
     configService;
+    shieldMiddleware;
     logger = new common_1.Logger(GraphQLMeshService_1.name);
     mesh;
     sdl;
     schema;
     enhancedSchema;
     dbPool;
-    constructor(configService) {
+    constructor(configService, shieldMiddleware) {
         this.configService = configService;
+        this.shieldMiddleware = shieldMiddleware;
     }
     async onModuleInit() {
         try {
@@ -78,9 +84,23 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
         const extensionSchema = (0, schema_1.makeExecutableSchema)({
             typeDefs: `
         # Custom directives
-        directive @authenticated on FIELD_DEFINITION
-        directive @cacheControl(maxAge: Int, scope: String) on FIELD_DEFINITION
+        directive @authenticated on FIELD_DEFINITION | OBJECT
+        directive @cacheControl(maxAge: Int, scope: String) on FIELD_DEFINITION | OBJECT
         directive @deprecated(reason: String) on FIELD_DEFINITION
+        directive @requireAuth on FIELD_DEFINITION
+        directive @requireScope(scope: String!) on FIELD_DEFINITION
+        directive @trimString on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+        directive @rateLimit(
+          max: Int!
+          window: String!
+          message: String
+        ) on FIELD_DEFINITION
+        directive @noIntrospection on FIELD_DEFINITION
+        
+        # Standard scalars
+        scalar DateTime
+        scalar JSON
+        scalar JSONObject
         
         # Additional types
         type MeshInfo {
@@ -88,6 +108,22 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
           sources: [String!]!
           transforms: [String!]!
           plugins: [String!]!
+          usesShield: Boolean!
+          cacheEnabled: Boolean!
+          performanceMetrics: PerformanceMetrics!
+        }
+        
+        type PerformanceMetrics {
+          avgResponseTime: Float!
+          cacheHitRate: Float!
+          requestsPerMinute: Int!
+          errorRate: Float!
+        }
+        
+        type ValidationStats {
+          validQueries: Int!
+          invalidQueries: Int!
+          mostCommonErrors: [String!]!
         }
         
         # Query extension
@@ -95,19 +131,109 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
           _meshInfo: MeshInfo!
           _sdl: String!
           _health: Boolean!
+          _validationStats: ValidationStats!
+          _schemaStats: JSONObject!
+          _apiVersion: String!
         }
       `,
             resolvers: {
                 Query: {
                     _meshInfo: () => ({
                         version: '1.0.0',
-                        sources: ['PostgreSQL'],
-                        transforms: ['NamingConvention'],
-                        plugins: ['Auth', 'Cache', 'Logger', 'Validation', 'Directives']
+                        sources: ['PostgreSQL', 'Custom Resolvers'],
+                        transforms: ['NamingConvention', 'SchemaStitching', 'AuthorizationWrappers'],
+                        plugins: ['Auth', 'Cache', 'Logger', 'Validation', 'Directives', 'Shield'],
+                        usesShield: true,
+                        cacheEnabled: true,
+                        performanceMetrics: {
+                            avgResponseTime: 42.5,
+                            cacheHitRate: 0.78,
+                            requestsPerMinute: 120,
+                            errorRate: 0.03
+                        }
                     }),
                     _sdl: () => this.sdl,
-                    _health: () => true
-                }
+                    _health: () => true,
+                    _validationStats: () => ({
+                        validQueries: 1850,
+                        invalidQueries: 23,
+                        mostCommonErrors: [
+                            'Field does not exist on type',
+                            'Fragment is never used',
+                            'Variable is not used'
+                        ]
+                    }),
+                    _schemaStats: () => ({
+                        typeCount: Object.keys(baseSchema.getTypeMap()).length,
+                        queryFieldCount: Object.keys(baseSchema.getQueryType()?.getFields() || {}).length,
+                        mutationFieldCount: Object.keys(baseSchema.getMutationType()?.getFields() || {}).length,
+                        directiveCount: baseSchema.getDirectives().length,
+                    }),
+                    _apiVersion: () => '1.0.0'
+                },
+                DateTime: new graphql_1.GraphQLScalarType({
+                    name: 'DateTime',
+                    description: 'DateTime custom scalar type',
+                    serialize(value) {
+                        return value instanceof Date ? value.toISOString() : value;
+                    },
+                    parseValue(value) {
+                        return typeof value === 'string' || typeof value === 'number'
+                            ? new Date(value)
+                            : null;
+                    },
+                    parseLiteral: (ast) => {
+                        if (ast.kind === graphql_1.Kind.STRING) {
+                            return new Date(ast.value);
+                        }
+                        return null;
+                    },
+                }),
+                JSON: new graphql_1.GraphQLScalarType({
+                    name: 'JSON',
+                    description: 'JSON custom scalar type',
+                    serialize(value) {
+                        return value;
+                    },
+                    parseValue(value) {
+                        return value;
+                    },
+                    parseLiteral: (ast) => {
+                        switch (ast.kind) {
+                            case graphql_1.Kind.STRING:
+                            case graphql_1.Kind.BOOLEAN:
+                                return ast.value;
+                            case graphql_1.Kind.INT:
+                            case graphql_1.Kind.FLOAT:
+                                return Number(ast.value);
+                            case graphql_1.Kind.OBJECT:
+                                return this.parseObject(ast);
+                            case graphql_1.Kind.LIST:
+                                return ast.values.map(value => this.parseAst(value));
+                            default:
+                                return null;
+                        }
+                    },
+                }),
+                JSONObject: new graphql_1.GraphQLScalarType({
+                    name: 'JSONObject',
+                    description: 'JSON object custom scalar type',
+                    serialize(value) {
+                        return value;
+                    },
+                    parseValue(value) {
+                        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+                            throw new Error('JSONObject must be an object');
+                        }
+                        return value;
+                    },
+                    parseLiteral(ast) {
+                        if (ast.kind !== graphql_1.Kind.OBJECT) {
+                            throw new Error('JSONObject must be an object');
+                        }
+                        return parseObject(ast);
+                    },
+                })
             }
         });
         const stitchedSchema = (0, stitch_1.stitchSchemas)({
@@ -123,7 +249,33 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
             ],
             mergeDirectives: true
         });
-        return stitchedSchema;
+        const schemaWithPermissions = this.shieldMiddleware.applyShield(stitchedSchema);
+        return schemaWithPermissions;
+    }
+    parseObject(ast) {
+        const value = Object.create(null);
+        ast.fields.forEach(field => {
+            value[field.name.value] = parseAst(field.value);
+        });
+        return value;
+    }
+    parseAst(ast) {
+        switch (ast.kind) {
+            case graphql_1.Kind.STRING:
+            case graphql_1.Kind.BOOLEAN:
+                return ast.value;
+            case graphql_1.Kind.INT:
+            case graphql_1.Kind.FLOAT:
+                return Number(ast.value);
+            case graphql_1.Kind.OBJECT:
+                return this.parseObject(ast);
+            case graphql_1.Kind.LIST:
+                return ast.values.map(value => this.parseAst(value));
+            case graphql_1.Kind.NULL:
+                return null;
+            default:
+                return null;
+        }
     }
     async setupEnvelop() {
         this.logger.log('Setting up Envelop with plugins...');
@@ -193,6 +345,8 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
 exports.GraphQLMeshService = GraphQLMeshService;
 exports.GraphQLMeshService = GraphQLMeshService = GraphQLMeshService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => shield_middleware_1.ShieldMiddleware))),
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        shield_middleware_1.ShieldMiddleware])
 ], GraphQLMeshService);
 //# sourceMappingURL=graphql-mesh.service.js.map
