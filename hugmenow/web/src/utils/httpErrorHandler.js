@@ -6,10 +6,9 @@
  * Protocol error codes that need special handling
  */
 export const PROTOCOL_ERRORS = {
-  UNSUPPORTED_VERSION: 'UNSUPPORTED_VERSION',
-  UPGRADE_REQUIRED: 'UPGRADE_REQUIRED',
-  PROTOCOL_ERROR: 'PROTOCOL_ERROR',
-  OPTIONS_REQUIRED: 'OPTIONS_REQUIRED'
+  UPGRADE_REQUIRED: 426,
+  HTTP_VERSION_NOT_SUPPORTED: 505,
+  NETWORK_AUTHENTICATION_REQUIRED: 511
 };
 
 /**
@@ -18,12 +17,7 @@ export const PROTOCOL_ERRORS = {
  * @returns {boolean} True if protocol upgrade is required
  */
 export const isProtocolUpgradeRequired = (response) => {
-  // Check for HTTP status codes that indicate protocol issues
-  return (
-    response.status === 426 || // Upgrade Required
-    response.status === 505 || // HTTP Version Not Supported
-    (response.headers && response.headers.get('upgrade')) // Has upgrade header
-  );
+  return response?.status === PROTOCOL_ERRORS.UPGRADE_REQUIRED;
 };
 
 /**
@@ -35,17 +29,54 @@ export const isProtocolUpgradeRequired = (response) => {
  * @returns {Promise<Response>} A new response with the fixed protocol
  */
 export const handleProtocolError = async (response, { url, fetchOptions = {} } = {}) => {
-  console.warn('Handling potential protocol error:', response.status);
+  if (!response) return null;
   
-  // Apply protocol-specific fixes if needed
-  const newOptions = { ...fetchOptions };
+  // For 426 Upgrade Required errors
+  if (response.status === PROTOCOL_ERRORS.UPGRADE_REQUIRED) {
+    console.warn('Protocol upgrade required. Retrying with HTTP/1.1...');
+    
+    // Create new headers with 'Connection: Upgrade' and protocol version hint
+    const headers = new Headers(fetchOptions.headers || {});
+    headers.set('Connection', 'Upgrade');
+    headers.set('Upgrade', 'HTTP/2.0, HTTP/1.1');
+    
+    // Retry the request with modified headers
+    try {
+      const newResponse = await fetch(url, {
+        ...fetchOptions,
+        headers,
+      });
+      
+      return newResponse;
+    } catch (error) {
+      console.error('Failed to retry with protocol upgrade:', error);
+      return response; // Return original response if retry fails
+    }
+  }
   
-  // Try with explicit HTTP version 1.1
-  newOptions.headers = newOptions.headers || {};
-  newOptions.headers['X-HTTP-Version'] = '1.1';
+  // For 505 HTTP Version Not Supported
+  if (response.status === PROTOCOL_ERRORS.HTTP_VERSION_NOT_SUPPORTED) {
+    console.warn('HTTP version not supported. Downgrading to HTTP/1.1...');
+    
+    // Create new headers with HTTP/1.1 hint
+    const headers = new Headers(fetchOptions.headers || {});
+    headers.set('Accept-Protocol', 'HTTP/1.1');
+    
+    // Retry with modified headers
+    try {
+      const newResponse = await fetch(url, {
+        ...fetchOptions,
+        headers,
+      });
+      
+      return newResponse;
+    } catch (error) {
+      console.error('Failed to retry with HTTP/1.1:', error);
+      return response;
+    }
+  }
   
-  // Retry the request with fixed options
-  return fetch(url, newOptions);
+  return response;
 };
 
 /**
@@ -55,18 +86,18 @@ export const handleProtocolError = async (response, { url, fetchOptions = {} } =
 export const createProtocolAwareFetch = () => {
   return async (url, options = {}) => {
     try {
-      // Make the initial request
       const response = await fetch(url, options);
       
-      // Check if response indicates protocol issues
-      if (isProtocolUpgradeRequired(response)) {
-        // Try to fix protocol issues
+      if (
+        response.status === PROTOCOL_ERRORS.UPGRADE_REQUIRED ||
+        response.status === PROTOCOL_ERRORS.HTTP_VERSION_NOT_SUPPORTED
+      ) {
         return handleProtocolError(response, { url, fetchOptions: options });
       }
       
       return response;
     } catch (error) {
-      // Rethrow error
+      console.error('Fetch error:', error);
       throw error;
     }
   };
@@ -77,14 +108,41 @@ export const createProtocolAwareFetch = () => {
  * @returns {Object} Object with browser capability flags
  */
 export const detectBrowserHttpCapabilities = () => {
-  const userAgent = navigator.userAgent.toLowerCase();
-  
-  return {
-    http2Support: !userAgent.includes('safari') || userAgent.includes('chrome'),
-    webSocketSupport: 'WebSocket' in window,
-    fetchCredentialsSupport: true, // Modern browsers support this
-    isOlderBrowser: /msie|trident/.test(userAgent)
+  const capabilities = {
+    http2Supported: false,
+    secureContextOnly: false,
+    fetchWithCredentialsSupported: true,
+    modernFetchApi: true
   };
+  
+  // Check if running in a secure context (needed for HTTP/2)
+  capabilities.secureContextOnly = window.isSecureContext;
+  
+  // Check for HTTP/2 support based on user agent and known limitations
+  const ua = navigator.userAgent.toLowerCase();
+  
+  if (ua.includes('chrome') && parseInt(ua.split('chrome/')[1]) >= 51) {
+    capabilities.http2Supported = true;
+  } else if (ua.includes('firefox') && parseInt(ua.split('firefox/')[1]) >= 52) {
+    capabilities.http2Supported = true;
+  } else if (ua.includes('safari') && !ua.includes('chrome') && parseInt(ua.split('version/')[1]) >= 9) {
+    capabilities.http2Supported = true;
+  }
+  
+  // Older Edge had limitations with credentials
+  if (ua.includes('edge/') && !ua.includes('edg/')) {
+    capabilities.fetchWithCredentialsSupported = false;
+  }
+  
+  // Very old browsers might not have all fetch features
+  if (
+    ua.includes('msie') || 
+    (ua.includes('safari') && parseInt(ua.split('version/')[1]) < 10)
+  ) {
+    capabilities.modernFetchApi = false;
+  }
+  
+  return capabilities;
 };
 
 /**
@@ -93,20 +151,26 @@ export const detectBrowserHttpCapabilities = () => {
  * @returns {Object} Updated Apollo config with protocol workarounds
  */
 export const applyProtocolWorkarounds = (apolloConfig) => {
-  // Check browser capabilities
   const capabilities = detectBrowserHttpCapabilities();
-  const config = { ...apolloConfig };
+  const updatedConfig = { ...apolloConfig };
   
-  // Apply workarounds for older browsers
-  if (capabilities.isOlderBrowser) {
-    // Use polling instead of websockets for subscriptions
-    if (config.defaultOptions) {
-      config.defaultOptions.watchQuery = {
-        ...config.defaultOptions.watchQuery,
-        fetchPolicy: 'network-only'
-      };
+  if (!capabilities.http2Supported || !capabilities.secureContextOnly) {
+    // Add workarounds for HTTP/2 limitations
+    if (!updatedConfig.headers) {
+      updatedConfig.headers = {};
     }
+    
+    // Hint preferred HTTP version
+    updatedConfig.headers['Accept-Protocol'] = 'HTTP/1.1';
+    
+    // Disable HTTP/2-specific features in Apollo/fetch
+    if (!updatedConfig.fetchOptions) {
+      updatedConfig.fetchOptions = {};
+    }
+    updatedConfig.fetchOptions.cache = 'no-store';
+    
+    console.info('Applied HTTP protocol compatibility workarounds based on browser capabilities');
   }
   
-  return config;
+  return updatedConfig;
 };

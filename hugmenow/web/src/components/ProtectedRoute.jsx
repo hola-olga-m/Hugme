@@ -1,34 +1,28 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-/**
- * ProtectedRoute component
- * This component is used to wrap routes that require authentication
- * It will redirect to the login page if the user is not authenticated
- * It will show a loading state while checking authentication
- */
 const ProtectedRoute = ({ children }) => {
-  const { t } = useTranslation();
   const { isAuthenticated, loading } = useAuth();
-  
-  // Show loading state while checking authentication
+  const location = useLocation();
+
+  // Show loading spinner while authentication status is being determined
   if (loading) {
     return (
       <div className="loading-container">
-        <p>{t('app.loading')}</p>
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
       </div>
     );
   }
-  
-  // If user is not authenticated, redirect to login page
+
+  // Redirect to login if not authenticated, preserving the attempted URL for redirect after login
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
-  // Return the children or the Outlet (for nested routes)
-  return children ? children : <Outlet />;
+
+  // Render the protected content if authenticated
+  return children;
 };
 
 export default ProtectedRoute;
