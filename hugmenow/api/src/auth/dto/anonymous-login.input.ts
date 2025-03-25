@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, MaxLength } from 'class-validator';
+import { IsNotEmpty, MaxLength, IsOptional, IsUrl } from 'class-validator';
 
 @InputType()
 export class AnonymousLoginInput {
@@ -9,5 +9,7 @@ export class AnonymousLoginInput {
   nickname: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsUrl({}, { message: 'Avatar URL must be a valid URL' })
   avatarUrl?: string;
 }

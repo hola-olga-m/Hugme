@@ -25,6 +25,8 @@ __decorate([
 ], AnonymousLoginInput.prototype, "nickname", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)({}, { message: 'Avatar URL must be a valid URL' }),
     __metadata("design:type", String)
 ], AnonymousLoginInput.prototype, "avatarUrl", void 0);
 exports.AnonymousLoginInput = AnonymousLoginInput = __decorate([

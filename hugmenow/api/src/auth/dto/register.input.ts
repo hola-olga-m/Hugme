@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsEmail, IsNotEmpty, MinLength, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, Matches, IsOptional, IsUrl } from 'class-validator';
 
 @InputType()
 export class RegisterInput {
@@ -27,5 +27,7 @@ export class RegisterInput {
   password: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsUrl({}, { message: 'Avatar URL must be a valid URL' })
   avatarUrl?: string;
 }
