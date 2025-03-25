@@ -1,15 +1,15 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
 import { JwtService } from '@nestjs/jwt';
+import { Plugin } from '@envelop/core';
 
-export default class AuthPlugin implements MeshPlugin {
+export default class AuthPlugin {
   constructor(private jwtService: JwtService) {}
 
-  onInit(options: GetMeshOptions): GetMeshOptions {
+  onInit(options: any): any {
     return {
       ...options,
-      context: async (initialContext) => {
+      context: async (initialContext: any) => {
         const { req } = initialContext;
-        let user = null;
+        let user: any = null;
         
         // Extract token from authorization header
         const authHeader = req?.headers?.authorization;
@@ -18,7 +18,7 @@ export default class AuthPlugin implements MeshPlugin {
           try {
             // Verify and decode JWT token
             user = this.jwtService.verify(token);
-          } catch (error) {
+          } catch (error: any) {
             console.error('Invalid JWT token', error.message);
           }
         }
@@ -32,8 +32,8 @@ export default class AuthPlugin implements MeshPlugin {
     };
   }
 
-  onExecute(execute: ExecuteMeshFn): ExecuteMeshFn {
-    return async (options) => {
+  onExecute(execute: any): any {
+    return async (options: any) => {
       const { operation, context } = options;
       
       // Example of operation-based authorization

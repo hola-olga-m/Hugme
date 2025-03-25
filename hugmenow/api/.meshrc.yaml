@@ -22,3 +22,26 @@ transforms:
       typeNames: pascalCase
       enumValues: upperCase
       fieldNames: camelCase
+
+# Generation of the SDK
+documents:
+  - graphql/**/*.graphql
+
+# Output generation for TypeScript SDK
+generate:
+  - './src/generated/sdk.ts':
+      plugins:
+        - typescript
+        - typescript-operations
+        - typescript-resolvers
+        - typescript-document-nodes
+
+# Configuration for code generation
+additionalResolvers:
+  - './src/resolvers/**/*.ts'
+
+# Serving configuration
+serve:
+  playground: true
+  endpoint: '/graphql'
+  cors: true
