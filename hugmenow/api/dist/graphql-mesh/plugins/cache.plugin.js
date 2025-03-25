@@ -4,7 +4,7 @@ const common_1 = require("@nestjs/common");
 const graphql_1 = require("graphql");
 const crypto = require("crypto");
 class CachePlugin {
-    logger = new common_1.Logger('GraphQLMeshCache');
+    logger = new common_1.Logger('GraphQLCache');
     cache = new Map();
     ttl;
     constructor(options = {}) {

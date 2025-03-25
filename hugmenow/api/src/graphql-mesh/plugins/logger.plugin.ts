@@ -1,15 +1,15 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
 import { Logger } from '@nestjs/common';
+import { Plugin } from '@envelop/core';
 
-export default class LoggerPlugin implements MeshPlugin {
-  private readonly logger = new Logger('GraphQLMesh');
+export default class LoggerPlugin {
+  private readonly logger = new Logger('GraphQL');
   
-  onInit(options: GetMeshOptions): GetMeshOptions {
-    this.logger.log('Initializing GraphQL Mesh with Logger Plugin');
+  onInit(options: any): any {
+    this.logger.log('Initializing GraphQL with Logger Plugin');
     return options;
   }
 
-  onExecute(execute: ExecuteMeshFn): ExecuteMeshFn {
+  onExecute(execute: any): any {
     return async (options) => {
       const { operation, rootValue, args, context, info } = options;
       

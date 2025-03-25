@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 class LoggerPlugin {
-    logger = new common_1.Logger('GraphQLMesh');
+    logger = new common_1.Logger('GraphQL');
     onInit(options) {
-        this.logger.log('Initializing GraphQL Mesh with Logger Plugin');
+        this.logger.log('Initializing GraphQL with Logger Plugin');
         return options;
     }
     onExecute(execute) {

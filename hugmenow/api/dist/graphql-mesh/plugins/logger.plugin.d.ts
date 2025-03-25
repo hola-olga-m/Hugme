@@ -1,7 +1,6 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
-export default class LoggerPlugin implements MeshPlugin {
+export default class LoggerPlugin {
     private readonly logger;
-    onInit(options: GetMeshOptions): GetMeshOptions;
-    onExecute(execute: ExecuteMeshFn): ExecuteMeshFn;
+    onInit(options: any): any;
+    onExecute(execute: any): any;
     onSubscribe(execute: ExecuteMeshFn): ExecuteMeshFn;
 }

@@ -1,9 +1,8 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
 import { JwtService } from '@nestjs/jwt';
-export default class AuthPlugin implements MeshPlugin {
+export default class AuthPlugin {
     private jwtService;
     constructor(jwtService: JwtService);
-    onInit(options: GetMeshOptions): GetMeshOptions;
-    onExecute(execute: ExecuteMeshFn): ExecuteMeshFn;
+    onInit(options: any): any;
+    onExecute(execute: any): any;
     private requiresAuth;
 }

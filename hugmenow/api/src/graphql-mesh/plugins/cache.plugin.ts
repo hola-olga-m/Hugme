@@ -1,5 +1,5 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
 import { Logger } from '@nestjs/common';
+import { Plugin } from '@envelop/core';
 import { print } from 'graphql';
 import * as crypto from 'crypto';
 
@@ -8,8 +8,8 @@ interface CacheEntry {
   timestamp: number;
 }
 
-export default class CachePlugin implements MeshPlugin {
-  private readonly logger = new Logger('GraphQLMeshCache');
+export default class CachePlugin {
+  private readonly logger = new Logger('GraphQLCache');
   private cache: Map<string, CacheEntry> = new Map();
   private ttl: number;
   
@@ -18,11 +18,11 @@ export default class CachePlugin implements MeshPlugin {
     this.logger.log(`Cache plugin initialized with TTL of ${this.ttl}ms`);
   }
   
-  onInit(options: GetMeshOptions): GetMeshOptions {
+  onInit(options: any): any {
     return options;
   }
 
-  onExecute(execute: ExecuteMeshFn): ExecuteMeshFn {
+  onExecute(execute: any): any {
     return async (options) => {
       const { operation, variables, context } = options;
       
