@@ -18,7 +18,7 @@ let AppController = class AppController {
         this.appService = appService;
     }
     getHello() {
-        return this.appService.getHome();
+        return this.appService.getHello();
     }
     getAppInfo() {
         return this.appService.getAppInfo();
