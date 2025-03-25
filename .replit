@@ -13,14 +13,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "NestJS Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "React Frontend"
+args = "HugMeNow"
 
 [[workflows.workflow]]
-name = "NestJS Server"
+name = "HugMeNow"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -31,22 +27,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/api && node simple-server.js"
-waitForPort = 3002
-
-[[workflows.workflow]]
-name = "React Frontend"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd hugmenow/web && node simple-server.js"
+args = "node replit-optimized-server.js"
 waitForPort = 5000
 
 [deployment]
