@@ -8,21 +8,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MoodsService = void 0;
 const common_1 = require("@nestjs/common");
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
-const mood_entity_1 = require("./entities/mood.entity");
 const users_service_1 = require("../users/users.service");
+const postgraphile_service_1 = require("../postgraphile/postgraphile.service");
+const uuid_1 = require("uuid");
 let MoodsService = class MoodsService {
-    moodsRepository;
+    postgraphileService;
     usersService;
-    constructor(moodsRepository, usersService) {
-        this.moodsRepository = moodsRepository;
+    moodsTable = 'moods';
+    constructor(postgraphileService, usersService) {
+        this.postgraphileService = postgraphileService;
         this.usersService = usersService;
     }
     async create(createMoodInput, userId) {
@@ -30,37 +27,59 @@ let MoodsService = class MoodsService {
         if (!user) {
             throw new Error('User not found');
         }
-        const mood = this.moodsRepository.create({
+        const moodData = {
             ...createMoodInput,
-            user,
             userId,
-        });
-        return this.moodsRepository.save(mood);
+            id: (0, uuid_1.v4)(),
+            createdAt: new Date()
+        };
+        return await this.postgraphileService.insert(this.moodsTable, moodData);
     }
     async findAll() {
-        return this.moodsRepository.find({
-            relations: ['user'],
-        });
+        const moods = await this.postgraphileService.findAll(this.moodsTable);
+        for (const mood of moods) {
+            if (mood.userId) {
+                try {
+                    mood.user = await this.usersService.findOne(mood.userId);
+                }
+                catch (error) {
+                }
+            }
+        }
+        return moods;
     }
     async findPublic() {
-        return this.moodsRepository.find({
-            where: { isPublic: true },
-            relations: ['user'],
-        });
+        const moods = await this.postgraphileService.findWhere(this.moodsTable, { isPublic: true });
+        for (const mood of moods) {
+            if (mood.userId) {
+                try {
+                    mood.user = await this.usersService.findOne(mood.userId);
+                }
+                catch (error) {
+                }
+            }
+        }
+        return moods;
     }
     async findByUser(userId) {
-        return this.moodsRepository.find({
-            where: { userId },
-            relations: ['user'],
-        });
+        const moods = await this.postgraphileService.findWhere(this.moodsTable, { userId });
+        const user = await this.usersService.findOne(userId);
+        for (const mood of moods) {
+            mood.user = user;
+        }
+        return moods;
     }
     async findOne(id) {
-        const mood = await this.moodsRepository.findOne({
-            where: { id },
-            relations: ['user'],
-        });
+        const mood = await this.postgraphileService.findById(this.moodsTable, id);
         if (!mood) {
-            throw new Error('Mood not found');
+            throw new common_1.NotFoundException(`Mood with ID ${id} not found`);
+        }
+        if (mood.userId) {
+            try {
+                mood.user = await this.usersService.findOne(mood.userId);
+            }
+            catch (error) {
+            }
         }
         return mood;
     }
@@ -69,22 +88,22 @@ let MoodsService = class MoodsService {
         if (mood.userId !== userId) {
             throw new Error('You do not have permission to update this mood');
         }
-        await this.moodsRepository.update(id, updateMoodInput);
-        return this.findOne(id);
+        return await this.postgraphileService.update(this.moodsTable, id, updateMoodInput);
     }
     async remove(id, userId) {
         const mood = await this.findOne(id);
         if (mood.userId !== userId) {
             throw new Error('You do not have permission to delete this mood');
         }
-        const result = await this.moodsRepository.delete(id);
-        return result.affected ? result.affected > 0 : false;
+        return await this.postgraphileService.delete(this.moodsTable, id);
     }
     async getUserMoodStreak(userId) {
-        const moods = await this.moodsRepository.find({
-            where: { userId },
-            order: { createdAt: 'DESC' },
-        });
+        const moodsQuery = `
+      SELECT * FROM ${this.moodsTable}
+      WHERE "userId" = $1
+      ORDER BY "createdAt" DESC
+    `;
+        const { rows: moods } = await this.postgraphileService.query(moodsQuery, [userId]);
         if (moods.length === 0) {
             return 0;
         }
@@ -110,8 +129,7 @@ let MoodsService = class MoodsService {
 exports.MoodsService = MoodsService;
 exports.MoodsService = MoodsService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(mood_entity_1.Mood)),
-    __metadata("design:paramtypes", [typeorm_2.Repository,
+    __metadata("design:paramtypes", [postgraphile_service_1.PostGraphileService,
         users_service_1.UsersService])
 ], MoodsService);
 //# sourceMappingURL=moods.service.js.map

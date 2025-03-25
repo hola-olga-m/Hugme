@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Hug } from './entities/hug.entity';
-import { HugRequest } from './entities/hug-request.entity';
 import { HugsService } from './hugs.service';
 import { HugsResolver } from './hugs.resolver';
 import { UsersModule } from '../users/users.module';
+// Import Postgraphile Module (it's global, but adding it for clarity)
+import { PostGraphileModule } from '../postgraphile/postgraphile.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Hug, HugRequest]),
     UsersModule,
   ],
   providers: [HugsService, HugsResolver],

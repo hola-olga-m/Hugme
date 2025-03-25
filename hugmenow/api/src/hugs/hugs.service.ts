@@ -1,6 +1,4 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Hug, HugType } from './entities/hug.entity';
 import { HugRequest, HugRequestStatus } from './entities/hug-request.entity';
 import { UsersService } from '../users/users.service';
@@ -8,16 +6,16 @@ import { User } from '../users/entities/user.entity';
 import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
+import { PostGraphileService } from '../postgraphile/postgraphile.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class HugsService {
+  private readonly hugsTable = 'hugs';
+  private readonly hugRequestsTable = 'hug_requests';
+  
   constructor(
-    @InjectRepository(Hug)
-    private hugsRepository: Repository<Hug>,
-    
-    @InjectRepository(HugRequest)
-    private hugRequestsRepository: Repository<HugRequest>,
-    
+    private postgraphileService: PostGraphileService,
     private usersService: UsersService,
   ) {}
 
@@ -33,60 +31,81 @@ export class HugsService {
       throw new NotFoundException('Recipient not found');
     }
 
-    const hug = this.hugsRepository.create({
+    const hugData = {
+      id: uuidv4(),
       type: sendHugInput.type,
       message: sendHugInput.message,
-      sender,
       senderId,
-      recipient,
       recipientId: sendHugInput.recipientId,
       isRead: false,
       createdAt: new Date(),
-    });
+    };
 
-    return this.hugsRepository.save(hug);
+    return await this.postgraphileService.insert(this.hugsTable, hugData) as Hug;
   }
 
   async findAllHugs(): Promise<Hug[]> {
-    return this.hugsRepository.find({
-      relations: ['sender', 'recipient'],
-    });
+    return await this.postgraphileService.findAll(this.hugsTable) as Hug[];
   }
 
   async findHugById(id: string): Promise<Hug> {
-    const hug = await this.hugsRepository.findOne({
-      where: { id },
-      relations: ['sender', 'recipient'],
-    });
+    const hug = await this.postgraphileService.findById(this.hugsTable, id) as Hug;
 
     if (!hug) {
       throw new NotFoundException(`Hug with id ${id} not found`);
+    }
+
+    // Load sender and recipient details
+    if (hug.senderId) {
+      hug.sender = await this.usersService.findOne(hug.senderId);
+    }
+    if (hug.recipientId) {
+      hug.recipient = await this.usersService.findOne(hug.recipientId);
     }
 
     return hug;
   }
 
   async findHugsBySender(senderId: string): Promise<Hug[]> {
-    return this.hugsRepository.find({
-      where: { senderId },
-      relations: ['sender', 'recipient'],
-      order: { createdAt: 'DESC' }
-    });
+    const hugs = await this.postgraphileService.findWhere(this.hugsTable, { senderId }) as Hug[];
+    
+    // For each hug, load the sender and recipient details
+    for (const hug of hugs) {
+      if (hug.senderId) {
+        hug.sender = await this.usersService.findOne(hug.senderId);
+      }
+      if (hug.recipientId) {
+        hug.recipient = await this.usersService.findOne(hug.recipientId);
+      }
+    }
+    
+    // Sort by createdAt DESC
+    return hugs.sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
+    );
   }
 
   async findHugsByRecipient(recipientId: string): Promise<Hug[]> {
-    return this.hugsRepository.find({
-      where: { recipientId },
-      relations: ['sender', 'recipient'],
-      order: { createdAt: 'DESC' }
-    });
+    const hugs = await this.postgraphileService.findWhere(this.hugsTable, { recipientId }) as Hug[];
+    
+    // For each hug, load the sender and recipient details
+    for (const hug of hugs) {
+      if (hug.senderId) {
+        hug.sender = await this.usersService.findOne(hug.senderId);
+      }
+      if (hug.recipientId) {
+        hug.recipient = await this.usersService.findOne(hug.recipientId);
+      }
+    }
+    
+    // Sort by createdAt DESC
+    return hugs.sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
+    );
   }
 
   async markHugAsRead(hugId: string, userId: string): Promise<Hug> {
-    const hug = await this.hugsRepository.findOne({
-      where: { id: hugId },
-      relations: ['recipient'],
-    });
+    const hug = await this.postgraphileService.findById(this.hugsTable, hugId) as Hug;
 
     if (!hug) {
       throw new NotFoundException(`Hug with id ${hugId} not found`);
@@ -96,8 +115,14 @@ export class HugsService {
       throw new ForbiddenException('You can only mark your own received hugs as read');
     }
 
-    hug.isRead = true;
-    return this.hugsRepository.save(hug);
+    const updatedHug = await this.postgraphileService.update(this.hugsTable, hugId, { isRead: true }) as Hug;
+    
+    // Load recipient details
+    if (updatedHug.recipientId) {
+      updatedHug.recipient = await this.usersService.findOne(updatedHug.recipientId);
+    }
+    
+    return updatedHug;
   }
 
   // HUG REQUEST METHODS
@@ -107,86 +132,119 @@ export class HugsService {
       throw new NotFoundException('Requester not found');
     }
 
-    let recipient: User | undefined = undefined;
     let recipientId: string | undefined = undefined;
     
     if (createHugRequestInput.recipientId) {
-      recipient = await this.usersService.findOne(createHugRequestInput.recipientId);
+      const recipient = await this.usersService.findOne(createHugRequestInput.recipientId);
+      if (!recipient) {
+        throw new NotFoundException('Recipient not found');
+      }
       recipientId = recipient.id;
     }
 
-    const request = this.hugRequestsRepository.create({
+    const requestData = {
+      id: uuidv4(),
       message: createHugRequestInput.message,
-      requester,
       requesterId,
-      recipient,
       recipientId,
       isCommunityRequest: createHugRequestInput.isCommunityRequest,
       status: HugRequestStatus.PENDING,
       createdAt: new Date(),
-    });
+    };
 
-    return await this.hugRequestsRepository.save(request);
+    return await this.postgraphileService.insert(this.hugRequestsTable, requestData) as HugRequest;
   }
 
   async findAllHugRequests(): Promise<HugRequest[]> {
-    return this.hugRequestsRepository.find({
-      relations: ['requester', 'recipient'],
-    });
+    return await this.postgraphileService.findAll(this.hugRequestsTable) as HugRequest[];
   }
 
   async findHugRequestById(id: string): Promise<HugRequest> {
-    const request = await this.hugRequestsRepository.findOne({
-      where: { id },
-      relations: ['requester', 'recipient'],
-    });
+    const request = await this.postgraphileService.findById(this.hugRequestsTable, id) as HugRequest;
 
     if (!request) {
       throw new NotFoundException(`Hug request with id ${id} not found`);
+    }
+
+    // Load requester and recipient details
+    if (request.requesterId) {
+      request.requester = await this.usersService.findOne(request.requesterId);
+    }
+    if (request.recipientId) {
+      request.recipient = await this.usersService.findOne(request.recipientId);
     }
 
     return request;
   }
 
   async findHugRequestsByUser(userId: string): Promise<HugRequest[]> {
-    return this.hugRequestsRepository.find({
-      where: { requesterId: userId },
-      relations: ['requester', 'recipient'],
-      order: { createdAt: 'DESC' }
-    });
+    const requests = await this.postgraphileService.findWhere(this.hugRequestsTable, { requesterId: userId }) as HugRequest[];
+    
+    // For each request, load the requester and recipient details
+    for (const request of requests) {
+      if (request.requesterId) {
+        request.requester = await this.usersService.findOne(request.requesterId);
+      }
+      if (request.recipientId) {
+        request.recipient = await this.usersService.findOne(request.recipientId);
+      }
+    }
+    
+    // Sort by createdAt DESC
+    return requests.sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
+    );
   }
 
   async findPendingRequestsForUser(userId: string): Promise<HugRequest[]> {
-    return this.hugRequestsRepository.find({
-      where: { 
-        recipientId: userId,
-        status: HugRequestStatus.PENDING 
-      },
-      relations: ['requester', 'recipient'],
-      order: { createdAt: 'DESC' }
-    });
+    // We need to manually filter since we can't do complex where clauses directly
+    const allRequests = await this.postgraphileService.findAll(this.hugRequestsTable) as HugRequest[];
+    
+    const pendingRequests = allRequests.filter(request => 
+      request.recipientId === userId && 
+      request.status === HugRequestStatus.PENDING
+    );
+    
+    // For each request, load the requester and recipient details
+    for (const request of pendingRequests) {
+      if (request.requesterId) {
+        request.requester = await this.usersService.findOne(request.requesterId);
+      }
+      if (request.recipientId) {
+        request.recipient = await this.usersService.findOne(request.recipientId);
+      }
+    }
+    
+    // Sort by createdAt DESC
+    return pendingRequests.sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
+    );
   }
 
   async findCommunityRequests(): Promise<HugRequest[]> {
-    return this.hugRequestsRepository.find({
-      where: { 
-        isCommunityRequest: true,
-        status: HugRequestStatus.PENDING 
-      },
-      relations: ['requester'],
-      order: { createdAt: 'DESC' }
-    });
+    // We need to manually filter since we can't do complex where clauses directly
+    const allRequests = await this.postgraphileService.findAll(this.hugRequestsTable) as HugRequest[];
+    
+    const communityRequests = allRequests.filter(request => 
+      request.isCommunityRequest === true && 
+      request.status === HugRequestStatus.PENDING
+    );
+    
+    // For each request, load the requester details
+    for (const request of communityRequests) {
+      if (request.requesterId) {
+        request.requester = await this.usersService.findOne(request.requesterId);
+      }
+    }
+    
+    // Sort by createdAt DESC
+    return communityRequests.sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
+    );
   }
 
   async respondToHugRequest(respondToRequestInput: RespondToRequestInput, userId: string): Promise<HugRequest> {
-    const request = await this.hugRequestsRepository.findOne({
-      where: { id: respondToRequestInput.requestId },
-      relations: ['requester', 'recipient'],
-    });
-
-    if (!request) {
-      throw new NotFoundException(`Hug request with id ${respondToRequestInput.requestId} not found`);
-    }
+    const request = await this.findHugRequestById(respondToRequestInput.requestId);
 
     if (!request.isCommunityRequest && request.recipientId !== userId) {
       throw new ForbiddenException('You can only respond to your own hug requests');
@@ -203,24 +261,25 @@ export class HugsService {
         type: HugType.SUPPORTIVE,
         message: respondToRequestInput.message || `In response to your request: "${request.message}"`,
       }, userId);
-      
-      request.status = HugRequestStatus.ACCEPTED;
-    } else {
-      request.status = HugRequestStatus.DECLINED;
-    }
+    } 
 
-    request.respondedAt = new Date();
-    return this.hugRequestsRepository.save(request);
+    const updatedRequestData = {
+      status: respondToRequestInput.status,
+      respondedAt: new Date()
+    };
+
+    const updatedRequest = await this.postgraphileService.update(
+      this.hugRequestsTable, 
+      respondToRequestInput.requestId, 
+      updatedRequestData
+    ) as HugRequest;
+    
+    // Reload the complete request with associations
+    return this.findHugRequestById(updatedRequest.id);
   }
 
   async cancelHugRequest(requestId: string, userId: string): Promise<HugRequest> {
-    const request = await this.hugRequestsRepository.findOne({
-      where: { id: requestId },
-    });
-
-    if (!request) {
-      throw new NotFoundException(`Hug request with id ${requestId} not found`);
-    }
+    const request = await this.findHugRequestById(requestId);
 
     if (request.requesterId !== userId) {
       throw new ForbiddenException('You can only cancel your own hug requests');
@@ -230,7 +289,13 @@ export class HugsService {
       throw new ForbiddenException('This request has already been processed');
     }
 
-    request.status = HugRequestStatus.CANCELLED;
-    return this.hugRequestsRepository.save(request);
+    const updatedRequest = await this.postgraphileService.update(
+      this.hugRequestsTable, 
+      requestId, 
+      { status: HugRequestStatus.CANCELLED }
+    ) as HugRequest;
+    
+    // Reload the complete request with associations
+    return this.findHugRequestById(updatedRequest.id);
   }
 }

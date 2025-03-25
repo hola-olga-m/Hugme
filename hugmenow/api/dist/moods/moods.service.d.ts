@@ -1,12 +1,13 @@
-import { Repository } from 'typeorm';
 import { Mood } from './entities/mood.entity';
 import { CreateMoodInput } from './dto/create-mood.input';
 import { UpdateMoodInput } from './dto/update-mood.input';
 import { UsersService } from '../users/users.service';
+import { PostGraphileService } from '../postgraphile/postgraphile.service';
 export declare class MoodsService {
-    private moodsRepository;
+    private postgraphileService;
     private usersService;
-    constructor(moodsRepository: Repository<Mood>, usersService: UsersService);
+    private readonly moodsTable;
+    constructor(postgraphileService: PostGraphileService, usersService: UsersService);
     create(createMoodInput: CreateMoodInput, userId: string): Promise<Mood>;
     findAll(): Promise<Mood[]>;
     findPublic(): Promise<Mood[]>;

@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { JwtStrategy } from './jwt.strategy';
+import { UsersModule } from '../users/users.module';
+// Import Postgraphile Module (it's global, but adding it for clarity)
+import { PostGraphileModule } from '../postgraphile/postgraphile.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { JwtStrategy } from './jwt.strategy';
         },
       }),
     }),
-    TypeOrmModule.forFeature([User]),
+    UsersModule, // Import UsersModule instead of TypeOrmModule
   ],
   providers: [AuthService, AuthResolver, JwtStrategy],
   exports: [JwtStrategy, PassportModule, AuthService],

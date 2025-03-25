@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HugRequest = exports.HugRequestStatus = void 0;
 const graphql_1 = require("@nestjs/graphql");
-const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 var HugRequestStatus;
 (function (HugRequestStatus) {
@@ -40,62 +39,45 @@ let HugRequest = class HugRequest {
 exports.HugRequest = HugRequest;
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.ID),
-    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], HugRequest.prototype, "id", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
-    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], HugRequest.prototype, "message", void 0);
 __decorate([
     (0, graphql_1.Field)(() => user_entity_1.User),
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'requester_id' }),
     __metadata("design:type", user_entity_1.User)
 ], HugRequest.prototype, "requester", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'requester_id' }),
     (0, graphql_1.Field)(),
     __metadata("design:type", String)
 ], HugRequest.prototype, "requesterId", void 0);
 __decorate([
     (0, graphql_1.Field)(() => user_entity_1.User, { nullable: true }),
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true, nullable: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'recipient_id' }),
     __metadata("design:type", user_entity_1.User)
 ], HugRequest.prototype, "recipient", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'recipient_id', nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], HugRequest.prototype, "recipientId", void 0);
 __decorate([
     (0, graphql_1.Field)(),
-    (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], HugRequest.prototype, "isCommunityRequest", void 0);
 __decorate([
     (0, graphql_1.Field)(() => HugRequestStatus),
-    (0, typeorm_1.Column)({
-        type: 'enum',
-        enum: HugRequestStatus,
-        default: HugRequestStatus.PENDING,
-    }),
     __metadata("design:type", String)
 ], HugRequest.prototype, "status", void 0);
 __decorate([
     (0, graphql_1.Field)(),
-    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     __metadata("design:type", Date)
 ], HugRequest.prototype, "createdAt", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
-    (0, typeorm_1.Column)({ name: 'responded_at', nullable: true }),
     __metadata("design:type", Date)
 ], HugRequest.prototype, "respondedAt", void 0);
 exports.HugRequest = HugRequest = __decorate([
-    (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Entity)('hug_requests')
+    (0, graphql_1.ObjectType)()
 ], HugRequest);
 //# sourceMappingURL=hug-request.entity.js.map

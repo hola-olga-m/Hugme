@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Mood } from './entities/mood.entity';
 import { MoodsService } from './moods.service';
 import { MoodsResolver } from './moods.resolver';
 import { UsersModule } from '../users/users.module';
+// Import Postgraphile Module (it's global, but adding it for clarity)
+import { PostGraphileModule } from '../postgraphile/postgraphile.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Mood]),
     UsersModule,
   ],
   providers: [MoodsService, MoodsResolver],

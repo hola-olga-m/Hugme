@@ -44,7 +44,7 @@ export default class LoggerPlugin {
     };
   }
   
-  onSubscribe(execute: ExecuteMeshFn): ExecuteMeshFn {
+  onSubscribe(execute: any): any {
     return async (options) => {
       const { operation } = options;
       const operationName = operation.name?.value || 'anonymous';

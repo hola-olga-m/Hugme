@@ -1,6 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,24 +7,33 @@ import { User } from '../users/entities/user.entity';
 import { LoginInput } from './dto/login.input';
 import { RegisterInput } from './dto/register.input';
 import { AnonymousLoginInput } from './dto/anonymous-login.input';
+import { UsersService } from '../users/users.service';
+import { PostGraphileService } from '../postgraphile/postgraphile.service';
 
 @Injectable()
 export class AuthService {
+  private readonly usersTable = 'users';
+  
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private usersService: UsersService,
+    private postgraphileService: PostGraphileService,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersRepository.findOne({ where: { email } });
-    
-    if (user && await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
-      return result;
+    try {
+      const users = await this.postgraphileService.findWhere(this.usersTable, { email }) as User[];
+      const user = users[0];
+      
+      if (user && await bcrypt.compare(password, user.password)) {
+        const { password, ...result } = user;
+        return result;
+      }
+      
+      return null;
+    } catch (error) {
+      return null;
     }
-    
-    return null;
   }
 
   async login(loginInput: LoginInput) {
@@ -44,33 +51,42 @@ export class AuthService {
 
   async register(registerInput: RegisterInput) {
     // Check if username or email already exists
-    const existingUser = await this.usersRepository.findOne({
-      where: [
-        { username: registerInput.username },
-        { email: registerInput.email },
-      ],
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Username or email already exists');
+    try {
+      // Check by username
+      const usersByUsername = await this.postgraphileService.findWhere(this.usersTable, { username: registerInput.username }) as User[];
+      // Check by email
+      const usersByEmail = await this.postgraphileService.findWhere(this.usersTable, { email: registerInput.email }) as User[];
+      
+      if (usersByUsername.length > 0 || usersByEmail.length > 0) {
+        throw new ConflictException('Username or email already exists');
+      }
+      
+      // Hash password
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(registerInput.password, salt);
+      
+      // Create new user
+      const userData = {
+        ...registerInput,
+        password: hashedPassword,
+        id: uuidv4(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      const savedUser = await this.postgraphileService.insert(this.usersTable, userData) as User;
+      const { password, ...result } = savedUser;
+      
+      return {
+        accessToken: this.generateToken(result),
+        user: result,
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new Error(`Registration failed: ${error.message}`);
     }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(registerInput.password, 10);
-
-    // Create new user
-    const newUser = this.usersRepository.create({
-      ...registerInput,
-      password: hashedPassword,
-    });
-
-    const savedUser = await this.usersRepository.save(newUser);
-    const { password, ...result } = savedUser;
-
-    return {
-      accessToken: this.generateToken(result),
-      user: result,
-    };
   }
 
   async anonymousLogin(anonymousLoginInput: AnonymousLoginInput) {
@@ -78,25 +94,25 @@ export class AuthService {
     const randomEmail = `anonymous_${uuidv4()}@hug-me-now.temp`;
     const randomUsername = `guest_${uuidv4().substring(0, 8)}`;
     const randomPassword = uuidv4();
-    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(randomPassword, salt);
 
-    // Create anonymous user
-    const newUser = this.usersRepository.create({
-      username: randomUsername,
-      email: randomEmail,
-      name: anonymousLoginInput.nickname,
-      password: hashedPassword,
-      avatarUrl: anonymousLoginInput.avatarUrl,
-      isAnonymous: true,
-    });
-
-    const savedUser = await this.usersRepository.save(newUser);
-    const { password, ...result } = savedUser;
-
-    return {
-      accessToken: this.generateToken(result),
-      user: result,
-    };
+    // Create anonymous user using UsersService
+    try {
+      const savedUser = await this.usersService.createAnonymousUser(
+        anonymousLoginInput.nickname, 
+        anonymousLoginInput.avatarUrl
+      );
+      
+      const { password, ...result } = savedUser;
+      
+      return {
+        accessToken: this.generateToken(result),
+        user: result,
+      };
+    } catch (error) {
+      throw new Error(`Anonymous login failed: ${error.message}`);
+    }
   }
 
   private generateToken(user: any) {

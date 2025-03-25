@@ -13,64 +13,67 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MigrationRunner = void 0;
 const common_1 = require("@nestjs/common");
 const postgraphile_service_1 = require("./postgraphile.service");
-const fs = require("fs");
-const path = require("path");
+const fs_1 = require("fs");
+const path_1 = require("path");
 let MigrationRunner = MigrationRunner_1 = class MigrationRunner {
     postgraphileService;
     logger = new common_1.Logger(MigrationRunner_1.name);
+    migrationsPath = (0, path_1.join)(__dirname, 'migrations');
     constructor(postgraphileService) {
         this.postgraphileService = postgraphileService;
     }
     async onModuleInit() {
-        await this.runMigrations();
-    }
-    async runMigrations() {
-        this.logger.log('Running database migrations...');
         try {
-            const createMigrationsTableSQL = `
-        CREATE TABLE IF NOT EXISTS migrations (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        );
-      `;
-            await this.postgraphileService.query(createMigrationsTableSQL);
-            const { rows: appliedMigrations } = await this.postgraphileService.query('SELECT name FROM migrations ORDER BY id');
-            const appliedMigrationNames = appliedMigrations.map(row => row.name);
-            const migrationsDir = path.join(__dirname, 'migrations');
-            const migrationFiles = fs.readdirSync(migrationsDir)
-                .filter(file => file.endsWith('.sql'))
-                .sort();
-            for (const migrationFile of migrationFiles) {
-                if (appliedMigrationNames.includes(migrationFile)) {
-                    this.logger.log(`Migration ${migrationFile} already applied, skipping...`);
-                    continue;
-                }
-                this.logger.log(`Applying migration: ${migrationFile}`);
-                const migrationContent = fs.readFileSync(path.join(migrationsDir, migrationFile), 'utf8');
-                const client = await this.postgraphileService.pool.connect();
-                try {
-                    await client.query('BEGIN');
-                    await client.query(migrationContent);
-                    await client.query('INSERT INTO migrations (name) VALUES ($1)', [migrationFile]);
-                    await client.query('COMMIT');
-                    this.logger.log(`Successfully applied migration: ${migrationFile}`);
-                }
-                catch (error) {
-                    await client.query('ROLLBACK');
-                    this.logger.error(`Failed to apply migration ${migrationFile}: ${error.message}`);
-                    throw error;
-                }
-                finally {
-                    client.release();
-                }
-            }
-            this.logger.log('All migrations applied successfully');
+            await this.runMigrations();
         }
         catch (error) {
-            this.logger.error(`Error running migrations: ${error.message}`);
+            this.logger.error(`Failed to run migrations: ${error.message}`, error.stack);
             throw error;
         }
+    }
+    async runMigrations() {
+        if (!(0, fs_1.existsSync)(this.migrationsPath)) {
+            this.logger.warn(`Migrations directory not found at ${this.migrationsPath}`);
+            return;
+        }
+        const migrationFiles = (0, fs_1.readdirSync)(this.migrationsPath)
+            .filter(file => file.endsWith('.sql'))
+            .sort();
+        if (migrationFiles.length === 0) {
+            this.logger.log('No migration files found');
+            return;
+        }
+        this.logger.log(`Found ${migrationFiles.length} migration files. Running in order...`);
+        await this.postgraphileService.query(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        applied_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+        const { rows: appliedMigrations } = await this.postgraphileService.query('SELECT name FROM migrations');
+        const appliedMigrationNames = appliedMigrations.map(m => m.name);
+        for (const file of migrationFiles) {
+            if (appliedMigrationNames.includes(file)) {
+                this.logger.log(`Migration ${file} already applied, skipping`);
+                continue;
+            }
+            this.logger.log(`Applying migration: ${file}`);
+            try {
+                const migrationContent = (0, fs_1.readFileSync)((0, path_1.join)(this.migrationsPath, file), 'utf8');
+                await this.postgraphileService.query('BEGIN');
+                await this.postgraphileService.query(migrationContent);
+                await this.postgraphileService.query('INSERT INTO migrations (name) VALUES ($1)', [file]);
+                await this.postgraphileService.query('COMMIT');
+                this.logger.log(`Successfully applied migration: ${file}`);
+            }
+            catch (error) {
+                await this.postgraphileService.query('ROLLBACK');
+                this.logger.error(`Failed to apply migration ${file}: ${error.message}`, error.stack);
+                throw error;
+            }
+        }
+        this.logger.log('All migrations applied successfully');
     }
 };
 exports.MigrationRunner = MigrationRunner;

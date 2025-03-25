@@ -1,8 +1,7 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
-export default class ValidationPlugin implements MeshPlugin {
+export default class ValidationPlugin {
     private readonly logger;
-    onInit(options: GetMeshOptions): GetMeshOptions;
-    onExecute(execute: ExecuteMeshFn): ExecuteMeshFn;
+    onInit(options: any): any;
+    onExecute(execute: any): any;
     private createMaxDepthValidationRule;
     private createMaxAliasesValidationRule;
     private createDisableIntrospectionRule;

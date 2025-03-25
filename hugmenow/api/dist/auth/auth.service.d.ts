@@ -1,13 +1,15 @@
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/entities/user.entity';
 import { LoginInput } from './dto/login.input';
 import { RegisterInput } from './dto/register.input';
 import { AnonymousLoginInput } from './dto/anonymous-login.input';
+import { UsersService } from '../users/users.service';
+import { PostGraphileService } from '../postgraphile/postgraphile.service';
 export declare class AuthService {
-    private usersRepository;
+    private usersService;
+    private postgraphileService;
     private jwtService;
-    constructor(usersRepository: Repository<User>, jwtService: JwtService);
+    private readonly usersTable;
+    constructor(usersService: UsersService, postgraphileService: PostGraphileService, jwtService: JwtService);
     validateUser(email: string, password: string): Promise<any>;
     login(loginInput: LoginInput): Promise<{
         accessToken: string;

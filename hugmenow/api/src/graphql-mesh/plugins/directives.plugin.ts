@@ -1,9 +1,9 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
 import { GraphQLSchema, defaultFieldResolver } from 'graphql';
 import { MapperKind, mapSchema } from '@graphql-tools/utils';
+import { Plugin } from '@envelop/core';
 
-export default class DirectivesPlugin implements MeshPlugin {
-  onInit(options: GetMeshOptions): GetMeshOptions {
+export default class DirectivesPlugin {
+  onInit(options: any): any {
     if (!options.transforms) {
       options.transforms = [];
     }
@@ -96,7 +96,7 @@ export default class DirectivesPlugin implements MeshPlugin {
     return options;
   }
 
-  onExecute(execute: ExecuteMeshFn): ExecuteMeshFn {
+  onExecute(execute: any): any {
     return execute;
   }
   

@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Mood = void 0;
 const graphql_1 = require("@nestjs/graphql");
-const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const class_validator_1 = require("class-validator");
 let Mood = class Mood {
@@ -26,44 +25,35 @@ let Mood = class Mood {
 exports.Mood = Mood;
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.ID),
-    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], Mood.prototype, "id", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Int),
-    (0, typeorm_1.Column)({ type: 'int' }),
     (0, class_validator_1.Min)(1),
     (0, class_validator_1.Max)(10),
     __metadata("design:type", Number)
 ], Mood.prototype, "score", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
-    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Mood.prototype, "note", void 0);
 __decorate([
     (0, graphql_1.Field)(),
-    (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Mood.prototype, "isPublic", void 0);
 __decorate([
     (0, graphql_1.Field)(() => user_entity_1.User),
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'userId' }),
     __metadata("design:type", user_entity_1.User)
 ], Mood.prototype, "user", void 0);
 __decorate([
     (0, graphql_1.Field)(),
-    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Mood.prototype, "userId", void 0);
 __decorate([
     (0, graphql_1.Field)(),
-    (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Mood.prototype, "createdAt", void 0);
 exports.Mood = Mood = __decorate([
-    (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Entity)('moods')
+    (0, graphql_1.ObjectType)()
 ], Mood);
 //# sourceMappingURL=mood.entity.js.map

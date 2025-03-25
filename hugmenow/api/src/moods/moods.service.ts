@@ -1,16 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Mood } from './entities/mood.entity';
 import { CreateMoodInput } from './dto/create-mood.input';
 import { UpdateMoodInput } from './dto/update-mood.input';
 import { UsersService } from '../users/users.service';
+import { PostGraphileService } from '../postgraphile/postgraphile.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class MoodsService {
+  private readonly moodsTable = 'moods';
+  
   constructor(
-    @InjectRepository(Mood)
-    private moodsRepository: Repository<Mood>,
+    private postgraphileService: PostGraphileService,
     private usersService: UsersService,
   ) {}
 
@@ -20,43 +21,76 @@ export class MoodsService {
       throw new Error('User not found');
     }
 
-    const mood = this.moodsRepository.create({
+    const moodData = {
       ...createMoodInput,
-      user,
       userId,
-    });
+      id: uuidv4(),
+      createdAt: new Date()
+    };
 
-    return this.moodsRepository.save(mood);
+    return await this.postgraphileService.insert(this.moodsTable, moodData) as Mood;
   }
 
   async findAll(): Promise<Mood[]> {
-    return this.moodsRepository.find({
-      relations: ['user'],
-    });
+    const moods = await this.postgraphileService.findAll(this.moodsTable) as Mood[];
+    
+    // Load user data for each mood
+    for (const mood of moods) {
+      if (mood.userId) {
+        try {
+          mood.user = await this.usersService.findOne(mood.userId);
+        } catch (error) {
+          // Skip if user not found
+        }
+      }
+    }
+    
+    return moods;
   }
 
   async findPublic(): Promise<Mood[]> {
-    return this.moodsRepository.find({
-      where: { isPublic: true },
-      relations: ['user'],
-    });
+    const moods = await this.postgraphileService.findWhere(this.moodsTable, { isPublic: true }) as Mood[];
+    
+    // Load user data for each mood
+    for (const mood of moods) {
+      if (mood.userId) {
+        try {
+          mood.user = await this.usersService.findOne(mood.userId);
+        } catch (error) {
+          // Skip if user not found
+        }
+      }
+    }
+    
+    return moods;
   }
 
   async findByUser(userId: string): Promise<Mood[]> {
-    return this.moodsRepository.find({
-      where: { userId },
-      relations: ['user'],
-    });
+    const moods = await this.postgraphileService.findWhere(this.moodsTable, { userId }) as Mood[];
+    
+    // Load user data for each mood
+    const user = await this.usersService.findOne(userId);
+    for (const mood of moods) {
+      mood.user = user;
+    }
+    
+    return moods;
   }
 
   async findOne(id: string): Promise<Mood> {
-    const mood = await this.moodsRepository.findOne({
-      where: { id },
-      relations: ['user'],
-    });
+    const mood = await this.postgraphileService.findById(this.moodsTable, id) as Mood;
 
     if (!mood) {
-      throw new Error('Mood not found');
+      throw new NotFoundException(`Mood with ID ${id} not found`);
+    }
+
+    // Load user data
+    if (mood.userId) {
+      try {
+        mood.user = await this.usersService.findOne(mood.userId);
+      } catch (error) {
+        // Skip if user not found
+      }
     }
 
     return mood;
@@ -69,8 +103,7 @@ export class MoodsService {
       throw new Error('You do not have permission to update this mood');
     }
 
-    await this.moodsRepository.update(id, updateMoodInput);
-    return this.findOne(id);
+    return await this.postgraphileService.update(this.moodsTable, id, updateMoodInput) as Mood;
   }
 
   async remove(id: string, userId: string): Promise<boolean> {
@@ -80,16 +113,18 @@ export class MoodsService {
       throw new Error('You do not have permission to delete this mood');
     }
 
-    const result = await this.moodsRepository.delete(id);
-    return result.affected ? result.affected > 0 : false;
+    return await this.postgraphileService.delete(this.moodsTable, id);
   }
 
   async getUserMoodStreak(userId: string): Promise<number> {
-    // Get all user moods ordered by date
-    const moods = await this.moodsRepository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
+    // Get all user moods using postgraphile
+    const moodsQuery = `
+      SELECT * FROM ${this.moodsTable}
+      WHERE "userId" = $1
+      ORDER BY "createdAt" DESC
+    `;
+    
+    const { rows: moods } = await this.postgraphileService.query(moodsQuery, [userId]);
 
     if (moods.length === 0) {
       return 0;

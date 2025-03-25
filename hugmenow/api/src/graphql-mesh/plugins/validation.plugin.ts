@@ -1,11 +1,11 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
 import { GraphQLError, ValidationContext } from 'graphql';
 import { Logger } from '@nestjs/common';
+import { Plugin } from '@envelop/core';
 
-export default class ValidationPlugin implements MeshPlugin {
+export default class ValidationPlugin {
   private readonly logger = new Logger('GraphQLValidation');
   
-  onInit(options: GetMeshOptions): GetMeshOptions {
+  onInit(options: any): any {
     // Add custom validation rules
     if (!options.validationRules) {
       options.validationRules = [];
@@ -21,7 +21,7 @@ export default class ValidationPlugin implements MeshPlugin {
     return options;
   }
 
-  onExecute(execute: ExecuteMeshFn): ExecuteMeshFn {
+  onExecute(execute: any): any {
     return async (options) => {
       try {
         const result = await execute(options);

@@ -1,6 +1,5 @@
-import { ExecuteMeshFn, GetMeshOptions, MeshPlugin } from '@graphql-mesh/types';
-export default class DirectivesPlugin implements MeshPlugin {
-    onInit(options: GetMeshOptions): GetMeshOptions;
-    onExecute(execute: ExecuteMeshFn): ExecuteMeshFn;
+export default class DirectivesPlugin {
+    onInit(options: any): any;
+    onExecute(execute: any): any;
     private getDirective;
 }

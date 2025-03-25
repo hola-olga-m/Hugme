@@ -1,6 +1,5 @@
 import { OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GraphQLSchema } from 'graphql';
 export declare class GraphQLMeshService implements OnModuleInit {
     private configService;
     private readonly logger;
@@ -9,7 +8,7 @@ export declare class GraphQLMeshService implements OnModuleInit {
     private schema;
     constructor(configService: ConfigService);
     onModuleInit(): Promise<void>;
-    getSchema(): GraphQLSchema;
+    getSchema(): any;
     getSDL(): string;
     execute({ query, variables, context }: {
         query: string;
