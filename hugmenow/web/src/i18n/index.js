@@ -6,36 +6,43 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import en from './locales/en';
 import ru from './locales/ru';
 
-// Initialize i18next
+// Configure i18next
 i18n
   // Detect user language
   .use(LanguageDetector)
-  // Pass i18n instance to react-i18next
+  // Pass the i18n instance to react-i18next
   .use(initReactI18next)
-  // Initialize
+  // Initialize i18next
   .init({
-    resources: {
-      en: { translation: en },
-      ru: { translation: ru }
-    },
-    fallbackLng: 'en',
     debug: process.env.NODE_ENV === 'development',
-    
+    fallbackLng: 'en',
     interpolation: {
       escapeValue: false, // React already escapes values
     },
-
-    // Detection options
+    resources: {
+      en: {
+        translation: en
+      },
+      ru: {
+        translation: ru
+      }
+    },
     detection: {
-      order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'i18nextLng',
+      // Order of language detection
+      order: [
+        'localStorage', 
+        'navigator', 
+        'htmlTag', 
+        'path', 
+        'subdomain'
+      ],
+      // Keys to lookup language from
+      lookupLocalStorage: 'preferredLanguage',
+      // Cache user language on
       caches: ['localStorage'],
-    },
-
-    // React options
-    react: {
-      useSuspense: true,
-    },
+      // Optional expire
+      cookieExpirationDate: new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000) // 2 years
+    }
   });
 
 export default i18n;

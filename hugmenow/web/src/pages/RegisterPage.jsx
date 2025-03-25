@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const RegisterPage = () => {
   const { t } = useTranslation();
-  const { register, error: authError } = useAuth();
+  const { register, error, clearError, loading } = useAuth();
   const navigate = useNavigate();
   
   // Form state
@@ -14,122 +15,153 @@ const RegisterPage = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
   
   // Handle registration
   const handleRegister = async (e) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!username || !email || !name || !password) {
-      setError(t('register.errorEmptyFields'));
+    // Clear previous errors
+    clearError();
+    setFormError('');
+    
+    // Simple validation
+    if (!username || !email || !name || !password || !confirmPassword) {
+      setFormError(t('validation.required'));
       return;
     }
     
+    // Check if passwords match
     if (password !== confirmPassword) {
-      setError(t('register.errorPasswordMismatch'));
+      setFormError(t('validation.passwordMatch'));
       return;
     }
     
-    setIsLoading(true);
-    setError('');
+    // Check password length
+    if (password.length < 8) {
+      setFormError(t('auth.passwordRequirements'));
+      return;
+    }
+    
+    // Check username format
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(username)) {
+      setFormError(t('validation.usernameFormat'));
+      return;
+    }
     
     try {
-      await register(username, email, name, password);
+      // Call register method from AuthContext
+      await register({
+        username,
+        email,
+        name,
+        password
+      });
+      
+      // Redirect to dashboard on success
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || t('register.errorGeneric'));
-    } finally {
-      setIsLoading(false);
+      console.error('Registration error:', err);
+      // Error already set in auth context
     }
   };
   
   return (
     <div className="auth-page">
       <div className="auth-form-container">
-        <h2 className="auth-title">{t('register.title')}</h2>
+        <div className="auth-language-switcher">
+          <LanguageSwitcher />
+        </div>
         
-        {(error || authError) && (
+        <h2 className="auth-title">{t('app.name')}</h2>
+        <p className="auth-subtitle">{t('app.tagline')}</p>
+        
+        <h3>{t('auth.register')}</h3>
+        
+        {/* Display any error messages */}
+        {(error || formError) && (
           <div className="error-message">
-            {error || authError}
+            {formError || error || t('errors.register')}
           </div>
         )}
         
         <form className="auth-form" onSubmit={handleRegister}>
           <div className="form-group">
-            <label htmlFor="username">{t('register.username')}</label>
+            <label htmlFor="username">{t('auth.username')}</label>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={t('register.usernamePlaceholder')}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="email">{t('register.email')}</label>
+            <label htmlFor="email">{t('auth.email')}</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={t('register.emailPlaceholder')}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="name">{t('register.name')}</label>
+            <label htmlFor="name">{t('auth.name')}</label>
             <input
               type="text"
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={t('register.namePlaceholder')}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="password">{t('register.password')}</label>
+            <label htmlFor="password">{t('auth.password')}</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('register.passwordPlaceholder')}
-              disabled={isLoading}
+              disabled={loading}
+              required
+              minLength={8}
             />
+            <small>{t('auth.passwordRequirements')}</small>
           </div>
           
           <div className="form-group">
-            <label htmlFor="confirmPassword">{t('register.confirmPassword')}</label>
+            <label htmlFor="confirmPassword">{t('auth.confirmPassword')}</label>
             <input
               type="password"
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder={t('register.confirmPasswordPlaceholder')}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
           </div>
           
           <button
             type="submit"
             className="btn btn-primary btn-block"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? t('register.registering') : t('register.submit')}
+            {loading ? t('app.loading') : t('auth.createAccount')}
           </button>
         </form>
         
         <div className="auth-links">
           <p>
-            {t('register.alreadyAccount')}{' '}
-            <Link to="/login">{t('register.login')}</Link>
+            {t('auth.hasAccount')}{' '}
+            <Link to="/login">{t('auth.login')}</Link>
           </p>
         </div>
       </div>

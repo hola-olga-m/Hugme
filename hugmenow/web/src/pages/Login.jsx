@@ -1,149 +1,175 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const Login = () => {
   const { t } = useTranslation();
-  const { login, anonymousLogin, error: authError } = useAuth();
+  const { login, anonymousLogin, error, clearError, loading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Get redirect path from location state or default to dashboard
-  const from = location.state?.from?.pathname || '/dashboard';
   
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showAnonymous, setShowAnonymous] = useState(false);
   
-  // Handle regular login
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      setError(t('login.errorEmptyFields'));
-      return;
-    }
-    
-    setIsLoading(true);
-    setError('');
+    clearError();
     
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      // Call login method from AuthContext
+      await login({ email, password });
+      
+      // Redirect to dashboard on success
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || t('login.errorGeneric'));
-    } finally {
-      setIsLoading(false);
+      console.error('Login error:', err);
+      // Error already set in auth context
     }
   };
   
   // Handle anonymous login
   const handleAnonymousLogin = async (e) => {
     e.preventDefault();
+    clearError();
     
-    if (!nickname) {
-      setError(t('login.errorNoNickname'));
+    if (!nickname.trim()) {
+      // Simple validation
       return;
     }
     
-    setIsLoading(true);
-    setError('');
-    
     try {
-      await anonymousLogin(nickname);
-      navigate(from, { replace: true });
+      // Call anonymousLogin method from AuthContext
+      await anonymousLogin({ nickname });
+      
+      // Redirect to dashboard on success
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || t('login.errorGeneric'));
-    } finally {
-      setIsLoading(false);
+      console.error('Anonymous login error:', err);
+      // Error already set in auth context
     }
   };
   
   return (
     <div className="auth-page">
       <div className="auth-form-container">
-        <h2 className="auth-title">{t('login.title')}</h2>
+        <div className="auth-language-switcher">
+          <LanguageSwitcher />
+        </div>
         
-        {(error || authError) && (
-          <div className="error-message">
-            {error || authError}
-          </div>
-        )}
+        <h2 className="auth-title">{t('app.name')}</h2>
+        <p className="auth-subtitle">{t('app.tagline')}</p>
         
-        <div className="auth-tabs">
-          <div className="auth-tab-content">
+        {!showAnonymous ? (
+          <>
+            <h3>{t('auth.login')}</h3>
+            
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+            
             <form className="auth-form" onSubmit={handleLogin}>
               <div className="form-group">
-                <label htmlFor="email">{t('login.email')}</label>
+                <label htmlFor="email">{t('auth.email')}</label>
                 <input
                   type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('login.emailPlaceholder')}
-                  disabled={isLoading}
+                  disabled={loading}
+                  required
                 />
               </div>
               
               <div className="form-group">
-                <label htmlFor="password">{t('login.password')}</label>
+                <label htmlFor="password">{t('auth.password')}</label>
                 <input
                   type="password"
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('login.passwordPlaceholder')}
-                  disabled={isLoading}
+                  disabled={loading}
+                  required
                 />
               </div>
               
               <button
                 type="submit"
                 className="btn btn-primary btn-block"
-                disabled={isLoading}
+                disabled={loading}
               >
-                {isLoading ? t('login.loggingIn') : t('login.submit')}
+                {loading ? t('app.loading') : t('auth.login')}
               </button>
             </form>
             
-            <div className="auth-separator">
-              <span>{t('login.or')}</span>
+            <div className="auth-divider">
+              <span>{t('auth.orContinueWith')}</span>
             </div>
+            
+            <button
+              onClick={() => setShowAnonymous(true)}
+              className="btn btn-outline btn-block"
+              disabled={loading}
+            >
+              {t('auth.anonymousLogin')}
+            </button>
+            
+            <div className="auth-links">
+              <p>
+                {t('auth.noAccount')}{' '}
+                <Link to="/register">{t('auth.register')}</Link>
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3>{t('auth.anonymousLogin')}</h3>
+            
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
             
             <form className="auth-form" onSubmit={handleAnonymousLogin}>
               <div className="form-group">
-                <label htmlFor="nickname">{t('login.nickname')}</label>
+                <label htmlFor="nickname">{t('auth.nickname')}</label>
                 <input
                   type="text"
                   id="nickname"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
-                  placeholder={t('login.nicknamePlaceholder')}
-                  disabled={isLoading}
+                  disabled={loading}
+                  required
+                  minLength={3}
+                  maxLength={30}
                 />
               </div>
               
               <button
                 type="submit"
-                className="btn btn-outline btn-block"
-                disabled={isLoading}
+                className="btn btn-primary btn-block"
+                disabled={loading}
               >
-                {isLoading ? t('login.loggingIn') : t('login.continueAsGuest')}
+                {loading ? t('app.loading') : t('auth.anonymousLogin')}
               </button>
             </form>
-          </div>
-        </div>
-        
-        <div className="auth-links">
-          <p>
-            {t('login.noAccount')}{' '}
-            <Link to="/register">{t('login.register')}</Link>
-          </p>
-        </div>
+            
+            <button
+              onClick={() => setShowAnonymous(false)}
+              className="btn btn-outline btn-block"
+              disabled={loading}
+            >
+              {t('app.goBack')}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,75 +1,69 @@
-import React, { Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
 import { AuthProvider } from './contexts/AuthContext';
-
-// Import i18n
+import { useTranslation } from 'react-i18next';
 import './i18n';
 
-// Import styles
-import './styles/auth.css';
-
-// Import pages
-import LoginPage from './pages/Login';
-import RegisterPage from './pages/RegisterPage';
-import Dashboard from './pages/Dashboard';
-
-// Import components
-import LanguageSwitcher from './components/LanguageSwitcher';
+// Components
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Main App component
-const AppContent = () => {
+// Pages
+import Login from './pages/Login';
+import RegisterPage from './pages/RegisterPage';
+import Dashboard from './pages/Dashboard';
+import MoodTracker from './pages/MoodTracker';
+import HugCenter from './pages/HugCenter';
+import Profile from './pages/Profile';
+
+// CSS (will be imported later)
+// import './styles/main.css';
+
+function App() {
+  const { i18n } = useTranslation();
+  
+  // Initialize i18n language from localStorage or browser language
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('preferredLanguage');
+    if (savedLanguage) {
+      i18n.changeLanguage(savedLanguage);
+    } else {
+      // Detect browser language
+      const browserLang = navigator.language.split('-')[0];
+      if (['en', 'ru'].includes(browserLang)) {
+        i18n.changeLanguage(browserLang);
+      }
+    }
+  }, [i18n]);
+  
   return (
-    <Router>
-      <div className="app-container">
-        <header className="app-header">
-          <h1>HugMeNow</h1>
-          <LanguageSwitcher />
-        </header>
-        
-        <main className="app-content">
+    <ApolloProvider client={client}>
+      <AuthProvider>
+        <Router>
           <Routes>
             {/* Public routes */}
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<RegisterPage />} />
             
             {/* Protected routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/mood-tracker" element={<MoodTracker />} />
+              <Route path="/hug-center" element={<HugCenter />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
             
-            {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="*" element={<Navigate to="/login" />} />
+            {/* Redirect root to dashboard if logged in, otherwise to login */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Fallback route - 404 can be added later */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </main>
-        
-        <footer className="app-footer">
-          <p>&copy; 2025 HugMeNow. All rights reserved.</p>
-        </footer>
-      </div>
-    </Router>
-  );
-};
-
-// Wrap the app with required providers
-const App = () => {
-  return (
-    <ApolloProvider client={client}>
-      <Suspense fallback={<div>Loading...</div>}>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </Suspense>
+        </Router>
+      </AuthProvider>
     </ApolloProvider>
   );
-};
+}
 
 export default App;
