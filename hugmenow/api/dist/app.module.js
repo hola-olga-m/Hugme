@@ -10,19 +10,15 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const graphql_1 = require("@nestjs/graphql");
 const apollo_1 = require("@nestjs/apollo");
-const typeorm_1 = require("@nestjs/typeorm");
 const config_1 = require("@nestjs/config");
 const path_1 = require("path");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const user_entity_1 = require("./users/entities/user.entity");
-const mood_entity_1 = require("./moods/entities/mood.entity");
-const hug_entity_1 = require("./hugs/entities/hug.entity");
-const hug_request_entity_1 = require("./hugs/entities/hug-request.entity");
 const users_module_1 = require("./users/users.module");
 const moods_module_1 = require("./moods/moods.module");
 const hugs_module_1 = require("./hugs/hugs.module");
 const auth_module_1 = require("./auth/auth.module");
+const postgraphile_module_1 = require("./postgraphile/postgraphile.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,17 +28,7 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
-            typeorm_1.TypeOrmModule.forRootAsync({
-                imports: [config_1.ConfigModule],
-                inject: [config_1.ConfigService],
-                useFactory: (configService) => ({
-                    type: 'postgres',
-                    url: configService.get('DATABASE_URL'),
-                    entities: [user_entity_1.User, mood_entity_1.Mood, hug_entity_1.Hug, hug_request_entity_1.HugRequest],
-                    synchronize: process.env.NODE_ENV !== 'production',
-                    logging: process.env.NODE_ENV !== 'production',
-                }),
-            }),
+            postgraphile_module_1.PostGraphileModule.forRootAsync(),
             graphql_1.GraphQLModule.forRoot({
                 driver: apollo_1.ApolloDriver,
                 autoSchemaFile: (0, path_1.join)(process.cwd(), 'src/schema.gql'),

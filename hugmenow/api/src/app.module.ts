@@ -1,36 +1,29 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { User } from './users/entities/user.entity';
-import { Mood } from './moods/entities/mood.entity';
-import { Hug } from './hugs/entities/hug.entity';
-import { HugRequest } from './hugs/entities/hug-request.entity';
+
+// Import modules
 import { UsersModule } from './users/users.module';
 import { MoodsModule } from './moods/moods.module';
 import { HugsModule } from './hugs/hugs.module';
 import { AuthModule } from './auth/auth.module';
+
+// Import Postgraphile module
+import { PostGraphileModule } from './postgraphile/postgraphile.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get('DATABASE_URL'),
-        entities: [User, Mood, Hug, HugRequest],
-        synchronize: process.env.NODE_ENV !== 'production',
-        logging: process.env.NODE_ENV !== 'production',
-      }),
-    }),
+    // Replace TypeORM with Postgraphile
+    PostGraphileModule.forRootAsync(),
+    
+    // Keep existing GraphQL endpoint for backward compatibility
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -39,6 +32,8 @@ import { AuthModule } from './auth/auth.module';
       introspection: true,
       context: ({ req }) => ({ req }),
     }),
+    
+    // Feature modules
     UsersModule,
     MoodsModule,
     HugsModule,
