@@ -139,12 +139,12 @@ export const resolvers = {
         throw new Error('Database connection not available');
       }
 
-      try {
-        // Start building the update query
-        const updateFields: string[] = [];
-        const queryParams: any[] = [id];
-        let paramIndex = 2; // Start with $2 since $1 is the id
+      // Define types properly to avoid TypeScript errors
+      const updateFields: string[] = [];
+      const queryParams: any[] = [id];
+      let paramIndex = 2; // Start with $2 since $1 is the id
 
+      try {
         // Add fields to update if provided
         if (profileData.name !== undefined) {
           updateFields.push(`name = $${paramIndex}`);

@@ -326,9 +326,8 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
     }
     async execute({ query, variables, context }) {
         try {
-            const { parse, validate, execute, schema } = this.mesh.getParseFns();
-            const document = parse(query);
-            const validationErrors = validate(schema, document);
+            const document = (0, graphql_1.parse)(query);
+            const validationErrors = (0, graphql_1.validate)(this.enhancedSchema, document);
             if (validationErrors.length > 0) {
                 return { errors: validationErrors };
             }
@@ -338,8 +337,8 @@ let GraphQLMeshService = GraphQLMeshService_1 = class GraphQLMeshService {
                     postgresPool: this.dbPool,
                 }
             };
-            return await execute({
-                schema,
+            return await (0, graphql_1.execute)({
+                schema: this.enhancedSchema,
                 document,
                 rootValue: {},
                 contextValue: enrichedContext,

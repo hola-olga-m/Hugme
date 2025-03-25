@@ -2,46 +2,163 @@ sources:
   - name: PostgreSQL
     handler:
       postgraphile:
-        connectionString: ${process.env.DATABASE_URL}
-        schemaName: 'public'
-        pgSettings:
-          role: 'postgres'
+        connectionString: ${DATABASE_URL}
+        schemaName: public
         enableCors: true
         dynamicJson: true
         setofFunctionsContainNulls: false
         ignoreRBAC: false
-        ignoreIndexes: true
-        includeExtensionResources: false
-        watch: false
-        exportGqlSchemaPath: './generated-schema.graphql'
+        ignoreIndexes: false
+        extendedErrors:
+          - detailed
+          - hint
+          - severity
+          - code
+          - position
+          - detail
+        showErrorStack: false
+        watchPg: true
         appendPlugins:
-          - 'postgraphile-plugin-connection-filter'
+          - "@graphile-contrib/pg-simplify-inflector"
+        enhanceGraphQLSchema:
+          removeNullableAndListConstraintFromInputObjectFields: true
+          renameRootFields: false
+          skipPlugins:
+            - SmartTagsPlugin
+            - NodePlugin
+        additionalGraphQLEndpoints:
+          - url: http://localhost:3000/graphql
+            schema: './src/schema.gql'
 
 transforms:
   - namingConvention:
       typeNames: pascalCase
       enumValues: upperCase
       fieldNames: camelCase
+  - filterSchema:
+      mode: remove
+      types:
+        - Query
+        - Node
+        - PageInfo
+  - federation:
+      types:
+        - name: User
+          keyFields:
+            - id
+        - name: Mood
+          keyFields:
+            - id
+        - name: Hug
+          keyFields:
+            - id
+        - name: HugRequest
+          keyFields:
+            - id
 
-# Generation of the SDK
-documents:
-  - graphql/**/*.graphql
+additionalTypeDefs: |
+  # Global types and directives
+  directive @auth on OBJECT | FIELD_DEFINITION
+  directive @upperCase on FIELD_DEFINITION
+  directive @lowerCase on FIELD_DEFINITION
+  directive @deprecated(reason: String) on FIELD_DEFINITION | ENUM_VALUE
+  directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
+  directive @rateLimit(limit: Int!, duration: Int!) on FIELD_DEFINITION
+  directive @complexity(value: Int!) on FIELD_DEFINITION
+  directive @cost(value: Int!) on FIELD_DEFINITION | OBJECT
 
-# Output generation for TypeScript SDK
-generate:
-  - './src/generated/sdk.ts':
-      plugins:
-        - typescript
-        - typescript-operations
-        - typescript-resolvers
-        - typescript-document-nodes
+  enum CacheControlScope {
+    PUBLIC
+    PRIVATE
+  }
 
-# Configuration for code generation
+  scalar DateTime
+  scalar EmailAddress
+  scalar URL
+  scalar JSON
+  scalar UUID
+
+  type AppMetadata {
+    version: String!
+    uptime: Float!
+    status: String!
+    timestamp: String!
+  }
+
+  extend type Query {
+    # Meta queries
+    _appVersion: String!
+    _serverTime: String!
+    _apiHealth: AppMetadata!
+    
+    # Enhanced user queries
+    searchUsers(query: String!, limit: Int): [User!]!
+    
+    # Enhanced mood queries
+    trendingMoods(limit: Int): [Mood!]!
+  }
+
+  extend type Mutation {
+    # Enhanced user mutations
+    updateUserProfile(id: ID!, profileData: UserProfileInput!): User!
+  }
+
+  input UserProfileInput {
+    name: String
+    avatarUrl: String
+    password: String
+  }
+
 additionalResolvers:
-  - './src/resolvers/**/*.ts'
+  - ./src/graphql-mesh/resolvers/customResolvers.ts
 
-# Serving configuration
+plugins:
+  - name: auth
+    path: ./src/graphql-mesh/plugins/auth.plugin.js
+    config:
+      jwtSecret: ${JWT_SECRET}
+      
+  - name: cache
+    path: ./src/graphql-mesh/plugins/cache.plugin.js
+    config:
+      ttl: 300000 # 5 minutes
+      maxSize: 1000
+      
+  - name: logger
+    path: ./src/graphql-mesh/plugins/logger.plugin.js
+    
+  - name: validation
+    path: ./src/graphql-mesh/plugins/validation.plugin.js
+    config:
+      maxDepth: 10
+      maxAliases: 5
+      disableIntrospection: false
+      
+  - name: responseCache
+    path: "@envelop/response-cache"
+    config:
+      enabled: true
+      includeExtensionMetadata: true
+      ttl: 60000 # 1 minute
+      ignoredTypes: ['Mutation']
+      
+  - name: depthLimit
+    path: "@envelop/depth-limit"
+    config:
+      maxDepth: 10
+      
+  - name: parserCache
+    path: "@envelop/parser-cache"
+    
+  - name: validationCache
+    path: "@envelop/validation-cache"
+
 serve:
+  cors:
+    origin: "*"
+    credentials: true
   playground: true
-  endpoint: '/graphql'
-  cors: true
+  endpoint: http://localhost:3000/graphql
+  
+documents:
+  - ./src/graphql/**/*.graphql

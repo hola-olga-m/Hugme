@@ -26,5 +26,5 @@ export declare class GraphQLMeshService implements OnModuleInit {
         query: string;
         variables?: Record<string, any>;
         context?: Record<string, any>;
-    }): Promise<any>;
+    }): Promise<import("graphql").ExecutionResult<import("graphql/jsutils/ObjMap").ObjMap<unknown>, import("graphql/jsutils/ObjMap").ObjMap<unknown>>>;
 }

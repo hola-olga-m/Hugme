@@ -115,7 +115,14 @@ const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  // Always serve the index.html file
+  // Add a health check endpoint for Replit
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', port: PORT }));
+    return;
+  }
+  
+  // Always serve the index.html file for other routes
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.end(indexHtml);
 });
@@ -125,8 +132,25 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Address: ${JSON.stringify(server.address())}`);
   
+  // Log explicit confirmation for Replit
+  console.log(`✅ Frontend server ready and listening on http://0.0.0.0:${PORT}`);
+
   // Register the "listening" event explicitly
   server.on('listening', () => {
     console.log('Server is officially listening!');
+  });
+  
+  // Send a self-request to the health endpoint to confirm server is working
+  http.get(`http://localhost:${PORT}/health`, (res) => {
+    console.log(`Health check status: ${res.statusCode}`);
+    let data = '';
+    res.on('data', (chunk) => data += chunk);
+    res.on('end', () => {
+      console.log(`Health check response: ${data}`);
+      // Explicitly emit a listening event for Replit
+      server.emit('listening');
+    });
+  }).on('error', (err) => {
+    console.error('Health check failed:', err.message);
   });
 });

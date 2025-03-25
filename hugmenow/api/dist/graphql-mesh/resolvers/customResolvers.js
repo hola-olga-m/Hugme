@@ -90,10 +90,10 @@ exports.resolvers = {
             if (!dataSources?.postgresPool) {
                 throw new Error('Database connection not available');
             }
+            const updateFields = [];
+            const queryParams = [id];
+            let paramIndex = 2;
             try {
-                let updateFields = [];
-                let queryParams = [id];
-                let paramIndex = 2;
                 if (profileData.name !== undefined) {
                     updateFields.push(`name = $${paramIndex}`);
                     queryParams.push(profileData.name);

@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Inject, forwardRef, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
@@ -9,6 +9,9 @@ import {
   printSchema, 
   GraphQLScalarType,
   Kind,
+  parse,
+  validate,
+  execute as graphqlExecute,
   GraphQLError
 } from 'graphql';
 import { createYoga } from 'graphql-yoga';
@@ -407,14 +410,11 @@ export class GraphQLMeshService implements OnModuleInit {
     context?: Record<string, any> 
   }) {
     try {
-      // Get runtime objects from envelop
-      const { parse, validate, execute, schema } = this.mesh.getParseFns();
-      
       // Parse the document
       const document = parse(query);
       
       // Validate the document 
-      const validationErrors = validate(schema, document);
+      const validationErrors = validate(this.enhancedSchema, document);
       if (validationErrors.length > 0) {
         return { errors: validationErrors };
       }
@@ -428,9 +428,9 @@ export class GraphQLMeshService implements OnModuleInit {
         }
       };
       
-      // Execute the document
-      return await execute({
-        schema,
+      // Execute the document using graphqlExecute
+      return await graphqlExecute({
+        schema: this.enhancedSchema,
         document,
         rootValue: {},
         contextValue: enrichedContext,

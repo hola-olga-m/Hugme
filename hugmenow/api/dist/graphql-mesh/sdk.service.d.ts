@@ -10,6 +10,6 @@ export declare class GraphQLSdkService implements OnModuleInit {
     constructor(graphqlMeshService: GraphQLMeshService, configService: ConfigService);
     onModuleInit(): Promise<void>;
     private createProxySdk;
-    execute(query: string, variables?: Record<string, any>, context?: Record<string, any>): Promise<any>;
+    execute(query: string, variables?: Record<string, any>, context?: Record<string, any>): Promise<import("graphql/jsutils/ObjMap").ObjMap<unknown> | null | undefined>;
     getSdk(): any;
 }
