@@ -63,6 +63,7 @@ let AuthService = class AuthService {
                 ...registerInput,
                 password: hashedPassword,
                 id: (0, uuid_1.v4)(),
+                isAnonymous: false,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };

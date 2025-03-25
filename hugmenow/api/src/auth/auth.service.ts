@@ -70,6 +70,7 @@ export class AuthService {
         ...registerInput,
         password: hashedPassword,
         id: uuidv4(),
+        isAnonymous: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

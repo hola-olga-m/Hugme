@@ -65,7 +65,11 @@ let AppController = class AppController {
             return res.status(common_1.HttpStatus.CREATED).json(result);
         }
         catch (error) {
-            throw new common_1.UnauthorizedException('Registration failed');
+            console.error('Registration error:', error.message, error.stack);
+            if (error.message.includes('already exists')) {
+                throw new common_1.UnauthorizedException('Username or email already exists');
+            }
+            throw new common_1.UnauthorizedException(`Registration failed: ${error.message}`);
         }
     }
     async anonymousLogin(anonymousLoginInput, res) {
@@ -74,7 +78,8 @@ let AppController = class AppController {
             return res.status(common_1.HttpStatus.OK).json(result);
         }
         catch (error) {
-            throw new common_1.UnauthorizedException('Anonymous login failed');
+            console.error('Anonymous login error:', error.message, error.stack);
+            throw new common_1.UnauthorizedException(`Anonymous login failed: ${error.message}`);
         }
     }
 };

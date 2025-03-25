@@ -101,7 +101,11 @@ export class AppController {
       const result = await this.authService.register(registerInput);
       return res.status(HttpStatus.CREATED).json(result);
     } catch (error) {
-      throw new UnauthorizedException('Registration failed');
+      console.error('Registration error:', error.message, error.stack);
+      if (error.message.includes('already exists')) {
+        throw new UnauthorizedException('Username or email already exists');
+      }
+      throw new UnauthorizedException(`Registration failed: ${error.message}`);
     }
   }
 
@@ -114,7 +118,8 @@ export class AppController {
       const result = await this.authService.anonymousLogin(anonymousLoginInput);
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {
-      throw new UnauthorizedException('Anonymous login failed');
+      console.error('Anonymous login error:', error.message, error.stack);
+      throw new UnauthorizedException(`Anonymous login failed: ${error.message}`);
     }
   }
 }
