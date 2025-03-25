@@ -1,5 +1,5 @@
-import { Controller, Get, Res, Redirect, Post, Body, HttpStatus, UnauthorizedException } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get, Res, Req, Redirect, Post, Body, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AppService, AppInfo } from './app.service';
 import { AuthService } from './auth/auth.service';
 import { LoginInput } from './auth/dto/login.input';
@@ -8,10 +8,16 @@ import { AnonymousLoginInput } from './auth/dto/anonymous-login.input';
 
 @Controller()
 export class AppController {
+  private frontendBaseUrl: string;
+
   constructor(
     private readonly appService: AppService,
     private readonly authService: AuthService,
-  ) {}
+  ) {
+    // Determine the frontend URL from environment or default
+    this.frontendBaseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    console.log(`Frontend base URL: ${this.frontendBaseUrl}`);
+  }
 
   @Get()
   getHello(): string {
@@ -24,13 +30,49 @@ export class AppController {
   }
 
   /**
+   * Helper method to get frontend URL by path
+   */
+  private getFrontendUrl(path: string, req: Request): string {
+    // Try to determine URL from request
+    const host = req.get('host');
+    const forwardedHost = req.get('x-forwarded-host');
+    const protocol = req.protocol;
+    
+    // Log for debugging
+    console.log(`Generating URL for path ${path}`);
+    console.log(`Host: ${host}, Forwarded Host: ${forwardedHost}, Protocol: ${protocol}`);
+    
+    // Prioritize the frontend URL from env var
+    if (process.env.FRONTEND_URL) {
+      return `${process.env.FRONTEND_URL}${path}`;
+    }
+    
+    // If running on Replit
+    if (process.env.REPLIT_SLUG || process.env.REPL_ID || host?.includes('.replit.app')) {
+      const appDomain = host || forwardedHost;
+      return appDomain ? `${protocol}://${appDomain}${path}` : `${this.frontendBaseUrl}${path}`;
+    }
+    
+    // Default for local development
+    return `${this.frontendBaseUrl}${path}`;
+  }
+
+  /**
+   * Handle redirection dynamically based on the request environment
+   */
+  private handleRedirect(path: string, req: Request): { url: string } {
+    const redirectUrl = this.getFrontendUrl(path, req);
+    console.log(`Redirecting to: ${redirectUrl}`);
+    return { url: redirectUrl };
+  }
+
+  /**
    * Redirect to login page
    */
   @Get('login')
   @Redirect()
-  getLoginPage() {
-    // Return URL for redirection to frontend login page
-    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/login` : 'http://localhost:3001/login' };
+  getLoginPage(@Req() req: Request) {
+    return this.handleRedirect('/login', req);
   }
 
   /**
@@ -38,9 +80,8 @@ export class AppController {
    */
   @Get('register') 
   @Redirect()
-  getRegisterPage() {
-    // Return URL for redirection to frontend register page
-    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/register` : 'http://localhost:3001/register' };
+  getRegisterPage(@Req() req: Request) {
+    return this.handleRedirect('/register', req);
   }
   
   /**
@@ -48,8 +89,8 @@ export class AppController {
    */
   @Get('dashboard')
   @Redirect()
-  getDashboardPage() {
-    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/dashboard` : 'http://localhost:3001/dashboard' };
+  getDashboardPage(@Req() req: Request) {
+    return this.handleRedirect('/dashboard', req);
   }
   
   /**
@@ -57,8 +98,8 @@ export class AppController {
    */
   @Get('mood-tracker')
   @Redirect()
-  getMoodTrackerPage() {
-    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/mood-tracker` : 'http://localhost:3001/mood-tracker' };
+  getMoodTrackerPage(@Req() req: Request) {
+    return this.handleRedirect('/mood-tracker', req);
   }
   
   /**
@@ -66,8 +107,8 @@ export class AppController {
    */
   @Get('hug-center')
   @Redirect()
-  getHugCenterPage() {
-    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/hug-center` : 'http://localhost:3001/hug-center' };
+  getHugCenterPage(@Req() req: Request) {
+    return this.handleRedirect('/hug-center', req);
   }
   
   /**
@@ -75,8 +116,8 @@ export class AppController {
    */
   @Get('profile')
   @Redirect()
-  getProfilePage() {
-    return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/profile` : 'http://localhost:3001/profile' };
+  getProfilePage(@Req() req: Request) {
+    return this.handleRedirect('/profile', req);
   }
 
   /**
@@ -85,9 +126,11 @@ export class AppController {
   @Post('login')
   async login(@Body() loginInput: LoginInput, @Res() res: Response) {
     try {
+      console.log('Processing login request:', loginInput.email);
       const result = await this.authService.login(loginInput);
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {
+      console.error('Login error:', error.message);
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -98,6 +141,7 @@ export class AppController {
   @Post('register')
   async register(@Body() registerInput: RegisterInput, @Res() res: Response) {
     try {
+      console.log('Processing registration request:', registerInput.email);
       const result = await this.authService.register(registerInput);
       return res.status(HttpStatus.CREATED).json(result);
     } catch (error) {
@@ -115,6 +159,7 @@ export class AppController {
   @Post('anonymous-login')
   async anonymousLogin(@Body() anonymousLoginInput: AnonymousLoginInput, @Res() res: Response) {
     try {
+      console.log('Processing anonymous login request');
       const result = await this.authService.anonymousLogin(anonymousLoginInput);
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {

@@ -22,9 +22,12 @@ const anonymous_login_input_1 = require("./auth/dto/anonymous-login.input");
 let AppController = class AppController {
     appService;
     authService;
+    frontendBaseUrl;
     constructor(appService, authService) {
         this.appService = appService;
         this.authService = authService;
+        this.frontendBaseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+        console.log(`Frontend base URL: ${this.frontendBaseUrl}`);
     }
     getHello() {
         return this.appService.getHello();
@@ -32,35 +35,58 @@ let AppController = class AppController {
     getAppInfo() {
         return this.appService.getAppInfo();
     }
-    getLoginPage() {
-        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/login` : 'http://localhost:3001/login' };
+    getFrontendUrl(path, req) {
+        const host = req.get('host');
+        const forwardedHost = req.get('x-forwarded-host');
+        const protocol = req.protocol;
+        console.log(`Generating URL for path ${path}`);
+        console.log(`Host: ${host}, Forwarded Host: ${forwardedHost}, Protocol: ${protocol}`);
+        if (process.env.FRONTEND_URL) {
+            return `${process.env.FRONTEND_URL}${path}`;
+        }
+        if (process.env.REPLIT_SLUG || process.env.REPL_ID || host?.includes('.replit.app')) {
+            const appDomain = host || forwardedHost;
+            return appDomain ? `${protocol}://${appDomain}${path}` : `${this.frontendBaseUrl}${path}`;
+        }
+        return `${this.frontendBaseUrl}${path}`;
     }
-    getRegisterPage() {
-        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/register` : 'http://localhost:3001/register' };
+    handleRedirect(path, req) {
+        const redirectUrl = this.getFrontendUrl(path, req);
+        console.log(`Redirecting to: ${redirectUrl}`);
+        return { url: redirectUrl };
     }
-    getDashboardPage() {
-        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/dashboard` : 'http://localhost:3001/dashboard' };
+    getLoginPage(req) {
+        return this.handleRedirect('/login', req);
     }
-    getMoodTrackerPage() {
-        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/mood-tracker` : 'http://localhost:3001/mood-tracker' };
+    getRegisterPage(req) {
+        return this.handleRedirect('/register', req);
     }
-    getHugCenterPage() {
-        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/hug-center` : 'http://localhost:3001/hug-center' };
+    getDashboardPage(req) {
+        return this.handleRedirect('/dashboard', req);
     }
-    getProfilePage() {
-        return { url: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/profile` : 'http://localhost:3001/profile' };
+    getMoodTrackerPage(req) {
+        return this.handleRedirect('/mood-tracker', req);
+    }
+    getHugCenterPage(req) {
+        return this.handleRedirect('/hug-center', req);
+    }
+    getProfilePage(req) {
+        return this.handleRedirect('/profile', req);
     }
     async login(loginInput, res) {
         try {
+            console.log('Processing login request:', loginInput.email);
             const result = await this.authService.login(loginInput);
             return res.status(common_1.HttpStatus.OK).json(result);
         }
         catch (error) {
+            console.error('Login error:', error.message);
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
     }
     async register(registerInput, res) {
         try {
+            console.log('Processing registration request:', registerInput.email);
             const result = await this.authService.register(registerInput);
             return res.status(common_1.HttpStatus.CREATED).json(result);
         }
@@ -74,6 +100,7 @@ let AppController = class AppController {
     }
     async anonymousLogin(anonymousLoginInput, res) {
         try {
+            console.log('Processing anonymous login request');
             const result = await this.authService.anonymousLogin(anonymousLoginInput);
             return res.status(common_1.HttpStatus.OK).json(result);
         }
@@ -99,43 +126,49 @@ __decorate([
 __decorate([
     (0, common_1.Get)('login'),
     (0, common_1.Redirect)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getLoginPage", null);
 __decorate([
     (0, common_1.Get)('register'),
     (0, common_1.Redirect)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getRegisterPage", null);
 __decorate([
     (0, common_1.Get)('dashboard'),
     (0, common_1.Redirect)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getDashboardPage", null);
 __decorate([
     (0, common_1.Get)('mood-tracker'),
     (0, common_1.Redirect)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getMoodTrackerPage", null);
 __decorate([
     (0, common_1.Get)('hug-center'),
     (0, common_1.Redirect)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getHugCenterPage", null);
 __decorate([
     (0, common_1.Get)('profile'),
     (0, common_1.Redirect)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getProfilePage", null);
 __decorate([
