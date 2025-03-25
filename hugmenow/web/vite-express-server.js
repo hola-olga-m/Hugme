@@ -9,31 +9,453 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Create a simple fallback HTML content in case the build files are missing
+// Create a comprehensive fallback HTML content with navigation and styling
 const fallbackHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HugMeNow - Emotional Wellness Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f8f9fa; }
-    .container { max-width: 800px; margin: 0 auto; padding: 2rem; text-align: center; }
-    .card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 2rem; margin-bottom: 2rem; }
-    h1 { color: #4a90e2; margin-bottom: 1rem; }
-    .spinner { border: 4px solid rgba(0, 0, 0, 0.1); border-radius: 50%; border-top: 4px solid #4a90e2; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 1rem auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* Base styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      line-height: 1.6; 
+      min-height: 100vh; 
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    
+    /* Layout */
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 1rem 2rem; 
+    }
+    
+    /* Header and navigation */
+    .header {
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #4a90e2;
+    }
+    .nav-menu {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+    .nav-item { display: inline-block; }
+    .nav-link {
+      text-decoration: none;
+      color: #555;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-link:hover { color: #4a90e2; }
+    
+    /* Main content */
+    main { padding: 2rem 0; }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    h1 { 
+      color: #4a90e2; 
+      margin-bottom: 1rem; 
+      font-size: 2rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    /* Auth forms */
+    .auth-container {
+      max-width: 500px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .auth-title {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    .auth-footer {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    
+    /* Spinner */
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #4a90e2;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 1rem auto;
+    }
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      background-color: #4a90e2;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #3a80d2;
+    }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1rem 0;
+      border-top: 1px solid #eee;
+      margin-top: 2rem;
+      color: #666;
+    }
+    
+    /* Dashboard cards */
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .dashboard-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .dashboard-card-title {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #555;
+    }
+    .stats-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #4a90e2;
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>HugMeNow</h1>
-      <p>Emotional Wellness Platform</p>
-      <div class="spinner"></div>
-      <p>Loading application...</p>
-    </div>
+  <div id="root">
+    <header class="header">
+      <div class="container">
+        <nav class="nav">
+          <div class="nav-logo">HugMeNow</div>
+          <ul class="nav-menu">
+            <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="/dashboard" class="nav-link">Dashboard</a></li>
+            <li class="nav-item"><a href="/mood-tracker" class="nav-link">Mood Tracker</a></li>
+            <li class="nav-item"><a href="/hug-center" class="nav-link">Hug Center</a></li>
+            <li class="nav-item"><a href="/profile" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    
+    <main>
+      <div class="container">
+        <div class="card">
+          <h1>Welcome to HugMeNow</h1>
+          <p>Your emotional wellness platform</p>
+          <div class="spinner"></div>
+          <p>Loading application...</p>
+          <p style="margin-top: 1rem;">If this screen persists, please refresh the page.</p>
+        </div>
+      </div>
+    </main>
+    
+    <footer>
+      <div class="container">
+        <p>&copy; ${new Date().getFullYear()} HugMeNow. All rights reserved.</p>
+      </div>
+    </footer>
   </div>
+  
+  <script>
+    // Simple client-side routing for the static fallback page
+    document.addEventListener('DOMContentLoaded', function() {
+      const links = document.querySelectorAll('a.nav-link');
+      const mainContent = document.querySelector('main .container');
+      
+      // Handle link clicks
+      links.forEach(link => {
+        link.addEventListener('click', function(e) {
+          // Only handle links to our own pages
+          if (link.getAttribute('href').startsWith('/')) {
+            e.preventDefault();
+            const path = link.getAttribute('href');
+            
+            // Update URL without page reload
+            window.history.pushState({}, '', path);
+            
+            // Update content based on path
+            updateContent(path);
+          }
+        });
+      });
+      
+      // Handle back/forward browser buttons
+      window.addEventListener('popstate', function() {
+        updateContent(window.location.pathname);
+      });
+      
+      // Initialize content based on current path
+      updateContent(window.location.pathname);
+      
+      // Function to update content based on current path
+      function updateContent(path) {
+        let content = '';
+        
+        // Simple routing mechanism
+        switch(path) {
+          case '/login':
+            content = \`
+              <div class="auth-container">
+                <h1 class="auth-title">Login</h1>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-input" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Password</label>
+                  <input type="password" class="form-input" placeholder="Enter your password">
+                </div>
+                <button class="btn" style="width: 100%; margin-bottom: 1rem;">Login</button>
+                <div class="auth-footer">
+                  <p>Don't have an account? <a href="/register">Register</a></p>
+                </div>
+              </div>
+            \`;
+            break;
+          case '/register':
+            content = \`
+              <div class="auth-container">
+                <h1 class="auth-title">Register</h1>
+                <div class="form-group">
+                  <label class="form-label">Name</label>
+                  <input type="text" class="form-input" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-input" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Password</label>
+                  <input type="password" class="form-input" placeholder="Create a password">
+                </div>
+                <button class="btn" style="width: 100%; margin-bottom: 1rem;">Register</button>
+                <div class="auth-footer">
+                  <p>Already have an account? <a href="/login">Login</a></p>
+                </div>
+              </div>
+            \`;
+            break;
+          case '/dashboard':
+            content = \`
+              <h1>Dashboard</h1>
+              <div class="dashboard-cards">
+                <div class="dashboard-card">
+                  <h3 class="dashboard-card-title">Mood Streak</h3>
+                  <div class="stats-number">7</div>
+                  <p>days in a row</p>
+                </div>
+                <div class="dashboard-card">
+                  <h3 class="dashboard-card-title">Hugs Received</h3>
+                  <div class="stats-number">12</div>
+                  <p>this week</p>
+                </div>
+                <div class="dashboard-card">
+                  <h3 class="dashboard-card-title">Hugs Sent</h3>
+                  <div class="stats-number">8</div>
+                  <p>this week</p>
+                </div>
+              </div>
+            \`;
+            break;
+          case '/mood-tracker':
+            content = \`
+              <h1>Mood Tracker</h1>
+              <div class="card">
+                <h2>How are you feeling today?</h2>
+                <div style="display: flex; justify-content: space-between; margin: 2rem 0">
+                  <button class="btn" style="flex: 1; margin: 0 0.5rem">1</button>
+                  <button class="btn" style="flex: 1; margin: 0 0.5rem">2</button>
+                  <button class="btn" style="flex: 1; margin: 0 0.5rem">3</button>
+                  <button class="btn" style="flex: 1; margin: 0 0.5rem">4</button>
+                  <button class="btn" style="flex: 1; margin: 0 0.5rem">5</button>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Add a note (optional)</label>
+                  <textarea class="form-input" rows="3" placeholder="What made you feel this way?"></textarea>
+                </div>
+                <button class="btn">Save Mood</button>
+              </div>
+            \`;
+            break;
+          case '/hug-center':
+            content = \`
+              <h1>Hug Center</h1>
+              <div class="card">
+                <h2>Send a Virtual Hug</h2>
+                <div class="form-group">
+                  <label class="form-label">Recipient</label>
+                  <select class="form-input">
+                    <option value="">Select a friend</option>
+                    <option value="1">Friend 1</option>
+                    <option value="2">Friend 2</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Hug Type</label>
+                  <select class="form-input">
+                    <option value="QUICK">Quick Hug</option>
+                    <option value="WARM">Warm Hug</option>
+                    <option value="SUPPORTIVE">Supportive Hug</option>
+                    <option value="COMFORTING">Comforting Hug</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Message (optional)</label>
+                  <textarea class="form-input" rows="3" placeholder="Add a personal message"></textarea>
+                </div>
+                <button class="btn">Send Hug</button>
+              </div>
+            \`;
+            break;
+          case '/profile':
+            content = \`
+              <div class="profile-header" style="display: flex; align-items: center; margin-bottom: 2rem;">
+                <div style="width: 100px; height: 100px; border-radius: 50%; background-color: #e0e0e0; margin-right: 1.5rem; display: flex; justify-content: center; align-items: center;">
+                  <span style="font-size: 3rem; color: #aaa;">?</span>
+                </div>
+                <div>
+                  <h1 style="margin-bottom: 0.5rem;">User Name</h1>
+                  <p style="color: #666;">@username</p>
+                </div>
+              </div>
+              <div class="card">
+                <h2>Profile Settings</h2>
+                <div class="form-group">
+                  <label class="form-label">Name</label>
+                  <input type="text" class="form-input" value="User Name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-input" value="user@example.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Avatar URL</label>
+                  <input type="text" class="form-input">
+                </div>
+                <button class="btn">Save Changes</button>
+              </div>
+            \`;
+            break;
+          case '/about':
+            content = \`
+              <h1>About HugMeNow</h1>
+              <p>A mobile-first emotional wellness platform that provides intuitive mental health tracking.</p>
+              <div class="card">
+                <h2>Features</h2>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                  <li>Mood tracking</li>
+                  <li>Virtual hugs</li>
+                  <li>Community support</li>
+                  <li>Personal wellness journal</li>
+                </ul>
+                <a href="/" class="btn">Back to Home</a>
+              </div>
+            \`;
+            break;
+          default:
+            content = \`
+              <h1>HugMeNow</h1>
+              <p>Welcome to the HugMeNow emotional wellness platform</p>
+              <div class="card">
+                <h2>Getting Started</h2>
+                <p>This is a simplified version of the application to verify the build process.</p>
+                <div style="margin-top: 20px">
+                  <a href="/about" class="btn">Learn More</a>
+                </div>
+              </div>
+            \`;
+        }
+        
+        mainContent.innerHTML = content;
+        
+        // Re-attach event listeners to any new links
+        mainContent.querySelectorAll('a').forEach(link => {
+          if (link.getAttribute('href') && link.getAttribute('href').startsWith('/')) {
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const path = link.getAttribute('href');
+              window.history.pushState({}, '', path);
+              updateContent(path);
+            });
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>`;
 
@@ -42,14 +464,37 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const API_HOST = process.env.API_HOST || 'http://localhost:3000';
 
+// Detect if running in Replit environment
+const isReplitEnv = !!process.env.REPL_ID || !!process.env.REPLIT_SLUG;
+
 // Add a simple health check route (before any middleware) to make port detection easier
 app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    port: PORT,
+    time: new Date().toISOString()
+  });
+});
+
+// Add another health check endpoint with a different name for compatibility
+app.get('/health-check', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Add logging middleware
+// Add logging middleware with CORS headers for Replit environment
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  
+  // Set CORS headers for all requests to enable Replit access
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle OPTIONS requests for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   next();
 });
 
@@ -71,9 +516,15 @@ app.use('/api', createProxyMiddleware(createProxy(API_HOST, { '^/api': '' })));
 app.use('/graphql', createProxyMiddleware(createProxy(API_HOST)));
 app.use('/info', createProxyMiddleware(createProxy(API_HOST)));
 
-// Add another health check route that won't be rewritten
-app.get('/health-check', (req, res) => {
-  res.status(200).json({ status: 'ok', port: PORT, time: new Date().toISOString() });
+// Add a URL info route that won't be rewritten
+app.get('/url-info', (req, res) => {
+  res.status(200).json({ 
+    url: req.url,
+    headers: req.headers,
+    protocol: req.protocol,
+    host: req.get('host'),
+    originalUrl: req.originalUrl
+  });
 });
 
 // Apply history API fallback middleware for SPA routing
@@ -82,8 +533,14 @@ app.use(history({
   disableDotRule: true,
   rewrites: [
     // Don't rewrite API requests or health checks
-    { from: /^\/(api|graphql|info|assets|health|health-check)\/.*$/, to: context => context.parsedUrl.pathname }
-  ]
+    { from: /^\/(api|graphql|info|assets|health|health-check|server-status|url-info)\/.*$/, to: context => context.parsedUrl.pathname },
+    // Special handling for direct routes in the SPA
+    { from: /^\/(login|register|dashboard|mood-tracker|hug-center|profile|about)$/, to: '/index.html' },
+    // For all other paths, rewrite to index.html for client-side routing
+    { from: /^\/.*/, to: '/index.html' }
+  ],
+  // This helps with Replit URLs
+  htmlAcceptHeaders: ['text/html', 'application/xhtml+xml', '*/*']
 }));
 
 // Paths to serve static content from
@@ -165,12 +622,24 @@ app.get('*', (req, res) => {
   const indexHtmlPath = join(distPath, 'index.html');
   const rootIndexHtmlPath = join(projectRoot, 'index.html');
   
+  console.log(`Fallback handler for: ${req.url}`);
+  console.log(`User Agent: ${req.headers['user-agent']}`);
+  console.log(`Checking for: ${indexHtmlPath} (exists: ${fs.existsSync(indexHtmlPath)})`);
+  console.log(`Checking for: ${rootIndexHtmlPath} (exists: ${fs.existsSync(rootIndexHtmlPath)})`);
+  
+  // Add debug info for CORS (helpful for Replit)
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  
   if (fs.existsSync(indexHtmlPath)) {
+    console.log(`Serving from dist/index.html`);
     res.sendFile(indexHtmlPath);
   } else if (fs.existsSync(rootIndexHtmlPath)) {
+    console.log(`Serving from root index.html`);
     res.sendFile(rootIndexHtmlPath);
   } else {
     // If no index.html files are found, send the fallback HTML
+    console.log(`No index.html found, using fallback HTML`);
     res.send(fallbackHtml);
   }
 });
