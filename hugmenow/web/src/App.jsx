@@ -2,32 +2,22 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Import i18n
 import './i18n';
 
+// Import styles
+import './styles/auth.css';
+
 // Import pages
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/Login';
 import RegisterPage from './pages/RegisterPage';
+import Dashboard from './pages/Dashboard';
 
 // Import components
 import LanguageSwitcher from './components/LanguageSwitcher';
-
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  
-  return children;
-};
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Main App component
 const AppContent = () => {
@@ -45,9 +35,18 @@ const AppContent = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
-            {/* Protected routes - will be added later */}
+            {/* Protected routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </main>

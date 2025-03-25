@@ -1,163 +1,148 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { login, anonymousLogin } = useAuth();
+  const { t } = useTranslation();
+  const { login, anonymousLogin, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get the redirect path from location state or default to dashboard
+  // Get redirect path from location state or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    
-    // Clear error when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({ ...formErrors, [name]: '' });
-    }
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!formData.email) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
-    }
-    
-    if (!formData.password) {
-      errors.password = 'Password is required';
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
+  
+  // Form state
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Handle regular login
+  const handleLogin = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!email || !password) {
+      setError(t('login.errorEmptyFields'));
       return;
     }
     
-    setIsSubmitting(true);
+    setIsLoading(true);
+    setError('');
     
     try {
-      const user = await login(formData.email, formData.password);
-      
-      if (user) {
-        // Redirect to the original requested page or dashboard
-        navigate(from, { replace: true });
-      } else {
-        setFormErrors({ submit: 'Login failed. Please try again.' });
-      }
-    } catch (error) {
-      setFormErrors({ submit: error.message || 'Login failed. Please try again.' });
+      await login(email, password);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.message || t('login.errorGeneric'));
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  const handleAnonymousLogin = async () => {
-    setIsSubmitting(true);
+  
+  // Handle anonymous login
+  const handleAnonymousLogin = async (e) => {
+    e.preventDefault();
+    
+    if (!nickname) {
+      setError(t('login.errorNoNickname'));
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
     
     try {
-      // Generate a random nickname for the anonymous user
-      const nickname = `Guest${Math.floor(Math.random() * 10000)}`;
-      
-      const user = await anonymousLogin(nickname);
-      
-      if (user) {
-        navigate('/dashboard', { replace: true });
-      } else {
-        setFormErrors({ submit: 'Anonymous login failed. Please try again.' });
-      }
-    } catch (error) {
-      setFormErrors({ submit: error.message || 'Anonymous login failed. Please try again.' });
+      await anonymousLogin(nickname);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.message || t('login.errorGeneric'));
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="auth-page">
-      <div className="container">
-        <div className="auth-form-container">
-          <h1 className="auth-title">Log in to HugMeNow</h1>
-          
-          {formErrors.submit && (
-            <div className="error-message">{formErrors.submit}</div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                disabled={isSubmitting}
-              />
-              {formErrors.email && <div className="field-error">{formErrors.email}</div>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                disabled={isSubmitting}
-              />
-              {formErrors.password && <div className="field-error">{formErrors.password}</div>}
-            </div>
-            
-            <div className="form-actions">
+      <div className="auth-form-container">
+        <h2 className="auth-title">{t('login.title')}</h2>
+        
+        {(error || authError) && (
+          <div className="error-message">
+            {error || authError}
+          </div>
+        )}
+        
+        <div className="auth-tabs">
+          <div className="auth-tab-content">
+            <form className="auth-form" onSubmit={handleLogin}>
+              <div className="form-group">
+                <label htmlFor="email">{t('login.email')}</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('login.emailPlaceholder')}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="password">{t('login.password')}</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('login.passwordPlaceholder')}
+                  disabled={isLoading}
+                />
+              </div>
+              
               <button
                 type="submit"
                 className="btn btn-primary btn-block"
-                disabled={isSubmitting}
+                disabled={isLoading}
               >
-                {isSubmitting ? 'Logging in...' : 'Log In'}
+                {isLoading ? t('login.loggingIn') : t('login.submit')}
               </button>
+            </form>
+            
+            <div className="auth-separator">
+              <span>{t('login.or')}</span>
             </div>
-          </form>
-          
-          <div className="auth-separator">
-            <span>OR</span>
+            
+            <form className="auth-form" onSubmit={handleAnonymousLogin}>
+              <div className="form-group">
+                <label htmlFor="nickname">{t('login.nickname')}</label>
+                <input
+                  type="text"
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  placeholder={t('login.nicknamePlaceholder')}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <button
+                type="submit"
+                className="btn btn-outline btn-block"
+                disabled={isLoading}
+              >
+                {isLoading ? t('login.loggingIn') : t('login.continueAsGuest')}
+              </button>
+            </form>
           </div>
-          
-          <button
-            onClick={handleAnonymousLogin}
-            className="btn btn-outline btn-block"
-            disabled={isSubmitting}
-          >
-            Continue as Guest
-          </button>
-          
-          <div className="auth-links">
-            <p>
-              Don't have an account?{' '}
-              <Link to="/register">Sign up</Link>
-            </p>
-          </div>
+        </div>
+        
+        <div className="auth-links">
+          <p>
+            {t('login.noAccount')}{' '}
+            <Link to="/register">{t('login.register')}</Link>
+          </p>
         </div>
       </div>
     </div>

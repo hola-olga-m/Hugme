@@ -1,87 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { detectErrorType, getErrorMessage, logError } from '../utils/errorHandling';
+import { useTranslation } from 'react-i18next';
 
 const RegisterPage = () => {
   const { t } = useTranslation();
+  const { register, error: authError } = useAuth();
   const navigate = useNavigate();
-  const { register, isAuthenticated } = useAuth();
   
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    name: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState('');
+  // Form state
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSubmit = async (e) => {
+  // Handle registration
+  const handleRegister = async (e) => {
     e.preventDefault();
-    setError('');
     
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError(t('register.passwordsMismatch'));
+    // Basic validation
+    if (!username || !email || !name || !password) {
+      setError(t('register.errorEmptyFields'));
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError(t('register.errorPasswordMismatch'));
       return;
     }
     
     setIsLoading(true);
+    setError('');
     
     try {
-      await register(
-        formData.username,
-        formData.email,
-        formData.name,
-        formData.password
-      );
-      navigate('/dashboard');
-    } catch (error) {
-      const errorType = detectErrorType(error, { context: 'register' });
-      const errorDetails = getErrorMessage(errorType);
-      setError(t(errorDetails.title));
-      logError(error, { 
-        context: 'register', 
-        email: formData.email,
-        username: formData.username 
-      });
+      await register(username, email, name, password);
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.message || t('register.errorGeneric'));
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>{t('register.title')}</h2>
+    <div className="auth-page">
+      <div className="auth-form-container">
+        <h2 className="auth-title">{t('register.title')}</h2>
         
-        {error && <div className="error-message">{error}</div>}
+        {(error || authError) && (
+          <div className="error-message">
+            {error || authError}
+          </div>
+        )}
         
-        <form onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleRegister}>
           <div className="form-group">
             <label htmlFor="username">{t('register.username')}</label>
             <input
               type="text"
               id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={t('register.usernamePlaceholder')}
               disabled={isLoading}
             />
           </div>
@@ -91,23 +74,21 @@ const RegisterPage = () => {
             <input
               type="email"
               id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('register.emailPlaceholder')}
               disabled={isLoading}
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="name">{t('register.fullName')}</label>
+            <label htmlFor="name">{t('register.name')}</label>
             <input
               type="text"
               id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('register.namePlaceholder')}
               disabled={isLoading}
             />
           </div>
@@ -117,10 +98,9 @@ const RegisterPage = () => {
             <input
               type="password"
               id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('register.passwordPlaceholder')}
               disabled={isLoading}
             />
           </div>
@@ -130,30 +110,27 @@ const RegisterPage = () => {
             <input
               type="password"
               id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={t('register.confirmPasswordPlaceholder')}
               disabled={isLoading}
             />
           </div>
           
-          <button 
-            type="submit" 
-            className="submit-button"
+          <button
+            type="submit"
+            className="btn btn-primary btn-block"
             disabled={isLoading}
           >
-            {isLoading ? t('common.loading') : t('register.registerButton')}
+            {isLoading ? t('register.registering') : t('register.submit')}
           </button>
         </form>
         
         <div className="auth-links">
-          <Link to="/login" className="auth-link">
-            {t('register.haveAccount')}
-          </Link>
-          <Link to="/anonymous" className="auth-link">
-            {t('register.continueAnonymously')}
-          </Link>
+          <p>
+            {t('register.alreadyAccount')}{' '}
+            <Link to="/login">{t('register.login')}</Link>
+          </p>
         </div>
       </div>
     </div>

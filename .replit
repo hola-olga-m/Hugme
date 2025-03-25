@@ -49,14 +49,6 @@ task = "shell.exec"
 args = "cd hugmenow/web && node vite-express-server.js"
 waitForPort = 5000
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd hugmenow/api && node start"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd hugmenow/web && node start"
-
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
 
@@ -73,6 +65,4 @@ localPort = 4000
 
 [[ports]]
 localPort = 5000
-
-[[ports]]
-localPort = 24678
+externalPort = 5000
