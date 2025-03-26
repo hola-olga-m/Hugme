@@ -1,70 +1,89 @@
-// Simple Express server for serving the React application
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-import cors from 'cors';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import history from 'connect-history-api-fallback';
+const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const cors = require('cors');
+const path = require('path');
 
-// Set up __dirname equivalent for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Create Express app
+// Create Express server
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Enable CORS
 app.use(cors());
 
-// Add logging
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Basic status endpoint
+app.get('/status', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'HugMeNow Frontend',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Set up API proxies
-const apiUrl = process.env.VITE_BACKEND_URL || 'http://localhost:3000';
-console.log(`API server URL: ${apiUrl}`);
-
-// Set up API proxy middleware
+// Proxy API requests to the NestJS server
 app.use('/api', createProxyMiddleware({
-  target: apiUrl,
+  target: 'http://localhost:3000',
   changeOrigin: true,
   pathRewrite: {
-    '^/api': '' // remove /api prefix when forwarding to target
+    '^/api': '/' // rewrite path
   }
 }));
 
+// Proxy GraphQL requests to the NestJS server
 app.use('/graphql', createProxyMiddleware({
-  target: apiUrl,
+  target: 'http://localhost:3000',
   changeOrigin: true
 }));
 
-app.use('/info', createProxyMiddleware({
-  target: apiUrl,
-  changeOrigin: true
-}));
-
-// Serve static files first
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Use history API fallback for SPA client-side routing
-app.use(history({
-  verbose: true
-}));
-
-// Then serve static files again (after the history middleware)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve index.html for all other routes
+// Handle all other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.send(`
+    <html>
+      <head>
+        <title>HugMeNow</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; color: #333; }
+          .container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+          h1 { color: #4a90e2; }
+          pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+          .endpoints { margin-top: 20px; }
+          .endpoint { margin-bottom: 10px; padding: 10px; background: #f9f9f9; border-radius: 4px; }
+          .endpoint code { font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>HugMeNow</h1>
+          <p>Welcome to the HugMeNow mental health and wellness application.</p>
+          
+          <div class="endpoints">
+            <h2>Available Endpoints:</h2>
+            
+            <div class="endpoint">
+              <code>/status</code> - Check server status
+            </div>
+            
+            <div class="endpoint">
+              <code>/api/...</code> - API endpoints (proxied to NestJS backend)
+            </div>
+            
+            <div class="endpoint">
+              <code>/graphql</code> - GraphQL endpoint (proxied to NestJS backend)
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
 });
 
-// Start the server
+// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${PORT}`);
-  console.log(`API proxied to: ${apiUrl}`);
+  console.log(`Express server running on port ${PORT}`);
+  console.log(`- Serving static files from: ${path.join(__dirname, 'public')}`);
+  console.log(`- API proxy to: http://localhost:3000`);
 });
