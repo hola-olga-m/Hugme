@@ -32,7 +32,6 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/api && npm run start:dev"
-waitForPort = 3000
 
 [[workflows.workflow]]
 name = "React Frontend Server"
