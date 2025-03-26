@@ -20,6 +20,7 @@ import {
 } from '../graphql/mutations';
 import LoadingScreen from '../components/common/LoadingScreen';
 import ErrorMessage from '../components/common/ErrorMessage';
+import CuteHugsGallery from '../components/hugs/CuteHugsGallery';
 
 // Styled components
 const HugCenterContainer = styled.div`
@@ -675,6 +676,12 @@ const HugCenter = () => {
           >
             Community
           </Tab>
+          <Tab 
+            active={activeTab === 'hugsGallery'} 
+            onClick={() => setActiveTab('hugsGallery')}
+          >
+            Cute Hugs Gallery
+          </Tab>
         </TabsContainer>
         
         {activeTab === 'send' && (
@@ -1066,6 +1073,14 @@ const HugCenter = () => {
                 ))}
               </RequestsList>
             )}
+          </div>
+        )}
+        
+        {activeTab === 'hugsGallery' && (
+          <div>
+            <h2>Cute Hugs Gallery</h2>
+            <p>Express your feelings with these adorable themed hugs!</p>
+            <CuteHugsGallery />
           </div>
         )}
       </HugCenterContent>
