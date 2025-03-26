@@ -90,36 +90,50 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setLoading(true);
     clearError();
-    try {
-      // Try REST API first
-      const response = await authApi.register(userData);
-      
-      // Store token and user data
+    
+    console.log('Attempting to register user:', {
+      username: userData.username,
+      email: userData.email,
+      name: userData.name,
+      // Password omitted for security
+    });
+    
+    // Define a function to handle both REST and GraphQL responses
+    const handleAuthResponse = (response) => {
+      console.log('Registration successful, user:', response.user.username);
       localStorage.setItem('authToken', response.accessToken);
       setCurrentUser(response.user);
       setIsAuthenticated(true);
       return response.user;
-    } catch (restError) {
-      console.error('REST register error:', restError);
-      
-      // Fallback to GraphQL
+    };
+    
+    try {
+      // Try GraphQL first this time
       try {
+        console.log('Attempting GraphQL registration...');
         const { data } = await registerMutation({
           variables: {
             registerInput: userData
           }
         });
         
-        const response = data.register;
-        localStorage.setItem('authToken', response.accessToken);
-        setCurrentUser(response.user);
-        setIsAuthenticated(true);
-        return response.user;
+        if (data && data.register) {
+          return handleAuthResponse(data.register);
+        } else {
+          throw new Error('Invalid GraphQL response');
+        }
       } catch (graphqlError) {
         console.error('GraphQL register error:', graphqlError);
-        setError(graphqlError.message || 'Registration failed');
-        throw graphqlError;
+        
+        // Fallback to REST API
+        console.log('Falling back to REST API registration...');
+        const response = await authApi.register(userData);
+        return handleAuthResponse(response);
       }
+    } catch (error) {
+      console.error('Registration failed completely:', error);
+      setError(error.message || 'Registration failed');
+      throw error;
     } finally {
       setLoading(false);
     }

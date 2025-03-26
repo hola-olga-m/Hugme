@@ -1,3 +1,7 @@
+/* Import component styles */
+@import './components/passwordValidation.css';
+@import './components/hugIcons.css';
+
 /* Base styles */
 :root {
   --primary-color: #4a90e2;

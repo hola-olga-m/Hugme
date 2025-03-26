@@ -1,0 +1,240 @@
+/* Hug Icons and Visual Components */
+
+.hug-emoji {
+  font-size: 1.8rem;
+  line-height: 1;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.hug-type-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.hug-type-emoji {
+  font-size: 1.2rem;
+}
+
+.hug-type-icon {
+  display: flex;
+  align-items: center;
+}
+
+/* Enhanced Hug Gallery */
+.hug-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.hug-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.hug-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.hug-card.selected {
+  border: 2px solid currentColor;
+}
+
+.hug-card-icon {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.hug-card-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.hug-card-description {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* Visual Badge for new hugs */
+.new-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0 8px 0 8px;
+}
+
+/* Enhanced Modal Design for Hug Selection */
+.hug-selection-modal .modal-content {
+  max-width: 650px;
+}
+
+.hug-selection-preview {
+  text-align: center;
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: var(--bg-light);
+}
+
+.hug-preview-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hug-preview-title {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.hug-preview-description {
+  color: var(--text-light);
+}
+
+/* Enhanced Hug Item in List */
+.enhanced-hug-item {
+  display: flex;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.enhanced-hug-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.enhanced-hug-item.unread {
+  background-color: var(--secondary-color);
+}
+
+.enhanced-hug-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: var(--primary-color);
+}
+
+.hug-item-icon {
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hug-item-content {
+  flex: 1;
+}
+
+.hug-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.hug-item-sender {
+  font-weight: 600;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+}
+
+.hug-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+}
+
+.hug-item-message {
+  background-color: var(--bg-light);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+  color: var(--text-color);
+}
+
+.hug-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.hug-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hug-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  
+  .enhanced-hug-item {
+    flex-direction: column;
+  }
+  
+  .hug-item-icon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .hug-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .hug-item-actions {
+    margin-top: 1rem;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

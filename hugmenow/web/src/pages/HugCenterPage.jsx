@@ -17,6 +17,9 @@ import {
   CANCEL_HUG_REQUEST
 } from '../graphql/mutations';
 import { useAuth } from '../context/AuthContext';
+import { HugIcon, HugEmoji, HugTypeLabel, AnimatedHug } from '../components/HugIcons';
+import HugGallery from '../components/HugGallery';
+import EnhancedHugItem from '../components/EnhancedHugItem';
 
 function HugCenterPage() {
   const { currentUser } = useAuth();
@@ -319,42 +322,20 @@ function HugCenterPage() {
                 ) : receivedHugsData?.receivedHugs?.length > 0 ? (
                   <div className="hugs-list">
                     {receivedHugsData.receivedHugs.map(hug => (
-                      <div 
+                      <EnhancedHugItem 
                         key={hug.id} 
-                        className={`hug-item ${!hug.isRead ? 'unread' : ''}`}
-                        onClick={() => !hug.isRead && handleMarkAsRead(hug.id)}
-                      >
-                        <div className="hug-icon">{hug.type === 'CELEBRATORY' ? '🎉' : '🤗'}</div>
-                        <div className="hug-content">
-                          <div className="hug-header">
-                            <span className="hug-sender">{hug.sender.name || hug.sender.username}</span>
-                            <span className="hug-type">{getHugTypeDisplay(hug.type)}</span>
-                          </div>
-                          {hug.message && (
-                            <div className="hug-message">"{hug.message}"</div>
-                          )}
-                          <div className="hug-footer">
-                            <span className="hug-date">{formatDate(hug.createdAt)}</span>
-                            {!hug.isRead && <span className="hug-status">New</span>}
-                          </div>
-                        </div>
-                        <div className="hug-actions">
-                          <button 
-                            className="btn btn-sm btn-outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openSendHugModal(hug.sender.id);
-                            }}
-                          >
-                            Send Back
-                          </button>
-                        </div>
-                      </div>
+                        hug={hug}
+                        isSent={false}
+                        onMarkAsRead={() => handleMarkAsRead(hug.id)}
+                        onSendHug={() => openSendHugModal(hug.sender.id)}
+                      />
                     ))}
                   </div>
                 ) : (
                   <div className="empty-state">
                     <p>You haven't received any hugs yet.</p>
+                    <AnimatedHug type="WARM" size="large" speed="slow" />
+                    <p>Send a hug to get started!</p>
                   </div>
                 )}
               </div>
@@ -369,35 +350,19 @@ function HugCenterPage() {
                 ) : sentHugsData?.sentHugs?.length > 0 ? (
                   <div className="hugs-list">
                     {sentHugsData.sentHugs.map(hug => (
-                      <div key={hug.id} className="hug-item">
-                        <div className="hug-icon">{hug.type === 'CELEBRATORY' ? '🎉' : '🤗'}</div>
-                        <div className="hug-content">
-                          <div className="hug-header">
-                            <span className="hug-sender">To: {hug.recipient.name || hug.recipient.username}</span>
-                            <span className="hug-type">{getHugTypeDisplay(hug.type)}</span>
-                          </div>
-                          {hug.message && (
-                            <div className="hug-message">"{hug.message}"</div>
-                          )}
-                          <div className="hug-footer">
-                            <span className="hug-date">{formatDate(hug.createdAt)}</span>
-                            <span className="hug-status">{hug.isRead ? 'Read' : 'Unread'}</span>
-                          </div>
-                        </div>
-                        <div className="hug-actions">
-                          <button 
-                            className="btn btn-sm btn-outline"
-                            onClick={() => openSendHugModal(hug.recipient.id)}
-                          >
-                            Send Again
-                          </button>
-                        </div>
-                      </div>
+                      <EnhancedHugItem 
+                        key={hug.id} 
+                        hug={hug}
+                        isSent={true}
+                        onSendHug={() => openSendHugModal(hug.recipient.id)}
+                      />
                     ))}
                   </div>
                 ) : (
                   <div className="empty-state">
                     <p>You haven't sent any hugs yet.</p>
+                    <AnimatedHug type="ENCOURAGING" size="large" speed="slow" />
+                    <p>Send your first hug to brighten someone's day!</p>
                   </div>
                 )}
               </div>
@@ -560,7 +525,7 @@ function HugCenterPage() {
 
       {/* Send Hug Modal */}
       {showSendHugModal && (
-        <div className="modal" onClick={() => setShowSendHugModal(false)}>
+        <div className="modal hug-selection-modal" onClick={() => setShowSendHugModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Send a Hug</h3>
@@ -593,74 +558,14 @@ function HugCenterPage() {
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">Hug Type</label>
-                  <div className="hug-type-options">
-                    <div className="hug-type-option">
-                      <input
-                        type="radio"
-                        id="quick"
-                        name="hugType"
-                        value="QUICK"
-                        checked={hugType === 'QUICK'}
-                        onChange={() => setHugType('QUICK')}
-                      />
-                      <label htmlFor="quick">Quick Hug</label>
-                    </div>
-                    <div className="hug-type-option">
-                      <input
-                        type="radio"
-                        id="warm"
-                        name="hugType"
-                        value="WARM"
-                        checked={hugType === 'WARM'}
-                        onChange={() => setHugType('WARM')}
-                      />
-                      <label htmlFor="warm">Warm Hug</label>
-                    </div>
-                    <div className="hug-type-option">
-                      <input
-                        type="radio"
-                        id="supportive"
-                        name="hugType"
-                        value="SUPPORTIVE"
-                        checked={hugType === 'SUPPORTIVE'}
-                        onChange={() => setHugType('SUPPORTIVE')}
-                      />
-                      <label htmlFor="supportive">Supportive Hug</label>
-                    </div>
-                    <div className="hug-type-option">
-                      <input
-                        type="radio"
-                        id="comforting"
-                        name="hugType"
-                        value="COMFORTING"
-                        checked={hugType === 'COMFORTING'}
-                        onChange={() => setHugType('COMFORTING')}
-                      />
-                      <label htmlFor="comforting">Comforting Hug</label>
-                    </div>
-                    <div className="hug-type-option">
-                      <input
-                        type="radio"
-                        id="encouraging"
-                        name="hugType"
-                        value="ENCOURAGING"
-                        checked={hugType === 'ENCOURAGING'}
-                        onChange={() => setHugType('ENCOURAGING')}
-                      />
-                      <label htmlFor="encouraging">Encouraging Hug</label>
-                    </div>
-                    <div className="hug-type-option">
-                      <input
-                        type="radio"
-                        id="celebratory"
-                        name="hugType"
-                        value="CELEBRATORY"
-                        checked={hugType === 'CELEBRATORY'}
-                        onChange={() => setHugType('CELEBRATORY')}
-                      />
-                      <label htmlFor="celebratory">Celebratory Hug</label>
-                    </div>
+                  <label className="form-label">Choose a Hug Type</label>
+                  <HugGallery selectedType={hugType} onSelectHug={setHugType} />
+                  
+                  <div className="hug-selection-preview">
+                    <AnimatedHug type={hugType} size="large" />
+                    <h4 className="hug-preview-title">
+                      {getHugTypeDisplay(hugType)}
+                    </h4>
                   </div>
                 </div>
                 

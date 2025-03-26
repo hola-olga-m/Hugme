@@ -1,0 +1,41 @@
+
+PublicRoute.jsx:32 PublicRoute - Not authenticated, rendering children
+AuthContext.jsx:116 Attempting to register user with data: {"username":"olga.v.matusevich@gmail.com","email":"olga.v.matusevich@gmail.com","name":"olga.v.matusevich@gmail.com","password":"[REDACTED]"}
+AuthContext.jsx:124 Attempting GraphQL registration mutation
+AuthContext.jsx:322 AuthContext - Checking authentication status: Object
+PublicRoute.jsx:11 PublicRoute - Loading: true
+client.js:14 [GraphQL error]: Message: Bad Request Exception, Location: [object Object], Path: register
+(anonymous) @ client.js:14Understand this errorAI
+AuthContext.jsx:144 GraphQL register failed, trying REST API: ApolloError: Bad Request Exception
+    at new t (index.js:40:28)
+    at QueryManager.js:128:47
+    at f (asyncMap.js:22:31)
+    at asyncMap.js:11:72
+    at new Promise (<anonymous>)
+    at Object.then (asyncMap.js:11:24)
+    at Object.next (asyncMap.js:24:49)
+    at Dy (module.js:132:18)
+    at kl (module.js:176:3)
+    at t.next (module.js:225:5)
+m @ AuthContext.jsx:144Understand this errorAI
+AuthContext.jsx:155 GraphQL error details: Array(1)
+m @ AuthContext.jsx:155Understand this errorAI
+AuthContext.jsx:159 Attempting REST API registration
+AuthContext.jsx:322 AuthContext - Checking authentication status: Object
+PublicRoute.jsx:11 PublicRoute - Loading: true
+register:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)Understand this errorAI
+AuthContext.jsx:181 Registration failed completely: Error: HTTP error 404: Not Found
+    at Mn (api.js:42:13)
+    at async m (AuthContext.jsx:160:26)
+    at async P (Register.jsx:201:7)
+m @ AuthContext.jsx:181Understand this errorAI
+Register.jsx:209 Registration error: Error: HTTP error 404: Not Found
+    at Mn (api.js:42:13)
+    at async m (AuthContext.jsx:160:26)
+    at async P (Register.jsx:201:7)
+P @ Register.jsx:209Understand this errorAI
+AuthContext.jsx:322 AuthContext - Checking authentication status: Object
+PublicRoute.jsx:11 PublicRoute - Loading: false

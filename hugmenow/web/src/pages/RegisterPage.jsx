@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,6 +16,43 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState('');
+  
+  // Password validation state
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    isValid: false
+  });
+  
+  // Effect to validate password as user types
+  useEffect(() => {
+    if (password) {
+      const validations = {
+        length: password.length >= 8,
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+      };
+      
+      const isValid = Object.values(validations).every(v => v);
+      
+      setPasswordValidation({
+        ...validations,
+        isValid
+      });
+    } else {
+      // Reset validation when password is empty
+      setPasswordValidation({
+        length: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasNumber: false,
+        isValid: false
+      });
+    }
+  }, [password]);
   
   // Handle registration
   const handleRegister = async (e) => {
@@ -43,14 +80,23 @@ const RegisterPage = () => {
       return;
     }
     
+    // More strict password validation for backend
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setFormError(t('auth.passwordRequirements'));
+      return;
+    }
+    
     // Check username format
-    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!usernameRegex.test(username)) {
       setFormError(t('validation.usernameFormat'));
       return;
     }
     
     try {
+      console.log('RegisterPage: Submitting registration data');
+      
       // Call register method from AuthContext
       await register({
         username,
@@ -59,11 +105,25 @@ const RegisterPage = () => {
         password
       });
       
+      console.log('RegisterPage: Registration successful, redirecting to dashboard');
       // Redirect to dashboard on success
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      console.error('Registration error:', err);
-      // Error already set in auth context
+      console.error('RegisterPage: Registration error:', err);
+      
+      // Provide more specific error messages based on the error
+      if (err.message && err.message.includes('already exists')) {
+        setFormError(t('validation.alreadyExists'));
+      } else if (err.message && err.message.includes('password')) {
+        setFormError(t('auth.passwordRequirements'));
+      } else if (err.message && err.message.includes('username')) {
+        setFormError(t('validation.usernameFormat'));
+      } else if (err.message && err.message.includes('email')) {
+        setFormError(t('validation.emailFormat'));
+      } else {
+        // Use the error from auth context if available, or a generic message
+        setFormError(error || t('errors.register'));
+      }
     }
   };
   
@@ -134,7 +194,25 @@ const RegisterPage = () => {
               required
               minLength={8}
             />
-            <small>{t('auth.passwordRequirements')}</small>
+            <div className="password-requirements">
+              <small>{t('auth.passwordRequirements')}</small>
+              {password.length > 0 && (
+                <ul className="password-validation-list">
+                  <li className={passwordValidation.length ? 'valid' : 'invalid'}>
+                    {passwordValidation.length ? '✓' : '✗'} {t('auth.passwordLength')}
+                  </li>
+                  <li className={passwordValidation.hasUppercase ? 'valid' : 'invalid'}>
+                    {passwordValidation.hasUppercase ? '✓' : '✗'} {t('auth.passwordUppercase')}
+                  </li>
+                  <li className={passwordValidation.hasLowercase ? 'valid' : 'invalid'}>
+                    {passwordValidation.hasLowercase ? '✓' : '✗'} {t('auth.passwordLowercase')}
+                  </li>
+                  <li className={passwordValidation.hasNumber ? 'valid' : 'invalid'}>
+                    {passwordValidation.hasNumber ? '✓' : '✗'} {t('auth.passwordNumber')}
+                  </li>
+                </ul>
+              )}
+            </div>
           </div>
           
           <div className="form-group">

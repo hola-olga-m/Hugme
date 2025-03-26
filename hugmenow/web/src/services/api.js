@@ -103,14 +103,34 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   register: async (userData) => {
-    const response = await fetch(`${API_BASE_URL}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-      credentials: 'include'
-    });
+    console.log('API Service: Register request to REST endpoint');
     
-    return handleResponse(response);
+    // Ensure all required fields are present and properly formatted
+    const registrationData = {
+      username: userData.username,
+      email: userData.email,
+      name: userData.name,
+      password: userData.password
+    };
+    
+    // Include avatar URL if provided
+    if (userData.avatarUrl) {
+      registrationData.avatarUrl = userData.avatarUrl;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationData),
+        credentials: 'include'
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Network error during registration:', error);
+      throw new Error(`Registration failed: Network error - ${error.message}`);
+    }
   },
   
   /**
