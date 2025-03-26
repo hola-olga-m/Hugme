@@ -236,21 +236,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Not authenticated');
       }
       
-      const response = await fetch(`/api/users/${currentUser.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(userData),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update profile');
-      }
-      
-      const updatedUser = await response.json();
+      // Use the updateProfile method from authApi
+      const updatedUser = await authApi.updateProfile(currentUser.id, userData);
       
       // Update stored user data
       localStorage.setItem('user', JSON.stringify(updatedUser));

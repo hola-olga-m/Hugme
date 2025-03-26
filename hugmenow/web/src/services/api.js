@@ -105,7 +105,24 @@ export const authApi = {
     const response = await fetch(`${API_BASE_URL}/anonymous-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(anonymousData),
+      body: JSON.stringify({ 
+        nickname: anonymousData.nickname, 
+        avatarUrl: anonymousData.avatarUrl 
+      }),
+      credentials: 'include'
+    });
+    
+    return handleResponse(response);
+  },
+  
+  /**
+   * Logout current user
+   * @returns {Promise<Object>} Logout response
+   */
+  logout: async () => {
+    const response = await fetch(`${API_BASE_URL}/logout`, {
+      method: 'POST',
+      headers: getHeaders(),
       credentials: 'include'
     });
     
@@ -117,7 +134,7 @@ export const authApi = {
    * @returns {Promise<Object>} Current user data
    */
   getCurrentUser: async () => {
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
+    const response = await fetch(`${API_BASE_URL}/me`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include'
@@ -151,20 +168,6 @@ export const authApi = {
   deleteAccount: async (userId) => {
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'DELETE',
-      headers: getHeaders(),
-      credentials: 'include'
-    });
-    
-    return handleResponse(response);
-  },
-  
-  /**
-   * Logout user
-   * @returns {Promise<Object>} Logout response
-   */
-  logout: async () => {
-    const response = await fetch(`${API_BASE_URL}/logout`, {
-      method: 'POST',
       headers: getHeaders(),
       credentials: 'include'
     });

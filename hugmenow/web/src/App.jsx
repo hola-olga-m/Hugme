@@ -1,9 +1,10 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoadingScreen from './components/common/LoadingScreen';
+import DebugPanel from './components/common/DebugPanel';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -51,6 +52,7 @@ const App = () => {
       <AuthProvider>
         <Router>
           <Suspense fallback={<LoadingScreen text="Loading application..." />}>
+            <DebugPanel />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={
