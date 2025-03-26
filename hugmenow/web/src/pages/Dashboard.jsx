@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoadingScreen from '../components/common/LoadingScreen';
+import PublicMoodList from '../components/PublicMoodList';
 
 // Styled components
 const DashboardContainer = styled.div`
@@ -249,6 +250,10 @@ const Dashboard = () => {
             </p>
           </FeatureCard>
         </FeaturesGrid>
+        
+        <div style={{ marginTop: '2rem' }}>
+          <PublicMoodList />
+        </div>
       </DashboardContent>
     </DashboardContainer>
   );

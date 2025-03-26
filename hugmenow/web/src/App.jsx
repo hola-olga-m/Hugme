@@ -1,5 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { ApolloProvider } from '@apollo/client';
+import { client } from './apollo/client';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoadingScreen from './components/common/LoadingScreen';
 
@@ -45,55 +47,57 @@ const PublicRoute = ({ children }) => {
 // Main App component
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <Suspense fallback={<LoadingScreen text="Loading application..." />}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={
-              <PublicRoute>
-                <Navigate to="/login" replace />
-              </PublicRoute>
-            } />
-            <Route path="/login" element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } />
-            <Route path="/register" element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            } />
-            
-            {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/mood-tracker" element={
-              <ProtectedRoute>
-                <MoodTracker />
-              </ProtectedRoute>
-            } />
-            <Route path="/hug-center" element={
-              <ProtectedRoute>
-                <HugCenter />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            
-            {/* Not found route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </Router>
-    </AuthProvider>
+    <ApolloProvider client={client}>
+      <AuthProvider>
+        <Router>
+          <Suspense fallback={<LoadingScreen text="Loading application..." />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={
+                <PublicRoute>
+                  <Navigate to="/login" replace />
+                </PublicRoute>
+              } />
+              <Route path="/login" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              } />
+              
+              {/* Protected routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/mood-tracker" element={
+                <ProtectedRoute>
+                  <MoodTracker />
+                </ProtectedRoute>
+              } />
+              <Route path="/hug-center" element={
+                <ProtectedRoute>
+                  <HugCenter />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              
+              {/* Not found route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </AuthProvider>
+    </ApolloProvider>
   );
 };
 

@@ -1,143 +1,220 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { useQuery } from '@apollo/client';
 import { GET_PUBLIC_MOODS } from '../graphql/queries';
-import styled from 'styled-components';
+import LoadingSpinner from './common/LoadingSpinner';
+import ErrorMessage from './common/ErrorMessage';
 
-const MoodListWrapper = styled.div`
+// Styled components
+const PublicMoodsContainer = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+`;
+
+const MoodsHeader = styled.div`
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  
+  h2 {
+    color: var(--gray-800);
+    margin: 0;
+  }
+`;
+
+const RefreshButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const MoodsList = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1rem;
-  max-width: 600px;
-  margin: 0 auto;
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const MoodCard = styled.div`
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
   padding: 1rem;
+  transition: var(--transition-base);
   
   &:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-sm);
     transform: translateY(-2px);
-    transition: all 0.2s ease;
   }
 `;
 
 const MoodHeader = styled.div`
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
   margin-bottom: 0.5rem;
-`;
-
-const Avatar = styled.img`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-`;
-
-const UserName = styled.span`
-  font-weight: bold;
 `;
 
 const MoodScore = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.1rem;
-  color: ${props => {
-    // Color based on mood score
-    if (props.score >= 8) return '#2ecc71'; // Happy
-    if (props.score >= 5) return '#f39c12'; // Okay
-    if (props.score >= 3) return '#e67e22'; // Not great
-    return '#e74c3c'; // Sad
-  }};
-`;
-
-const MoodNote = styled.p`
-  margin: 0.5rem 0;
-  color: #333;
+  
+  .emoji {
+    font-size: 1.5rem;
+  }
+  
+  .label {
+    font-weight: 500;
+    color: var(--gray-800);
+  }
 `;
 
 const MoodDate = styled.div`
   font-size: 0.8rem;
-  color: #666;
-  text-align: right;
+  color: var(--gray-500);
 `;
 
-const Loading = styled.div`
+const MoodNote = styled.p`
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  line-height: 1.4;
+`;
+
+const UserInfo = styled.div`
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 200px;
-  font-size: 1.1rem;
-  color: #666;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+  }
 `;
 
-const Error = styled.div`
-  color: #e74c3c;
+const EmptyState = styled.div`
   text-align: center;
-  padding: 1rem;
-  background-color: #fadbd8;
-  border-radius: 8px;
+  padding: 2rem;
+  color: var(--gray-600);
+  
+  p {
+    margin-bottom: 1rem;
+  }
 `;
 
-// Emoji mapping for mood scores
+// Helper functions
 const getMoodEmoji = (score) => {
-  if (score >= 8) return '😄';
-  if (score >= 5) return '🙂';
-  if (score >= 3) return '😐';
-  return '😞';
+  const emojis = ['😢', '😟', '😐', '🙂', '😄'];
+  return emojis[Math.min(Math.floor(score) - 1, 4)];
 };
 
-// Format date for display
-const formatDate = (dateString) => {
+const getMoodLabel = (score) => {
+  const labels = ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
+  return labels[Math.min(Math.floor(score) - 1, 4)];
+};
+
+const getFormattedDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
   });
 };
 
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+};
+
 const PublicMoodList = () => {
-  const { loading, error, data } = useQuery(GET_PUBLIC_MOODS);
-
-  if (loading) return <Loading>Loading moods...</Loading>;
+  const { loading, error, data, refetch } = useQuery(GET_PUBLIC_MOODS);
   
-  if (error) return <Error>Error loading moods: {error.message}</Error>;
-
+  if (loading) return <LoadingSpinner text="Loading public moods..." />;
+  
+  if (error) return <ErrorMessage error={error} />;
+  
+  const publicMoods = data?.publicMoods || [];
+  
+  if (publicMoods.length === 0) {
+    return (
+      <PublicMoodsContainer>
+        <MoodsHeader>
+          <h2>Community Moods</h2>
+          <RefreshButton onClick={() => refetch()}>
+            <span>Refresh</span>
+          </RefreshButton>
+        </MoodsHeader>
+        <EmptyState>
+          <p>No public moods have been shared yet.</p>
+          <p>The community mood board will populate as users share their feelings.</p>
+        </EmptyState>
+      </PublicMoodsContainer>
+    );
+  }
+  
   return (
-    <MoodListWrapper>
-      <h2>Community Moods</h2>
-      {data.publicMoods.map(mood => (
-        <MoodCard key={mood.id}>
-          <MoodHeader>
-            <Avatar 
-              src={mood.user.avatarUrl || 'https://via.placeholder.com/36'} 
-              alt={mood.user.name}
-            />
-            <UserName>{mood.user.name}</UserName>
-          </MoodHeader>
-          
-          <MoodScore score={mood.score}>
-            {getMoodEmoji(mood.score)} Mood: {mood.score}/10
-          </MoodScore>
-          
-          {mood.note && <MoodNote>"{mood.note}"</MoodNote>}
-          
-          <MoodDate>{formatDate(mood.createdAt)}</MoodDate>
-        </MoodCard>
-      ))}
+    <PublicMoodsContainer>
+      <MoodsHeader>
+        <h2>Community Moods</h2>
+        <RefreshButton onClick={() => refetch()}>
+          <span>Refresh</span>
+        </RefreshButton>
+      </MoodsHeader>
       
-      {data.publicMoods.length === 0 && (
-        <p>No public moods have been shared yet.</p>
-      )}
-    </MoodListWrapper>
+      <MoodsList>
+        {publicMoods.map((mood) => (
+          <MoodCard key={mood.id}>
+            <MoodHeader>
+              <MoodScore>
+                <span className="emoji">{getMoodEmoji(mood.score)}</span>
+                <span className="label">{getMoodLabel(mood.score)}</span>
+              </MoodScore>
+              <MoodDate>{getFormattedDate(mood.createdAt)}</MoodDate>
+            </MoodHeader>
+            
+            {mood.note && <MoodNote>{mood.note}</MoodNote>}
+            
+            <UserInfo>
+              <div className="avatar">{getInitials(mood.user?.name)}</div>
+              <span>{mood.user?.name || 'Anonymous User'}</span>
+            </UserInfo>
+          </MoodCard>
+        ))}
+      </MoodsList>
+    </PublicMoodsContainer>
   );
 };
 
