@@ -1,4 +1,4 @@
-import{d as r,j as o,b as e}from"./main-3e74ada0.js";const t=r.div`
+import{d as r,j as o,b as e}from"./main-9fd70443.js";const t=r.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,4 +43,4 @@ import{d as r,j as o,b as e}from"./main-3e74ada0.js";const t=r.div`
     text-decoration: none;
   }
 `,c=()=>o.jsxs(t,{children:[o.jsx(n,{children:"404"}),o.jsx(i,{children:"Page Not Found"}),o.jsx(a,{children:"The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."}),o.jsx(d,{to:"/",children:"Return to Home"})]});export{c as default};
-//# sourceMappingURL=NotFound-c901e75b.js.map
+//# sourceMappingURL=NotFound-a41f11b1.js.map

@@ -8,6 +8,7 @@ import LoadingScreen from './components/common/LoadingScreen';
 import DebugPanel from './components/common/DebugPanel';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicRoute from './components/routing/PublicRoute';
+import StaticRoute from './components/routing/StaticRoute';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -132,10 +133,11 @@ const App = () => {
                     <ThemeSettings />
                   </ProtectedRoute>
                 } />
+                {/* Static demo route - always accessible */}
                 <Route path="/hug-gallery" element={
-                  <ProtectedRoute>
+                  <StaticRoute>
                     <HugGalleryDemo />
-                  </ProtectedRoute>
+                  </StaticRoute>
                 } />
                 
                 {/* Not found route */}

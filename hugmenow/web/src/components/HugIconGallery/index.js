@@ -1,77 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { getHugTypes } from '../../utils/hugIcons';
+import { HUG_ICONS, getHugTypeDescription } from '../../utils/hugIcons';
 import HugIcon from '../HugIcon';
 
-const GalleryContainer = styled(motion.div)`
+const GalleryContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  background: ${props => props.theme.cardBackground};
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const GalleryHeader = styled.div`
+  margin-bottom: 16px;
 `;
 
 const GalleryTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0 0 4px 0;
 `;
 
 const GalleryDescription = styled.p`
-  font-size: 0.875rem;
-  color: ${props => props.theme.textSecondary};
-  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
 `;
 
-const IconsGrid = styled.div`
+const GalleryGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 1rem;
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 16px;
+  margin-bottom: ${props => props.showSelectedSection ? '16px' : '0'};
   
   @media (max-width: 480px) {
     grid-template-columns: repeat(3, 1fr);
   }
 `;
 
-const SelectedIconSection = styled.div`
+const SelectedIconSection = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid ${props => props.theme.borderColor};
+  padding: 16px;
+  margin-top: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
 `;
 
-const SelectedLabel = styled.p`
-  font-size: 0.875rem;
-  color: ${props => props.theme.textSecondary};
-  margin-bottom: 1rem;
+const SelectedIconTitle = styled.h4`
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 16px 0;
+  text-align: center;
 `;
 
-// Animation variants
-const containerAnimation = {
+const SelectedIconDetails = styled.div`
+  margin-top: 16px;
+  text-align: center;
+`;
+
+const SelectedIconName = styled.h5`
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 8px 0;
+`;
+
+const SelectedIconDescription = styled.p`
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+`;
+
+/**
+ * Animation variants for the gallery items
+ */
+const galleryVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05
+      staggerChildren: 0.1
     }
   }
 };
 
-const itemAnimation = {
-  hidden: { y: 20, opacity: 0 },
+const fadeInVariants = {
+  hidden: { opacity: 0, y: 20 },
   visible: {
-    y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 300, damping: 24 }
+    y: 0,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 25
+    }
   }
 };
 
@@ -80,57 +107,80 @@ const itemAnimation = {
  * Displays a gallery of all available hug icons with selection functionality
  */
 const HugIconGallery = ({
+  /** Title for the gallery section */
   title = 'Hug Types',
-  description = 'Choose from our variety of hug types to express your feelings',
-  showSelection = true,
-  defaultSelected = 'standard',
-  onSelectHug,
-  ...props
+  /** Description for the gallery */
+  description = 'Select a hug type to send',
+  /** Whether to show the selected icon section */
+  showSelectedSection = true,
+  /** Default selected hug type */
+  defaultSelectedType = 'standard',
+  /** Callback when a hug type is selected */
+  onSelectHugType
 }) => {
-  const [selectedType, setSelectedType] = useState(defaultSelected);
-  const hugTypes = getHugTypes();
+  const [selectedType, setSelectedType] = useState(defaultSelectedType);
   
-  const handleIconClick = (type) => {
+  // Update selected type if default changes
+  useEffect(() => {
+    setSelectedType(defaultSelectedType);
+  }, [defaultSelectedType]);
+  
+  // Handle icon selection
+  const handleSelectIcon = (type) => {
     setSelectedType(type);
-    if (onSelectHug) {
-      onSelectHug(type);
+    if (onSelectHugType) {
+      onSelectHugType(type);
     }
   };
   
+  // Get the description for the selected hug type
+  const selectedDescription = getHugTypeDescription(selectedType);
+  
   return (
-    <GalleryContainer 
-      initial="hidden"
-      animate="visible"
-      variants={containerAnimation}
-      {...props}
-    >
-      {title && <GalleryTitle>{title}</GalleryTitle>}
-      {description && <GalleryDescription>{description}</GalleryDescription>}
+    <GalleryContainer data-testid="hug-icon-gallery">
+      <GalleryHeader>
+        <GalleryTitle>{title}</GalleryTitle>
+        <GalleryDescription>{description}</GalleryDescription>
+      </GalleryHeader>
       
-      <IconsGrid>
-        {hugTypes.map(type => (
-          <motion.div key={type} variants={itemAnimation}>
-            <HugIcon 
-              type={type}
-              showLabel
-              showBackground
-              highlighted={selectedType === type}
-              onClick={handleIconClick}
-              size="medium"
-            />
-          </motion.div>
-        ))}
-      </IconsGrid>
+      <motion.div
+        variants={galleryVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <GalleryGrid showSelectedSection={showSelectedSection}>
+          {Object.keys(HUG_ICONS).map((hugType) => (
+            <motion.div key={hugType} variants={fadeInVariants}>
+              <HugIcon
+                type={hugType}
+                showLabel
+                showBackground
+                isSelected={selectedType === hugType}
+                margin="8px 0"
+                onClick={() => handleSelectIcon(hugType)}
+              />
+            </motion.div>
+          ))}
+        </GalleryGrid>
+      </motion.div>
       
-      {showSelection && selectedType && (
-        <SelectedIconSection>
-          <SelectedLabel>Selected Hug Type:</SelectedLabel>
-          <HugIcon 
+      {showSelectedSection && (
+        <SelectedIconSection
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.3 }}
+        >
+          <SelectedIconTitle>Selected Hug Type</SelectedIconTitle>
+          <HugIcon
             type={selectedType}
-            showLabel
-            highlighted
-            size="large"
+            size="lg"
+            showBackground
+            isSelected
           />
+          <SelectedIconDetails>
+            <SelectedIconName>{HUG_ICONS[selectedType]?.name}</SelectedIconName>
+            <SelectedIconDescription>{selectedDescription}</SelectedIconDescription>
+          </SelectedIconDetails>
         </SelectedIconSection>
       )}
     </GalleryContainer>
@@ -138,16 +188,11 @@ const HugIconGallery = ({
 };
 
 HugIconGallery.propTypes = {
-  /** Title for the gallery section */
   title: PropTypes.string,
-  /** Description for the gallery */
   description: PropTypes.string,
-  /** Whether to show the selected icon section */
-  showSelection: PropTypes.bool,
-  /** Default selected hug type */
-  defaultSelected: PropTypes.string,
-  /** Callback when a hug type is selected */
-  onSelectHug: PropTypes.func
+  showSelectedSection: PropTypes.bool,
+  defaultSelectedType: PropTypes.oneOf(Object.keys(HUG_ICONS)),
+  onSelectHugType: PropTypes.func
 };
 
 export default HugIconGallery;

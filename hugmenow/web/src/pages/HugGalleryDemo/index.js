@@ -1,80 +1,114 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { fadeIn, pageTransition } from '../../utils/animations';
+import { Link, useNavigate } from 'react-router-dom';
+import SimpleLayout from '../../layouts/SimpleLayout';
 import HugIconGallery from '../../components/HugIconGallery';
 import HugIcon from '../../components/HugIcon';
-import { getHugTypes, getHugTypeDisplayName } from '../../utils/hugIcons';
+import { getHugTypes, getHugTypeColor, getHugTypeDisplayName } from '../../utils/hugIcons';
 
 // Styled components
-const PageContainer = styled(motion.div)`
-  padding: 1.5rem;
-  max-width: 900px;
+const PageContainer = styled.div`
+  padding: 16px;
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
 `;
 
-const PageHeader = styled.header`
-  margin-bottom: 2rem;
+const PageHeader = styled.div`
+  margin-bottom: 24px;
 `;
 
-const PageTitle = styled.h1`
+const Title = styled.h1`
   font-size: 2rem;
-  font-weight: 700;
-  color: ${props => props.theme.textPrimary};
-  margin-bottom: 0.5rem;
+  color: #333;
+  margin: 0 0 8px 0;
 `;
 
-const PageDescription = styled.p`
+const Description = styled.p`
   font-size: 1rem;
-  color: ${props => props.theme.textSecondary};
+  color: #666;
+  margin: 0 0 16px 0;
+`;
+
+const Section = styled.div`
+  margin-bottom: 32px;
 `;
 
 const SectionTitle = styled.h2`
   font-size: 1.5rem;
-  font-weight: 600;
-  color: ${props => props.theme.textPrimary};
-  margin: 2rem 0 1rem;
+  color: #333;
+  margin: 0 0 16px 0;
 `;
 
-const DemoSection = styled.section`
-  background: ${props => props.theme.cardBackground};
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-`;
-
-const DemoRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-`;
-
-const DemoDescription = styled.p`
-  font-size: 0.875rem;
-  color: ${props => props.theme.textSecondary};
-  margin-bottom: 1rem;
-`;
-
-const BackButton = styled(motion.button)`
-  padding: 0.75rem 1.25rem;
-  background-color: ${props => props.theme.buttonSecondary};
-  color: ${props => props.theme.textPrimary};
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
   
-  &:hover {
-    background-color: ${props => props.theme.buttonSecondaryHover};
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
   }
 `;
+
+const IconCard = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 2px solid ${props => props.isSelected ? props.color : 'transparent'};
+`;
+
+const IconName = styled.h3`
+  font-size: 0.9rem;
+  color: #333;
+  margin: 8px 0 0 0;
+  text-align: center;
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+`;
+
+const Button = styled.button`
+  padding: 12px 24px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #3a80d2;
+  }
+  
+  &:active {
+    transform: translateY(1px);
+  }
+`;
+
+// Animation variants
+const cardVariants = {
+  hover: {
+    scale: 1.05,
+    boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
+    transition: { type: 'spring', stiffness: 300, damping: 15 }
+  },
+  tap: {
+    scale: 0.98,
+    transition: { type: 'spring', stiffness: 300, damping: 15 }
+  }
+};
 
 /**
  * HugGalleryDemo page
@@ -83,120 +117,72 @@ const BackButton = styled(motion.button)`
 const HugGalleryDemo = () => {
   const navigate = useNavigate();
   const [selectedHugType, setSelectedHugType] = useState('standard');
-  const hugTypes = getHugTypes();
   
-  const handleSelectHug = (type) => {
+  // Handle hug type selection
+  const handleSelectHugType = (type) => {
     setSelectedHugType(type);
   };
   
-  const handleBackClick = () => {
-    navigate(-1);
+  // Go back to the dashboard
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
   };
   
   return (
-    <PageContainer
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={pageTransition}
-    >
-      <PageHeader>
-        <PageTitle>Hug Icons Demo</PageTitle>
-        <PageDescription>
-          Explore our collection of expressive hug icons designed in a friendly, colorful style similar to "hugs not drugs" Telegram stickers.
-        </PageDescription>
-      </PageHeader>
-      
-      <HugIconGallery 
-        title="Choose Your Hug Style"
-        description="Select from our variety of hug types to express different emotions and situations"
-        onSelectHug={handleSelectHug}
-        defaultSelected={selectedHugType}
-      />
-      
-      <motion.div variants={fadeIn}>
-        <SectionTitle>Different Sizes</SectionTitle>
-        <DemoSection>
-          <DemoDescription>
-            Hug icons are available in different sizes to fit various UI contexts
-          </DemoDescription>
-          <DemoRow>
-            <HugIcon type={selectedHugType} size="tiny" showLabel />
-            <HugIcon type={selectedHugType} size="small" showLabel />
-            <HugIcon type={selectedHugType} size="medium" showLabel />
-            <HugIcon type={selectedHugType} size="large" showLabel />
-            <HugIcon type={selectedHugType} size="xlarge" showLabel />
-          </DemoRow>
-        </DemoSection>
-      </motion.div>
-      
-      <motion.div variants={fadeIn}>
-        <SectionTitle>Displaying Options</SectionTitle>
-        <DemoSection>
-          <DemoDescription>
-            Different ways to display hug icons in your UI
-          </DemoDescription>
-          <DemoRow>
-            <HugIcon 
-              type={selectedHugType} 
-              showBackground 
-              showLabel 
-              size="medium" 
-            />
-            <HugIcon 
-              type={selectedHugType} 
-              showBackground={false}
-              showLabel 
-              size="medium" 
-            />
-            <HugIcon 
-              type={selectedHugType} 
-              showBackground 
-              showLabel={false}
-              size="medium" 
-            />
-            <HugIcon 
-              type={selectedHugType} 
-              highlighted
-              showBackground 
-              showLabel 
-              size="medium" 
-            />
-          </DemoRow>
-        </DemoSection>
-      </motion.div>
-      
-      <motion.div variants={fadeIn}>
-        <SectionTitle>All Types Gallery</SectionTitle>
-        <DemoSection>
-          <DemoDescription>
-            The complete collection of available hug icons
-          </DemoDescription>
-          <DemoRow>
-            {hugTypes.map(type => (
-              <div key={type} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <SimpleLayout>
+      <PageContainer>
+        <PageHeader>
+          <Title>Hug Icon Gallery</Title>
+          <Description>
+            Explore the different types of hugs available in the HugMeNow app.
+            These icons are used throughout the application to represent different
+            types of virtual hugs that you can send to friends and loved ones.
+          </Description>
+        </PageHeader>
+        
+        <Section>
+          <SectionTitle>Individual Hug Icons</SectionTitle>
+          <CardGrid>
+            {getHugTypes().map((hugType) => (
+              <IconCard 
+                key={hugType}
+                whileHover="hover"
+                whileTap="tap"
+                variants={cardVariants}
+                isSelected={selectedHugType === hugType}
+                color={getHugTypeColor(hugType)}
+                onClick={() => handleSelectHugType(hugType)}
+              >
                 <HugIcon 
-                  type={type}
-                  showBackground
-                  size="medium" 
+                  type={hugType} 
+                  size="md" 
+                  showBackground={false}
                 />
-                <span style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>
-                  {getHugTypeDisplayName(type)}
-                </span>
-              </div>
+                <IconName>{getHugTypeDisplayName(hugType)}</IconName>
+              </IconCard>
             ))}
-          </DemoRow>
-        </DemoSection>
-      </motion.div>
-      
-      <BackButton 
-        onClick={handleBackClick}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        ← Back
-      </BackButton>
-    </PageContainer>
+          </CardGrid>
+        </Section>
+        
+        <Section>
+          <SectionTitle>Hug Icon Gallery Component</SectionTitle>
+          <HugIconGallery 
+            title="Select a Hug Type"
+            description="Choose the type of hug you want to send"
+            defaultSelectedType={selectedHugType}
+            onSelectHugType={handleSelectHugType}
+          />
+        </Section>
+        
+        <ButtonContainer>
+          <Link to="/login">
+            <Button>
+              Sign In to HugMeNow
+            </Button>
+          </Link>
+        </ButtonContainer>
+      </PageContainer>
+    </SimpleLayout>
   );
 };
 

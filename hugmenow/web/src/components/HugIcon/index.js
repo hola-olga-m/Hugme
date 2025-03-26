@@ -7,69 +7,72 @@ import { getHugIconByType, getHugTypeColor, getHugTypeDisplayName } from '../../
 /**
  * Styled components for the HugIcon
  */
-const HugIconContainer = styled(motion.div)`
+const IconContainer = styled(motion.div)`
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: ${props => props.size === 'small' ? '0.5rem' : '1rem'};
-  margin: ${props => props.margin || '0.5rem'};
-  border-radius: 12px;
-  background-color: ${props => props.showBackground ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
+  margin: ${props => props.margin || '0'};
   cursor: ${props => props.onClick ? 'pointer' : 'default'};
-  transition: all 0.2s ease-in-out;
-  
-  &:hover {
-    background-color: ${props => props.onClick ? 'rgba(255, 255, 255, 0.2)' : props.showBackground ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
-    transform: ${props => props.onClick ? 'scale(1.05)' : 'none'};
-  }
 `;
 
-const IconImage = styled.img`
+const IconWrapper = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: ${props => {
     switch (props.size) {
-      case 'tiny': return '24px';
-      case 'small': return '32px';
-      case 'medium': return '48px';
-      case 'large': return '64px';
-      case 'xlarge': return '96px';
-      default: return '48px';
+      case 'xs': return '24px';
+      case 'sm': return '32px';
+      case 'md': return '48px';
+      case 'lg': return '64px';
+      case 'xl': return '96px';
+      default: return props.size || '48px';
     }
   }};
   height: ${props => {
     switch (props.size) {
-      case 'tiny': return '24px';
-      case 'small': return '32px';
-      case 'medium': return '48px';
-      case 'large': return '64px';
-      case 'xlarge': return '96px';
-      default: return '48px';
+      case 'xs': return '24px';
+      case 'sm': return '32px';
+      case 'md': return '48px';
+      case 'lg': return '64px';
+      case 'xl': return '96px';
+      default: return props.size || '48px';
     }
   }};
-  object-fit: contain;
-  filter: ${props => props.highlighted ? 'drop-shadow(0 0 8px ' + props.accentColor + ')' : 'none'};
+  background-color: ${props => props.showBackground ? '#ffffff' : 'transparent'};
+  border-radius: 50%;
+  padding: ${props => props.showBackground ? '8px' : '0'};
+  border: ${props => props.isSelected ? `2px solid ${props.color || '#4a90e2'}` : 'none'};
+  box-shadow: ${props => props.isSelected ? '0 0 10px rgba(0,0,0,0.1)' : 'none'};
 `;
 
-const HugLabel = styled.span`
-  font-size: ${props => props.size === 'small' || props.size === 'tiny' ? '0.75rem' : '0.875rem'};
-  color: ${props => props.theme.textSecondary};
-  margin-top: 0.5rem;
+const StyledIcon = styled.img`
+  width: 100%;
+  height: 100%;
+`;
+
+const IconLabel = styled.span`
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #333;
   text-align: center;
-  font-weight: ${props => props.highlighted ? '600' : '400'};
-  display: ${props => props.showLabel ? 'block' : 'none'};
 `;
 
 /**
  * Animation variants for the HugIcon
  */
-const iconAnimations = {
-  hover: {
-    scale: 1.1,
-    transition: { duration: 0.2 }
-  },
-  tap: {
-    scale: 0.95,
-    transition: { duration: 0.1 }
+const iconVariants = {
+  initial: { scale: 1 },
+  hover: { scale: 1.1 },
+  tap: { scale: 0.95 },
+  selected: { 
+    scale: 1.05,
+    transition: { 
+      type: 'spring',
+      stiffness: 400,
+      damping: 10
+    }
   }
 };
 
@@ -77,73 +80,70 @@ const iconAnimations = {
  * HugIcon Component
  * Displays a hug icon with optional label and animations
  */
-const HugIcon = ({ 
-  type = 'standard', 
-  size = 'medium', 
-  showLabel = false, 
-  showBackground = false, 
-  highlighted = false,
-  animate = true, 
+const HugIcon = ({
+  /** Type of hug icon to display */
+  type = 'standard',
+  /** Size of the icon */
+  size = 'md',
+  /** Whether to show the label below the icon */
+  showLabel = false,
+  /** Whether to show a background behind the icon */
+  showBackground = false,
+  /** Whether the icon should be highlighted */
+  isSelected = false,
+  /** Whether to apply animations to the icon */
+  animate = true,
+  /** CSS margin value */
   margin,
-  onClick,
-  ...props 
+  /** Click handler for the icon */
+  onClick
 }) => {
+  // Get the icon source and color based on the type
   const iconSrc = getHugIconByType(type);
-  const accentColor = getHugTypeColor(type);
-  const displayName = getHugTypeDisplayName(type);
-  
-  const handleClick = () => {
-    if (onClick) onClick(type);
-  };
+  const color = getHugTypeColor(type);
+  const name = getHugTypeDisplayName(type);
 
   return (
-    <HugIconContainer 
-      size={size}
+    <IconContainer 
       margin={margin}
-      showBackground={showBackground}
-      onClick={onClick ? handleClick : undefined}
-      whileHover={animate && onClick ? 'hover' : undefined}
-      whileTap={animate && onClick ? 'tap' : undefined}
-      variants={iconAnimations}
-      {...props}
+      onClick={onClick}
+      data-testid={`hug-icon-${type}`}
     >
-      <IconImage 
-        src={iconSrc} 
-        alt={displayName}
+      <IconWrapper 
         size={size}
-        highlighted={highlighted}
-        accentColor={accentColor}
-      />
+        showBackground={showBackground}
+        isSelected={isSelected}
+        color={color}
+        initial="initial"
+        whileHover={animate ? "hover" : ""}
+        whileTap={animate ? "tap" : ""}
+        animate={isSelected && animate ? "selected" : "initial"}
+        variants={animate ? iconVariants : {}}
+      >
+        <StyledIcon 
+          src={iconSrc} 
+          alt={`${name} icon`} 
+        />
+      </IconWrapper>
       
       {showLabel && (
-        <HugLabel 
-          size={size} 
-          highlighted={highlighted}
-          showLabel={showLabel}
-        >
-          {displayName}
-        </HugLabel>
+        <IconLabel>{name}</IconLabel>
       )}
-    </HugIconContainer>
+    </IconContainer>
   );
 };
 
 HugIcon.propTypes = {
-  /** Type of hug icon to display */
   type: PropTypes.oneOf(['standard', 'supportive', 'group', 'comforting', 'enthusiastic', 'virtual']),
-  /** Size of the icon */
-  size: PropTypes.oneOf(['tiny', 'small', 'medium', 'large', 'xlarge']),
-  /** Whether to show the label below the icon */
+  size: PropTypes.oneOfType([
+    PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl']),
+    PropTypes.string
+  ]),
   showLabel: PropTypes.bool,
-  /** Whether to show a background behind the icon */
   showBackground: PropTypes.bool,
-  /** Whether the icon should be highlighted */
-  highlighted: PropTypes.bool,
-  /** Whether to apply animations to the icon */
+  isSelected: PropTypes.bool,
   animate: PropTypes.bool,
-  /** CSS margin value */
   margin: PropTypes.string,
-  /** Click handler for the icon */
   onClick: PropTypes.func
 };
 
