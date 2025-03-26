@@ -120,8 +120,8 @@ export class MoodsService {
     // Get all user moods using postgraphile
     const moodsQuery = `
       SELECT * FROM ${this.moodsTable}
-      WHERE "userId" = $1
-      ORDER BY "createdAt" DESC
+      WHERE user_id = $1
+      ORDER BY created_at DESC
     `;
     
     const { rows: moods } = await this.postgraphileService.query(moodsQuery, [userId]);
@@ -132,12 +132,12 @@ export class MoodsService {
 
     // Initialize streak counter
     let streak = 1;
-    let currentDate = new Date(moods[0].createdAt);
+    let currentDate = new Date(moods[0].created_at);
     currentDate.setHours(0, 0, 0, 0);
 
     // Check for consecutive days
     for (let i = 1; i < moods.length; i++) {
-      const moodDate = new Date(moods[i].createdAt);
+      const moodDate = new Date(moods[i].created_at);
       moodDate.setHours(0, 0, 0, 0);
 
       // Calculate difference in days

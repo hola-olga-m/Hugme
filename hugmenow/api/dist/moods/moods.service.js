@@ -100,18 +100,18 @@ let MoodsService = class MoodsService {
     async getUserMoodStreak(userId) {
         const moodsQuery = `
       SELECT * FROM ${this.moodsTable}
-      WHERE "userId" = $1
-      ORDER BY "createdAt" DESC
+      WHERE user_id = $1
+      ORDER BY created_at DESC
     `;
         const { rows: moods } = await this.postgraphileService.query(moodsQuery, [userId]);
         if (moods.length === 0) {
             return 0;
         }
         let streak = 1;
-        let currentDate = new Date(moods[0].createdAt);
+        let currentDate = new Date(moods[0].created_at);
         currentDate.setHours(0, 0, 0, 0);
         for (let i = 1; i < moods.length; i++) {
-            const moodDate = new Date(moods[i].createdAt);
+            const moodDate = new Date(moods[i].created_at);
             moodDate.setHours(0, 0, 0, 0);
             const diffTime = Math.abs(currentDate.getTime() - moodDate.getTime());
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

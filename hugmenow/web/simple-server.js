@@ -1,60 +1,90 @@
-// Simple Express server for serving static files
 import express from 'express';
-import path from 'path';
 import { fileURLToPath } from 'url';
-import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
-// Set up __dirname equivalent for ES modules
+// Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Enable CORS
-app.use(cors());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
-// Add request logging
+// Simple logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// API server URL
-const apiUrl = process.env.VITE_BACKEND_URL || 'http://localhost:3000';
-console.log(`API server URL: ${apiUrl}`);
-
-// Set up API proxy middleware
+// Setup API proxy
 app.use('/api', createProxyMiddleware({
-  target: apiUrl,
+  target: 'http://127.0.0.1:3000',
   changeOrigin: true,
   pathRewrite: {
-    '^/api': '' // remove /api prefix when forwarding to target
+    '^/api': '/', // rewrite path
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`Proxying API request: ${req.method} ${req.url} -> ${proxyReq.path}`);
+  },
+  onError: (err, req, res) => {
+    console.error('Proxy error:', err);
+    res.status(500).json({
+      error: 'Proxy error',
+      message: err.message
+    });
   }
 }));
 
+// Setup GraphQL proxy
 app.use('/graphql', createProxyMiddleware({
-  target: apiUrl,
-  changeOrigin: true
+  target: 'http://127.0.0.1:3000',
+  changeOrigin: true,
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`Proxying GraphQL request: ${req.method} ${req.url}`);
+  },
+  onError: (err, req, res) => {
+    console.error('GraphQL proxy error:', err);
+    res.status(500).json({
+      error: 'GraphQL proxy error',
+      message: err.message
+    });
+  }
 }));
 
-app.use('/info', createProxyMiddleware({
-  target: apiUrl,
-  changeOrigin: true
-}));
+// Serve static files from dist directory
+const distPath = path.join(__dirname, 'dist');
+app.use(express.static(distPath));
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Fallback route - serve index.html
+// Serve index.html for all routes (SPA)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(distPath, 'index.html');
+  
+  // Check if index.html exists
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('Not found - Build the application first with npm run build');
+  }
 });
 
-// Start the server
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-  console.log(`API proxied to: ${apiUrl}`);
+  console.log(`Server running at http://0.0.0.0:${PORT}`);
+  console.log(`Serving files from ${distPath}`);
 });
