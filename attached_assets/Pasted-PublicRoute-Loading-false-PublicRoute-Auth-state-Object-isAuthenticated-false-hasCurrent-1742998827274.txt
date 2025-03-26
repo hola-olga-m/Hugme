@@ -1,0 +1,50 @@
+PublicRoute - Loading: false
+PublicRoute - Auth state: 
+Object {isAuthenticated: false, hasCurrentUser: false, currentUser: null}
+PublicRoute - Not authenticated, rendering children
+Attempting to register user with data: {"username":"olga","email":"olga.v.matusevich@gmail.com","name":"olga","password":"[REDACTED]"}
+Attempting GraphQL registration mutation
+AuthContext - Checking authentication status: 
+Object {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+PublicRoute - Loading: true
+[GraphQL error]: Message: Bad Request Exception, Location: [object Object], Path: register
+GraphQL register failed, trying REST API: 
+t {name: "ApolloError", graphQLErrors: Array(1), protocolErrors: Array(0), clientErrors: Array(0), networkError: null, …}
+
+GraphQL error details: 
+Array [{…}]
+
+Attempting REST API registration
+AuthContext - Checking authentication status: 
+Object {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+PublicRoute - Loading: true
+Registration failed completely: 
+Error {}
+message: "HTTP error 404: Not Found"
+stack: "Error: HTTP error 404: Not Found↵ at Fn (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/assets/main-8ecaca0c.js:258:204)↵ at async m (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/assets/main-8ecaca0c.js:258:3516)↵ at async P (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/assets/Register-57280729.js:123:575)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Registration error: 
+Error {}
+message: "HTTP error 404: Not Found"
+stack: "Error: HTTP error 404: Not Found↵ at Fn (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/assets/main-8ecaca0c.js:258:204)↵ at async m (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/assets/main-8ecaca0c.js:258:3516)↵ at async P (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/assets/Register-57280729.js:123:575)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+AuthContext - Checking authentication status: 
+Object {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+PublicRoute - Loading: false
+PublicRoute - Auth state: 
+Object {isAuthenticated: false, hasCurrentUser: false, currentUser: null}
+currentUser: null
+hasCurrentUser: false
+isAuthenticated: false
+[[Prototype]]: Object
+PublicRoute - Not authenticated, rendering children
