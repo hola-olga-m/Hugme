@@ -17,31 +17,61 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, currentUser } = useAuth();
+  
+  // For debugging
+  console.log('ProtectedRoute - Loading:', loading);
+  console.log('ProtectedRoute - Auth state:', {
+    isAuthenticated: !!isAuthenticated,
+    hasCurrentUser: !!currentUser,
+    currentUser: currentUser ? {
+      id: currentUser.id || '[MISSING]',
+      username: currentUser.username,
+      isAnonymous: currentUser.isAnonymous
+    } : null
+  });
   
   if (loading) {
     return <LoadingScreen text="Checking authentication..." />;
   }
   
+  // Fix: isAuthenticated is a boolean value, not a function
   if (!isAuthenticated) {
+    console.log('ProtectedRoute - Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
+  console.log('ProtectedRoute - User is authenticated, rendering children');
   return children;
 };
 
 // Public route component (redirect if already authenticated)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, currentUser } = useAuth();
+  
+  // For debugging
+  console.log('PublicRoute - Loading:', loading);
+  console.log('PublicRoute - Auth state:', {
+    isAuthenticated: !!isAuthenticated,
+    hasCurrentUser: !!currentUser,
+    currentUser: currentUser ? {
+      id: currentUser.id || '[MISSING]',
+      username: currentUser.username,
+      isAnonymous: currentUser.isAnonymous
+    } : null
+  });
   
   if (loading) {
     return <LoadingScreen text="Checking authentication..." />;
   }
   
+  // Fix: isAuthenticated is a boolean value, not a function
   if (isAuthenticated) {
+    console.log('PublicRoute - Already authenticated, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
+  console.log('PublicRoute - Not authenticated, rendering children');
   return children;
 };
 
