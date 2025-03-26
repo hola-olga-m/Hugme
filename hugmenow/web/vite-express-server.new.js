@@ -1,24 +1,21 @@
 // vite-express-server.js - Express server for serving Vite React app in production
-import express from 'express';
-import cors from 'cors';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import { join, dirname } from 'path';
-import fs from 'fs';
-import history from 'connect-history-api-fallback';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
+const express = require('express');
+const cors = require('cors');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const { join, dirname } = require('path');
+const fs = require('fs');
+const history = require('connect-history-api-fallback');
 
 // Import environment variables if .env file exists
-dotenv.config();
+require('dotenv').config();
 
 // Set up constants
 const PORT = process.env.PORT || 5000;
 const API_HOST = process.env.API_HOST || 'http://localhost:3000';
 
-// Determine project paths using ES modules approach
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const projectRoot = __dirname; // This is the hugmenow/web directory
+// Determine project paths
+const currentDir = dirname(require.main.filename);
+const projectRoot = currentDir; // This is the hugmenow/web directory
 const publicPath = join(projectRoot, 'public');
 const distPath = join(projectRoot, 'dist');
 const srcPath = join(projectRoot, 'src');
