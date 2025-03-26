@@ -1,4 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { useMutation } from '@apollo/client';
+import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
+import { authApi } from '../services/api';
 
 // Create an authentication context
 export const AuthContext = createContext();
@@ -13,6 +16,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // GraphQL mutations
+  const [loginMutation] = useMutation(LOGIN);
+  const [registerMutation] = useMutation(REGISTER);
+  const [anonymousLoginMutation] = useMutation(ANONYMOUS_LOGIN);
+
   // Initialize auth state from local storage
   useEffect(() => {
     const initAuth = async () => {
@@ -23,7 +31,19 @@ export const AuthProvider = ({ children }) => {
         if (storedToken && storedUser) {
           setAuthToken(storedToken);
           setCurrentUser(JSON.parse(storedUser));
-          // You could validate the token here by making a request to /api/auth/me
+          
+          // Validate token by making a request to get current user
+          try {
+            const currentUserData = await authApi.getCurrentUser();
+            setCurrentUser(currentUserData);
+          } catch (validationError) {
+            console.error('Token validation failed:', validationError);
+            // Token is invalid, clear auth data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            setAuthToken(null);
+            setCurrentUser(null);
+          }
         }
       } catch (err) {
         console.error('Failed to initialize auth:', err);
@@ -38,36 +58,47 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  // Login function
+  // Login function (using GraphQL mutation)
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+      // Try GraphQL mutation first
+      try {
+        const { data } = await loginMutation({
+          variables: {
+            loginInput: { email, password }
+          }
+        });
+        
+        const authData = data.login;
+        
+        // Store auth data
+        localStorage.setItem('authToken', authData.accessToken);
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        
+        // Update state
+        setAuthToken(authData.accessToken);
+        setCurrentUser(authData.user);
+        
+        return authData;
+      } catch (graphqlError) {
+        console.error('GraphQL login failed, trying REST API:', graphqlError);
+        
+        // Fallback to REST API
+        const authData = await authApi.login({ email, password });
+        
+        // Store auth data
+        localStorage.setItem('authToken', authData.accessToken || authData.token);
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        
+        // Update state
+        setAuthToken(authData.accessToken || authData.token);
+        setCurrentUser(authData.user);
+        
+        return authData;
       }
-      
-      const data = await response.json();
-      
-      // Store auth data
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Update state
-      setAuthToken(data.token);
-      setCurrentUser(data.user);
-      
-      return data;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -76,36 +107,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
+  // Register function (using GraphQL mutation)
   const register = async (userData) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+      // Try GraphQL mutation first
+      try {
+        const { data } = await registerMutation({
+          variables: {
+            registerInput: userData
+          }
+        });
+        
+        const authData = data.register;
+        
+        // Store auth data
+        localStorage.setItem('authToken', authData.accessToken);
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        
+        // Update state
+        setAuthToken(authData.accessToken);
+        setCurrentUser(authData.user);
+        
+        return authData;
+      } catch (graphqlError) {
+        console.error('GraphQL register failed, trying REST API:', graphqlError);
+        
+        // Fallback to REST API
+        const authData = await authApi.register(userData);
+        
+        // Store auth data
+        localStorage.setItem('authToken', authData.accessToken || authData.token);
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        
+        // Update state
+        setAuthToken(authData.accessToken || authData.token);
+        setCurrentUser(authData.user);
+        
+        return authData;
       }
-      
-      const data = await response.json();
-      
-      // Store auth data
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Update state
-      setAuthToken(data.token);
-      setCurrentUser(data.user);
-      
-      return data;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -114,36 +156,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Anonymous login function
+  // Anonymous login function (using GraphQL mutation)
   const anonymousLogin = async (nickname, avatarUrl) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch('/api/auth/anonymous', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nickname, avatarUrl }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Anonymous login failed');
+      // Try GraphQL mutation first
+      try {
+        const { data } = await anonymousLoginMutation({
+          variables: {
+            anonymousLoginInput: { nickname, avatarUrl }
+          }
+        });
+        
+        const authData = data.anonymousLogin;
+        
+        // Store auth data
+        localStorage.setItem('authToken', authData.accessToken);
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        
+        // Update state
+        setAuthToken(authData.accessToken);
+        setCurrentUser(authData.user);
+        
+        return authData;
+      } catch (graphqlError) {
+        console.error('GraphQL anonymous login failed, trying REST API:', graphqlError);
+        
+        // Fallback to REST API
+        const authData = await authApi.anonymousLogin({ nickname, avatarUrl });
+        
+        // Store auth data
+        localStorage.setItem('authToken', authData.accessToken || authData.token);
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        
+        // Update state
+        setAuthToken(authData.accessToken || authData.token);
+        setCurrentUser(authData.user);
+        
+        return authData;
       }
-      
-      const data = await response.json();
-      
-      // Store auth data
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Update state
-      setAuthToken(data.token);
-      setCurrentUser(data.user);
-      
-      return data;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -157,14 +210,9 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     
     try {
-      // Call logout API (if needed)
+      // Call logout API
       if (authToken) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-          },
-        });
+        await authApi.logout();
       }
     } catch (err) {
       console.error('Logout error:', err);
