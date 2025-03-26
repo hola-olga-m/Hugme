@@ -1,252 +1,203 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery, useApolloClient } from '@apollo/client';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useMutation } from '@apollo/client';
 import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
-import { GET_ME } from '../graphql/queries';
-import { apiService } from '../services/api';
+import { authApi } from '../services/api';
 
-// Create the context
+// Create context
 const AuthContext = createContext(null);
 
-// Hook for using the auth context
-export const useAuth = () => useContext(AuthContext);
-
-// Auth Provider Component
+// Authentication provider component
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('authToken'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  const navigate = useNavigate();
-  const client = useApolloClient();
-  
-  // Apollo mutations
+
+  // Initialize login mutation
   const [loginMutation] = useMutation(LOGIN);
   const [registerMutation] = useMutation(REGISTER);
   const [anonymousLoginMutation] = useMutation(ANONYMOUS_LOGIN);
-  
-  // Get current user query
-  const { refetch } = useQuery(GET_ME, {
-    skip: !localStorage.getItem('authToken'),
-    onCompleted: (data) => {
-      if (data?.me) {
-        setCurrentUser(data.me);
-      }
-      setLoading(false);
-    },
-    onError: (error) => {
-      console.error('Error fetching current user:', error);
-      setError(error.message);
-      setLoading(false);
-    }
-  });
-  
-  // Check if user is authenticated on mount
+
+  // Check if user is authenticated on first render
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          // Refetch user data
-          const { data } = await refetch();
-          if (data?.me) {
-            setCurrentUser(data.me);
-          } else {
-            // If no user data is returned, clear the token
-            localStorage.removeItem('authToken');
-          }
+      if (token) {
+        try {
+          const userData = await authApi.getMe();
+          setUser(userData);
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+          // Clear invalid token
+          logout();
         }
-      } catch (err) {
-        console.error('Auth check error:', err);
-        localStorage.removeItem('authToken');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
-    
+
     checkAuth();
-  }, [refetch]);
-  
-  // Login function
+  }, [token]);
+
+  // Login with email and password
   const login = async (email, password) => {
+    setLoading(true);
     setError(null);
     try {
-      // Try REST API first
+      // Try GraphQL mutation first
       try {
-        const credentials = { email, password };
-        const response = await apiService.auth.login(credentials);
-        
-        if (response) {
-          localStorage.setItem('authToken', response.accessToken);
-          setCurrentUser(response.user);
-          
-          // Redirect to dashboard
-          navigate('/dashboard');
-          return response.user;
-        }
-      } catch (restError) {
-        console.warn('REST API login failed, falling back to GraphQL:', restError);
-        // Fallback to GraphQL if REST API fails
-        const { data } = await loginMutation({
-          variables: {
-            loginInput: {
-              email,
-              password
-            }
-          }
+        const { data } = await loginMutation({ 
+          variables: { input: { email, password } }
         });
-        
-        if (data?.login) {
-          localStorage.setItem('authToken', data.login.accessToken);
-          setCurrentUser(data.login.user);
-          
-          // Redirect to dashboard
-          navigate('/dashboard');
-          return data.login.user;
-        }
+        const { token, user } = data.login;
+        handleAuthSuccess(token, user);
+        return user;
+      } catch (graphqlError) {
+        // Fallback to REST API
+        console.log('Falling back to REST API for login');
+        const authData = await authApi.login({ email, password });
+        handleAuthSuccess(authData.token, authData.user);
+        return authData.user;
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to login. Please check your credentials.');
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Register function
-  const register = async (username, email, name, password, avatarUrl) => {
+
+  // Register new user
+  const register = async (userData) => {
+    setLoading(true);
     setError(null);
     try {
-      // Try REST API first
+      // Try GraphQL mutation first
       try {
-        const userData = { username, email, name, password };
-        if (avatarUrl) userData.avatarUrl = avatarUrl;
-        
-        const response = await apiService.auth.register(userData);
-        
-        if (response) {
-          localStorage.setItem('authToken', response.accessToken);
-          setCurrentUser(response.user);
-          
-          // Redirect to dashboard
-          navigate('/dashboard');
-          return response.user;
-        }
-      } catch (restError) {
-        console.warn('REST API registration failed, falling back to GraphQL:', restError);
-        // Fallback to GraphQL if REST API fails
-        const { data } = await registerMutation({
-          variables: {
-            registerInput: {
-              username,
-              email,
-              name,
-              password,
-              avatarUrl: avatarUrl || undefined
-            }
-          }
+        const { data } = await registerMutation({ 
+          variables: { input: userData }
         });
-        
-        if (data?.register) {
-          localStorage.setItem('authToken', data.register.accessToken);
-          setCurrentUser(data.register.user);
-          
-          // Redirect to dashboard
-          navigate('/dashboard');
-          return data.register.user;
-        }
+        const { token, user } = data.register;
+        handleAuthSuccess(token, user);
+        return user;
+      } catch (graphqlError) {
+        // Fallback to REST API
+        console.log('Falling back to REST API for registration');
+        const authData = await authApi.register(userData);
+        handleAuthSuccess(authData.token, authData.user);
+        return authData.user;
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to register. Please try again.');
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Anonymous login function
+
+  // Anonymous login
   const anonymousLogin = async (nickname, avatarUrl) => {
+    setLoading(true);
     setError(null);
     try {
-      // Try REST API first
+      // Try GraphQL mutation first
       try {
-        const anonymousData = { nickname };
-        if (avatarUrl) anonymousData.avatarUrl = avatarUrl;
-        
-        const response = await apiService.auth.anonymousLogin(anonymousData);
-        
-        if (response) {
-          localStorage.setItem('authToken', response.accessToken);
-          setCurrentUser(response.user);
-          
-          // Redirect to dashboard
-          navigate('/dashboard');
-          return response.user;
-        }
-      } catch (restError) {
-        console.warn('REST API anonymous login failed, falling back to GraphQL:', restError);
-        // Fallback to GraphQL if REST API fails
-        const { data } = await anonymousLoginMutation({
-          variables: {
-            anonymousLoginInput: {
-              nickname,
-              avatarUrl: avatarUrl || undefined
-            }
-          }
+        const { data } = await anonymousLoginMutation({ 
+          variables: { input: { nickname, avatarUrl } }
         });
-        
-        if (data?.anonymousLogin) {
-          localStorage.setItem('authToken', data.anonymousLogin.accessToken);
-          setCurrentUser(data.anonymousLogin.user);
-          
-          // Redirect to dashboard
-          navigate('/dashboard');
-          return data.anonymousLogin.user;
-        }
+        const { token, user } = data.anonymousLogin;
+        handleAuthSuccess(token, user);
+        return user;
+      } catch (graphqlError) {
+        // Fallback to REST API
+        console.log('Falling back to REST API for anonymous login');
+        const authData = await authApi.anonymousLogin({ nickname, avatarUrl });
+        handleAuthSuccess(authData.token, authData.user);
+        return authData.user;
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to login anonymously. Please try again.');
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    setCurrentUser(null);
-    
-    // Clear Apollo cache
-    client.clearStore();
-    
-    // Redirect to home page
-    navigate('/');
+
+  // Update user profile
+  const updateProfile = async (userData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!user || !user.id) {
+        throw new Error('Not authenticated');
+      }
+      const updatedUser = await authApi.updateUser(user.id, userData);
+      setUser(updatedUser);
+      return updatedUser;
+    } catch (err) {
+      setError(err.message || 'Failed to update profile. Please try again.');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  // Check if user is authenticated
-  const isAuthenticated = () => {
-    return !!currentUser;
+
+  // Logout user
+  const logout = async () => {
+    try {
+      if (token) {
+        // Optionally call logout API
+        await authApi.logout();
+      }
+    } catch (err) {
+      console.error('Error during logout:', err);
+    } finally {
+      // Always clear local state, even if API call fails
+      localStorage.removeItem('authToken');
+      setToken(null);
+      setUser(null);
+    }
   };
-  
-  // Clear error function
+
+  // Clear any authentication errors
   const clearError = () => {
     setError(null);
   };
 
-  // Value object for context provider
+  // Helper to handle successful authentication
+  const handleAuthSuccess = (authToken, userData) => {
+    localStorage.setItem('authToken', authToken);
+    setToken(authToken);
+    setUser(userData);
+  };
+
+  // Context value
   const value = {
-    currentUser,
+    user,
+    token,
     loading,
     error,
+    isAuthenticated: !!user,
     login,
     register,
     anonymousLogin,
+    updateProfile,
     logout,
-    isAuthenticated,
-    refetchUser: refetch,
-    clearError,
+    clearError
   };
-  
+
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export default AuthContext;

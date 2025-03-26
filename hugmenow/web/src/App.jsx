@@ -1,106 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+// Import context providers
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+// Import pages
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import MoodTracker from './pages/MoodTracker';
+import HugCenter from './pages/HugCenter';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
+
+// Import components
+import LoadingScreen from './components/common/LoadingScreen';
+import ErrorBoundary from './components/common/ErrorBoundary';
+
+// Protected route wrapper component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
 
 const App = () => {
-  const [appInfo, setAppInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchAppInfo = async () => {
-      try {
-        console.log('Fetching app info...');
-        const response = await fetch('/api/info');
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch app info: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('App info received:', data);
-        setAppInfo(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching app info:', err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    fetchAppInfo();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="hero" style={{ textAlign: 'center', padding: '50px 0' }}>
-          <h1>Loading HugMeNow...</h1>
-          <p>Please wait while we set things up for you.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container">
-        <div className="hero" style={{ textAlign: 'center', padding: '50px 0', color: '#d9534f' }}>
-          <h1>Something went wrong</h1>
-          <p>{error}</p>
-          <p>The API server may not be running. Please check your connection and try again.</p>
-        </div>
-      </div>
-    );
-  }
-
+  const { t } = useTranslation();
+  
   return (
-    <div>
-      <header className="header">
-        <div className="container">
-          <nav>
-            <div className="logo">HugMeNow</div>
-            <ul className="nav-links">
-              <li><a href="/">Home</a></li>
-              <li><a href="/moods">Mood Tracker</a></li>
-              <li><a href="/hugs">Hug Center</a></li>
-              <li><a href="/login">Login</a></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <section className="hero">
-        <div className="container">
-          <h1>Welcome to HugMeNow</h1>
-          <p>Your emotional wellness companion for better mental health.</p>
-          <a href="/register" className="btn">Get Started</a>
-        </div>
-      </section>
-
-      <section className="features">
-        <div className="container">
-          <h2>Features</h2>
-          <div className="feature-grid">
-            {appInfo && appInfo.features && appInfo.features.map((feature, index) => (
-              <div className="feature-card" key={index}>
-                <div className="feature-content">
-                  <h3 className="feature-title">{feature}</h3>
-                  <p>Experience the benefits of our carefully designed emotional wellness tools.</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <footer>
-        <div className="container">
-          <p>&copy; {new Date().getFullYear()} HugMeNow. All rights reserved.</p>
-          {appInfo && (
-            <p>Version: {appInfo.version} | Status: {appInfo.status}</p>
-          )}
-        </div>
-      </footer>
-    </div>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* Protected routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/mood-tracker" element={
+              <ProtectedRoute>
+                <MoodTracker />
+              </ProtectedRoute>
+            } />
+            <Route path="/hug-center" element={
+              <ProtectedRoute>
+                <HugCenter />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            
+            {/* Fallback route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 
