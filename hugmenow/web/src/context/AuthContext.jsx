@@ -210,12 +210,14 @@ export const AuthProvider = ({ children }) => {
         // Store auth data
         localStorage.setItem('authToken', authData.accessToken);
         localStorage.setItem('user', JSON.stringify(authData.user));
+        // Set flag for dashboard to know we're coming from login
+        localStorage.setItem('redirectToDashboard', 'true');
         
         // Update state
         setAuthToken(authData.accessToken);
         setCurrentUser(authData.user);
         
-        console.log('Updated auth state after successful anonymous login');
+        console.log('Updated auth state after successful anonymous login, set redirect flag');
         
         return authData;
       } catch (graphqlError) {
@@ -248,12 +250,14 @@ export const AuthProvider = ({ children }) => {
         // Store auth data
         localStorage.setItem('authToken', authData.accessToken || authData.token);
         localStorage.setItem('user', JSON.stringify(authData.user));
+        // Set flag for dashboard to know we're coming from login
+        localStorage.setItem('redirectToDashboard', 'true');
         
         // Update state
         setAuthToken(authData.accessToken || authData.token);
         setCurrentUser(authData.user);
         
-        console.log('Updated auth state after successful anonymous login via REST API');
+        console.log('Updated auth state after successful anonymous login via REST API, set redirect flag');
         
         return authData;
       }
@@ -313,6 +317,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Check if user is authenticated - use a memoized value that doesn't change on re-renders
+  // Add detailed logging to help debug authentication issues
+  console.log('AuthContext - Checking authentication status:', { 
+    hasToken: !!authToken, 
+    hasUser: !!currentUser,
+    userId: currentUser?.id,
+    username: currentUser?.username,
+    isAnonymous: currentUser?.isAnonymous 
+  });
+  
   // Check if user is authenticated
   const isAuthenticated = !!authToken && !!currentUser;
 

@@ -151,6 +151,15 @@ const Dashboard = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Check if we're coming from a login redirect
+    const hasRedirectFlag = localStorage.getItem('redirectToDashboard') === 'true';
+    
+    if (hasRedirectFlag) {
+      console.log('Dashboard detected redirect flag from login');
+      // Clear the flag
+      localStorage.removeItem('redirectToDashboard');
+    }
+    
     // Simulate loading data
     const timer = setTimeout(() => {
       // In a real app, you would fetch user stats from the API
@@ -161,6 +170,10 @@ const Dashboard = () => {
         hugsReceived: 12,
       });
       setIsLoading(false);
+      
+      if (hasRedirectFlag) {
+        console.log('Dashboard fully loaded after login redirect');
+      }
     }, 1000);
     
     return () => clearTimeout(timer);

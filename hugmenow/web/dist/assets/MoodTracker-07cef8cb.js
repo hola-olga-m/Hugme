@@ -1,4 +1,4 @@
-import{d as o,r as n,u as x,a as v,j as r}from"./main-1b1c44e2.js";const w=o.div`
+import{d as o,r as n,u as x,a as v,j as r}from"./main-33aa0690.js";const w=o.div`
   min-height: 100vh;
   background-color: var(--gray-100);
 `,y=o.header`
@@ -165,4 +165,4 @@ import{d as o,r as n,u as x,a as v,j as r}from"./main-1b1c44e2.js";const w=o.div
   text-align: center;
   border-radius: var(--border-radius-md);
 `,A=()=>{const[a,t]=n.useState(5),[i,s]=n.useState(""),[d,c]=n.useState(!1),[l,m]=n.useState(!1);x();const b=v(),u=()=>{b("/dashboard")},p=e=>{e.preventDefault(),m(!0),console.log("Submitting mood:",{moodScore:a,moodNote:i,isPublic:d}),setTimeout(()=>{t(5),s(""),c(!1),m(!1),alert("Mood submitted successfully!")},1e3)};return r.jsxs(w,{children:[r.jsxs(y,{children:[r.jsx(f,{onClick:u,children:"HugMeNow"}),r.jsx(j,{onClick:u,children:"Back to Dashboard"})]}),r.jsxs(k,{children:[r.jsx(S,{children:"Mood Tracker"}),r.jsx(M,{children:"Track your mood and emotional well-being. Regular tracking helps you understand patterns and improve self-awareness."}),r.jsxs(T,{children:[r.jsx(h,{children:"How are you feeling today?"}),r.jsxs("form",{onSubmit:p,children:[r.jsxs(N,{children:[r.jsxs(z,{children:[r.jsx(I,{type:"range",min:"1",max:"10",value:a,onChange:e=>t(parseInt(e.target.value))}),r.jsx(D,{value:a,children:a})]}),r.jsxs(H,{children:[r.jsx("span",{children:"Not well"}),r.jsx("span",{children:"Neutral"}),r.jsx("span",{children:"Excellent"})]})]}),r.jsxs(g,{children:[r.jsx(P,{htmlFor:"moodNote",children:"Add a note (optional)"}),r.jsx(B,{id:"moodNote",value:i,onChange:e=>s(e.target.value),placeholder:"Describe how you're feeling or what's been happening..."})]}),r.jsx(g,{children:r.jsxs(E,{children:[r.jsx("input",{type:"checkbox",id:"isPublic",checked:d,onChange:e=>c(e.target.checked)}),r.jsx("label",{htmlFor:"isPublic",children:"Share this mood entry with the community"})]})}),r.jsx(F,{type:"submit",disabled:l,children:l?"Submitting...":"Record Mood"})]})]}),r.jsxs(C,{children:[r.jsx(h,{children:"Your Mood History"}),r.jsxs(L,{children:[r.jsx("p",{children:"Your mood history will be displayed here once you start tracking."}),r.jsx("p",{children:"In the actual app, this would show a graph of your mood over time."})]})]})]})]})};export{A as default};
-//# sourceMappingURL=MoodTracker-f5add8e3.js.map
+//# sourceMappingURL=MoodTracker-07cef8cb.js.map

@@ -17,15 +17,7 @@ args = "NestJS Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Express Frontend"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "HugMeNow Proxy"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Vite Dev Server"
+args = "Frontend Server"
 
 [[workflows.workflow]]
 name = "NestJS Server"
@@ -42,7 +34,7 @@ task = "shell.exec"
 args = "cd hugmenow/api && npm run start:dev"
 
 [[workflows.workflow]]
-name = "Express Frontend"
+name = "Frontend Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -53,38 +45,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && npm install && npm start"
+args = "cd hugmenow/web && node simplified-server.js"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "HugMeNow Proxy"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node index.js"
-waitForPort = 3001
-
-[[workflows.workflow]]
-name = "Vite Dev Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd hugmenow/web && npm run dev"
-waitForPort = 5173
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]

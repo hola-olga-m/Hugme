@@ -174,8 +174,21 @@ const Login = () => {
     setFormError('');
     
     try {
+      console.log('Starting regular login with email:', email);
       await login(email, password);
-      navigate('/dashboard');
+      
+      console.log('Regular login successful, setting redirect flag');
+      // Set flag for dashboard to know we're coming from login
+      localStorage.setItem('redirectToDashboard', 'true');
+      
+      console.log('Navigating to dashboard after login');
+      navigate('/dashboard', { 
+        replace: true,
+        state: { 
+          fromLogin: true,
+          loginTime: new Date().toISOString()
+        }
+      });
     } catch (error) {
       console.error('Login error:', error);
       setFormError(error.message || 'Invalid email or password');
@@ -208,16 +221,24 @@ const Login = () => {
         } : null
       }));
       
-      // Explicit navigation with state
-      console.log('Attempting navigation to dashboard after successful login');
-      navigate('/dashboard', { 
-        replace: true,
-        state: { 
-          fromLogin: true,
-          loginTime: new Date().toISOString()
-        }
-      });
-      console.log('Navigation completed');
+      // Force refresh auth state and clear any cached routes
+      console.log('Forcing auth state refresh before navigation');
+      setTimeout(() => {
+        // Explicit navigation with state and force reload
+        console.log('Attempting navigation to dashboard after successful login');
+        // First set a flag in localStorage to indicate we're coming from login
+        localStorage.setItem('redirectToDashboard', 'true');
+        
+        // Then use navigate with replace to avoid back button issues
+        navigate('/dashboard', { 
+          replace: true,
+          state: { 
+            fromLogin: true,
+            loginTime: new Date().toISOString()
+          }
+        });
+        console.log('Navigation completed');
+      }, 500); // Small delay to ensure state is fully updated
     } catch (error) {
       console.error('Anonymous login error:', error);
       setFormError(error.message || 'Failed to login anonymously');

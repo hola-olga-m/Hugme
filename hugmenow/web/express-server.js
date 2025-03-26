@@ -73,7 +73,8 @@ app.use(history({
       from: /^\/(api|graphql|status)\/.*$/,
       to: context => context.parsedUrl.pathname
     }
-  ]
+  ],
+  logger: console.log.bind(console)
 }));
 
 // Serve static files from the public directory
@@ -119,6 +120,7 @@ if (isDevelopment) {
     
     // For development environment, serve the basic HTML with Vite integration
     if (isDevelopment) {
+      console.log(`[DEV] Serving development index.html for: ${req.path}`);
       return res.sendFile(path.join(__dirname, 'public', 'index.html'));
     }
     
@@ -127,17 +129,29 @@ if (isDevelopment) {
       // If the route includes a dot, it's likely looking for an asset
       // Try to find it in the assets directory
       const assetPath = path.join(distPath, 'assets', path.basename(req.path));
+      console.log(`[ASSET] Looking for asset: ${req.path} at ${assetPath}`);
       
       if (fs.existsSync(assetPath)) {
+        console.log(`[ASSET] Found asset: ${assetPath}`);
         return res.sendFile(assetPath);
       }
       
+      // Try direct path as well
+      const directPath = path.join(distPath, req.path);
+      console.log(`[ASSET] Trying direct path: ${directPath}`);
+      
+      if (fs.existsSync(directPath)) {
+        console.log(`[ASSET] Found asset at direct path: ${directPath}`);
+        return res.sendFile(directPath);
+      }
+      
       // If we reach here, the asset couldn't be found in dist directory
-      console.log(`Asset not found: ${req.path}`);
+      console.log(`[ERROR] Asset not found: ${req.path}`);
       return res.status(404).send(`Asset not found: ${req.path}`);
     }
     
     // For all other routes, serve the index.html for SPA routing
+    console.log(`[ROUTE] Serving SPA index.html for route: ${req.path}`);
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
