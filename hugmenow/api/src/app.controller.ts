@@ -21,7 +21,8 @@ export class AppController {
     private readonly authService: AuthService,
   ) {
     // Determine the frontend URL from environment or default
-    this.frontendBaseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    // In Replit environment, point to our frontend server at port 5000
+    this.frontendBaseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
     console.log(`Frontend base URL: ${this.frontendBaseUrl}`);
   }
 
@@ -48,19 +49,8 @@ export class AppController {
     console.log(`Generating URL for path ${path}`);
     console.log(`Host: ${host}, Forwarded Host: ${forwardedHost}, Protocol: ${protocol}`);
     
-    // Prioritize the frontend URL from env var
-    if (process.env.FRONTEND_URL) {
-      return `${process.env.FRONTEND_URL}${path}`;
-    }
-    
-    // If running on Replit
-    if (process.env.REPLIT_SLUG || process.env.REPL_ID || host?.includes('.replit.app')) {
-      const appDomain = host || forwardedHost;
-      return appDomain ? `${protocol}://${appDomain}${path}` : `${this.frontendBaseUrl}${path}`;
-    }
-    
-    // Default for local development
-    return `${this.frontendBaseUrl}${path}`;
+    // Use our hardcoded frontend server port 5000 - this works in Replit
+    return `${protocol}://${host?.replace('3000', '5000') || 'localhost:5000'}${path}`;
   }
 
   /**

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 3001",
-    "start": "node vite-express-server.js",
+    "start": "node server.js",
+    "start:old": "node vite-express-server.js",
     "start:vite": "vite --port 3001",
     "build": "vite build",
     "rebuild": "rm -rf dist && vite build",

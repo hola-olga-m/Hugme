@@ -28,7 +28,7 @@ let AppController = class AppController {
     constructor(appService, authService) {
         this.appService = appService;
         this.authService = authService;
-        this.frontendBaseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+        this.frontendBaseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
         console.log(`Frontend base URL: ${this.frontendBaseUrl}`);
     }
     getHello() {
@@ -43,14 +43,7 @@ let AppController = class AppController {
         const protocol = req.protocol;
         console.log(`Generating URL for path ${path}`);
         console.log(`Host: ${host}, Forwarded Host: ${forwardedHost}, Protocol: ${protocol}`);
-        if (process.env.FRONTEND_URL) {
-            return `${process.env.FRONTEND_URL}${path}`;
-        }
-        if (process.env.REPLIT_SLUG || process.env.REPL_ID || host?.includes('.replit.app')) {
-            const appDomain = host || forwardedHost;
-            return appDomain ? `${protocol}://${appDomain}${path}` : `${this.frontendBaseUrl}${path}`;
-        }
-        return `${this.frontendBaseUrl}${path}`;
+        return `${protocol}://${host?.replace('3000', '5000') || 'localhost:5000'}${path}`;
     }
     handleRedirect(path, req) {
         const redirectUrl = this.getFrontendUrl(path, req);
