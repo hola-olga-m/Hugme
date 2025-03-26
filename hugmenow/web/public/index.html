@@ -134,6 +134,31 @@
       </div>
     </div>
   </div>
-  <script src="/bundle.js"></script>
+  <!-- 
+    In production, Vite will inject the proper bundled scripts here.
+    When running in development with the Express server, this file is served as a fallback
+    and we should load the Vite development scripts instead.
+  -->
+  <script type="module">
+    // Check if we're in development mode served by Express
+    if (window.location.port === '5000') {
+      // This is a development environment running through Express
+      // Load the Vite client for HMR
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'http://localhost:5173/@vite/client';
+      document.head.appendChild(script);
+      
+      // Load the entry point from Vite dev server
+      const mainScript = document.createElement('script');
+      mainScript.type = 'module';
+      mainScript.src = 'http://localhost:5173/src/index.js';
+      document.body.appendChild(mainScript);
+      
+      console.log('HugMeNow initializing in development mode with Vite');
+    } else {
+      console.log('HugMeNow initializing in production mode');
+    }
+  </script>
 </body>
 </html>

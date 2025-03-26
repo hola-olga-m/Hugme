@@ -116,15 +116,29 @@ if (isDevelopment) {
   // For all routes not handled by static files or proxies, serve index.html
   app.get('*', (req, res) => {
     console.log(`Serving index.html for route: ${req.path}`);
-    if (req.path.includes('.')) {
+    
+    // For development environment, serve the basic HTML with Vite integration
+    if (isDevelopment) {
+      return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    }
+    
+    // Check if requesting an asset
+    if (req.path.includes('.') && !req.path.endsWith('.html')) {
       // If the route includes a dot, it's likely looking for an asset
+      // Try to find it in the assets directory
+      const assetPath = path.join(distPath, 'assets', path.basename(req.path));
+      
+      if (fs.existsSync(assetPath)) {
+        return res.sendFile(assetPath);
+      }
+      
       // If we reach here, the asset couldn't be found in dist directory
       console.log(`Asset not found: ${req.path}`);
-      res.status(404).send(`Asset not found: ${req.path}`);
-    } else {
-      // For all other routes, serve the index.html for SPA routing
-      res.sendFile(path.join(distPath, 'index.html'));
+      return res.status(404).send(`Asset not found: ${req.path}`);
     }
+    
+    // For all other routes, serve the index.html for SPA routing
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
