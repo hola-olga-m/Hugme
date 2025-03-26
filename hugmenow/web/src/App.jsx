@@ -17,6 +17,7 @@ const MoodTracker = lazy(() => import('./pages/MoodTracker'));
 const HugCenter = lazy(() => import('./pages/HugCenter'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
+const HugGalleryDemo = lazy(() => import('./pages/HugGalleryDemo'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -129,6 +130,11 @@ const App = () => {
                 <Route path="/theme-settings" element={
                   <ProtectedRoute>
                     <ThemeSettings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/hug-gallery" element={
+                  <ProtectedRoute>
+                    <HugGalleryDemo />
                   </ProtectedRoute>
                 } />
                 
