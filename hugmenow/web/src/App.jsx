@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import LoadingScreen from './components/common/LoadingScreen';
 import DebugPanel from './components/common/DebugPanel';
 import ProtectedRoute from './components/routing/ProtectedRoute';
@@ -15,6 +16,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const MoodTracker = lazy(() => import('./pages/MoodTracker'));
 const HugCenter = lazy(() => import('./pages/HugCenter'));
 const Profile = lazy(() => import('./pages/Profile'));
+const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Main App component
@@ -22,54 +24,61 @@ const App = () => {
   return (
     <ApolloProvider client={client}>
       <AuthProvider>
-        <Router>
-          <Suspense fallback={<LoadingScreen text="Loading application..." />}>
-            <DebugPanel />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={
-                <PublicRoute>
-                  <Navigate to="/login" replace />
-                </PublicRoute>
-              } />
-              <Route path="/login" element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } />
-              <Route path="/register" element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              } />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/mood-tracker" element={
-                <ProtectedRoute>
-                  <MoodTracker />
-                </ProtectedRoute>
-              } />
-              <Route path="/hug-center" element={
-                <ProtectedRoute>
-                  <HugCenter />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              
-              {/* Not found route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </Router>
+        <ThemeProvider>
+          <Router>
+            <Suspense fallback={<LoadingScreen text="Loading application..." />}>
+              <DebugPanel />
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={
+                  <PublicRoute>
+                    <Navigate to="/login" replace />
+                  </PublicRoute>
+                } />
+                <Route path="/login" element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } />
+                <Route path="/register" element={
+                  <PublicRoute>
+                    <Register />
+                  </PublicRoute>
+                } />
+                
+                {/* Protected routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/mood-tracker" element={
+                  <ProtectedRoute>
+                    <MoodTracker />
+                  </ProtectedRoute>
+                } />
+                <Route path="/hug-center" element={
+                  <ProtectedRoute>
+                    <HugCenter />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/theme-settings" element={
+                  <ProtectedRoute>
+                    <ThemeSettings />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Not found route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </Router>
+        </ThemeProvider>
       </AuthProvider>
     </ApolloProvider>
   );
