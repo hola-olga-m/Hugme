@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const Login = () => {
@@ -21,8 +21,8 @@ const Login = () => {
     clearError();
     
     try {
-      // Call login method from AuthContext
-      await login({ email, password });
+      // Call login method from AuthContext - passing email and password separately
+      await login(email, password);
       
       // Redirect to dashboard on success
       navigate('/dashboard', { replace: true });
@@ -43,8 +43,8 @@ const Login = () => {
     }
     
     try {
-      // Call anonymousLogin method from AuthContext
-      await anonymousLogin({ nickname });
+      // Call anonymousLogin method from AuthContext - passing nickname directly
+      await anonymousLogin(nickname);
       
       // Redirect to dashboard on success
       navigate('/dashboard', { replace: true });

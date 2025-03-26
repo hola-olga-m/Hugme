@@ -63,7 +63,7 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   login: async (credentials) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
@@ -84,7 +84,7 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   register: async (userData) => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
@@ -102,7 +102,7 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   anonymousLogin: async (anonymousData) => {
-    const response = await fetch(`${API_BASE_URL}/auth/anonymous`, {
+    const response = await fetch(`${API_BASE_URL}/anonymous-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(anonymousData),
@@ -163,7 +163,7 @@ export const authApi = {
    * @returns {Promise<Object>} Logout response
    */
   logout: async () => {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    const response = await fetch(`${API_BASE_URL}/logout`, {
       method: 'POST',
       headers: getHeaders(),
       credentials: 'include'

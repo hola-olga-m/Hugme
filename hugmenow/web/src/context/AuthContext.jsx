@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useApolloClient } from '@apollo/client';
 import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
 import { GET_ME } from '../graphql/queries';
-import apiService from '../services/api';
+import { apiService } from '../services/api';
 
 // Create the context
 const AuthContext = createContext(null);
@@ -73,7 +73,8 @@ export const AuthProvider = ({ children }) => {
     try {
       // Try REST API first
       try {
-        const response = await apiService.auth.login({ email, password });
+        const credentials = { email, password };
+        const response = await apiService.auth.login(credentials);
         
         if (response) {
           localStorage.setItem('authToken', response.accessToken);
@@ -222,6 +223,11 @@ export const AuthProvider = ({ children }) => {
     return !!currentUser;
   };
   
+  // Clear error function
+  const clearError = () => {
+    setError(null);
+  };
+
   // Value object for context provider
   const value = {
     currentUser,
@@ -233,6 +239,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAuthenticated,
     refetchUser: refetch,
+    clearError,
   };
   
   return (
