@@ -1,10 +1,12 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './apollo/client';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import LoadingScreen from './components/common/LoadingScreen';
 import DebugPanel from './components/common/DebugPanel';
+import ProtectedRoute from './components/routing/ProtectedRoute';
+import PublicRoute from './components/routing/PublicRoute';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -14,66 +16,6 @@ const MoodTracker = lazy(() => import('./pages/MoodTracker'));
 const HugCenter = lazy(() => import('./pages/HugCenter'));
 const Profile = lazy(() => import('./pages/Profile'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, currentUser } = useAuth();
-  
-  // For debugging
-  console.log('ProtectedRoute - Loading:', loading);
-  console.log('ProtectedRoute - Auth state:', {
-    isAuthenticated: !!isAuthenticated,
-    hasCurrentUser: !!currentUser,
-    currentUser: currentUser ? {
-      id: currentUser.id || '[MISSING]',
-      username: currentUser.username,
-      isAnonymous: currentUser.isAnonymous
-    } : null
-  });
-  
-  if (loading) {
-    return <LoadingScreen text="Checking authentication..." />;
-  }
-  
-  // Fix: isAuthenticated is a boolean value, not a function
-  if (!isAuthenticated) {
-    console.log('ProtectedRoute - Not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
-  }
-  
-  console.log('ProtectedRoute - User is authenticated, rendering children');
-  return children;
-};
-
-// Public route component (redirect if already authenticated)
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading, currentUser } = useAuth();
-  
-  // For debugging
-  console.log('PublicRoute - Loading:', loading);
-  console.log('PublicRoute - Auth state:', {
-    isAuthenticated: !!isAuthenticated,
-    hasCurrentUser: !!currentUser,
-    currentUser: currentUser ? {
-      id: currentUser.id || '[MISSING]',
-      username: currentUser.username,
-      isAnonymous: currentUser.isAnonymous
-    } : null
-  });
-  
-  if (loading) {
-    return <LoadingScreen text="Checking authentication..." />;
-  }
-  
-  // Fix: isAuthenticated is a boolean value, not a function
-  if (isAuthenticated) {
-    console.log('PublicRoute - Already authenticated, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  console.log('PublicRoute - Not authenticated, rendering children');
-  return children;
-};
 
 // Main App component
 const App = () => {

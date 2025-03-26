@@ -129,8 +129,17 @@ app.get('*', (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[SERVER] Running on port ${PORT}`);
+const HOST = '0.0.0.0'; // Making sure we bind to all interfaces
+
+// Explicit listen with better error handling
+app.listen(PORT, HOST, (err) => {
+  if (err) {
+    console.error('[SERVER ERROR] Failed to start server:', err);
+    return;
+  }
+  
+  console.log(`[SERVER] Running on port ${PORT} (host: ${HOST})`);
   console.log(`[SERVER] Serving from: ${distPath}`);
   console.log(`[SERVER] API proxy to: http://localhost:3000`);
+  console.log(`[SERVER] Browse the application at: http://${HOST}:${PORT}`);
 });
