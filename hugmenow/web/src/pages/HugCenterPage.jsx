@@ -1163,6 +1163,7 @@ function HugCenterPage() {
           </div>
         </div>
       )}
+      </div>
     </MainLayout>
   );
 }
