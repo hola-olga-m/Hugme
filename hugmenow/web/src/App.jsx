@@ -1,48 +1,73 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-
-// Import context providers
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
-// Import pages
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import MoodTracker from './pages/MoodTracker';
-import HugCenter from './pages/HugCenter';
-import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
-
-// Import components
 import LoadingScreen from './components/common/LoadingScreen';
-import ErrorBoundary from './components/common/ErrorBoundary';
 
-// Protected route wrapper component
+// Lazy load pages for better performance
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const MoodTracker = lazy(() => import('./pages/MoodTracker'));
+const HugCenter = lazy(() => import('./pages/HugCenter'));
+const Profile = lazy(() => import('./pages/Profile'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Protected route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingScreen text="Checking authentication..." />;
   }
   
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
 };
 
-const App = () => {
-  const { t } = useTranslation();
+// Public route component (redirect if already authenticated)
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
   
+  if (loading) {
+    return <LoadingScreen text="Checking authentication..." />;
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+// Main App component
+const App = () => {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <Router>
+    <AuthProvider>
+      <Router>
+        <Suspense fallback={<LoadingScreen text="Loading application..." />}>
           <Routes>
             {/* Public routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/" element={
+              <PublicRoute>
+                <Navigate to="/login" replace />
+              </PublicRoute>
+            } />
+            <Route path="/login" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+            <Route path="/register" element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            } />
             
             {/* Protected routes */}
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
@@ -63,12 +88,12 @@ const App = () => {
               </ProtectedRoute>
             } />
             
-            {/* Fallback route */}
+            {/* Not found route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Router>
-      </AuthProvider>
-    </ErrorBoundary>
+        </Suspense>
+      </Router>
+    </AuthProvider>
   );
 };
 

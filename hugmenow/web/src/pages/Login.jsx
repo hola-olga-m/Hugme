@@ -1,191 +1,304 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
+import LoadingScreen from '../components/common/LoadingScreen';
+
+// Styled components
+const LoginContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background-color: var(--gray-100);
+`;
+
+const LoginCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  max-width: 450px;
+  width: 100%;
+  margin: 0 auto;
+`;
+
+const LoginLogo = styled.div`
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h1 {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--gray-600);
+  }
+`;
+
+const LoginForm = styled.form`
+  display: flex;
+  flex-direction: column;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--gray-800);
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-base);
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.25);
+  }
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  &:disabled {
+    background-color: var(--gray-400);
+    cursor: not-allowed;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  background-color: var(--danger-color);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 1.5rem;
+`;
+
+const LoginFooter = styled.div`
+  text-align: center;
+  margin-top: 1.5rem;
+  
+  p {
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+  }
+  
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
+const OrDivider = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--gray-300);
+  }
+  
+  span {
+    padding: 0 0.75rem;
+    color: var(--gray-600);
+  }
+`;
+
+const AnonymousButton = styled.button`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--gray-200);
+  color: var(--gray-800);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+  margin-top: 1rem;
+  
+  &:hover {
+    background-color: var(--gray-300);
+  }
+`;
 
 const Login = () => {
-  const { t } = useTranslation();
-  const { login, anonymousLogin, error, clearError, isAuthenticated } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [showAnonymousForm, setShowAnonymousForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  
+  const { login, anonymousLogin, loading } = useAuth();
   const navigate = useNavigate();
   
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [anonymousData, setAnonymousData] = useState({
-    nickname: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAnonymousForm, setShowAnonymousForm] = useState(false);
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Handle form input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle anonymous form input changes
-  const handleAnonymousChange = (e) => {
-    const { name, value } = e.target;
-    setAnonymousData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle regular login form submission
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!email || !password) {
+      setFormError('Please enter both email and password');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setFormError('');
     
     try {
-      await login(formData.email, formData.password);
-      navigate('/');
-    } catch (err) {
-      console.error('Login error:', err);
-      // Error is handled by AuthContext
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+      setFormError(error.message || 'Invalid email or password');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-
-  // Handle anonymous login
+  
   const handleAnonymousLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!nickname) {
+      setFormError('Please enter a nickname');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setFormError('');
     
     try {
-      await anonymousLogin(anonymousData.nickname);
-      navigate('/');
-    } catch (err) {
-      console.error('Anonymous login error:', err);
-      // Error is handled by AuthContext
+      await anonymousLogin(nickname);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Anonymous login error:', error);
+      setFormError(error.message || 'Failed to login anonymously');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-
-  // Toggle between regular and anonymous login forms
-  const toggleAnonymousForm = () => {
-    setShowAnonymousForm(prev => !prev);
-    clearError();
-  };
-
+  
+  if (loading) {
+    return <LoadingScreen text="Checking authentication..." />;
+  }
+  
   return (
-    <div className="auth-page">
-      <div className="auth-form-container">
-        <h2 className="auth-title">{t('app.name')}</h2>
-        <p className="auth-subtitle">{t('app.tagline')}</p>
+    <LoginContainer>
+      <LoginCard>
+        <LoginLogo>
+          <h1>HugMeNow</h1>
+          <p>Your emotional wellness companion</p>
+        </LoginLogo>
         
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+        {formError && <ErrorMessage>{formError}</ErrorMessage>}
         
         {showAnonymousForm ? (
-          <>
-            <h3>{t('auth.anonymousLogin')}</h3>
-            <form className="auth-form" onSubmit={handleAnonymousLogin}>
-              <div className="form-group">
-                <label htmlFor="nickname">{t('auth.nickname')}</label>
-                <input
-                  type="text"
-                  id="nickname"
-                  name="nickname"
-                  value={anonymousData.nickname}
-                  onChange={handleAnonymousChange}
-                  required
-                />
-              </div>
-              
-              <button 
-                type="submit" 
-                className="btn btn-primary btn-block" 
-                disabled={isLoading}
-              >
-                {isLoading ? t('common.loading') : t('auth.continueAnonymously')}
-              </button>
-            </form>
+          <LoginForm onSubmit={handleAnonymousLogin}>
+            <FormGroup>
+              <Label htmlFor="nickname">Nickname</Label>
+              <Input
+                type="text"
+                id="nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="Enter your nickname"
+                required
+              />
+            </FormGroup>
             
-            <div className="auth-divider">
-              <span>{t('common.or')}</span>
-            </div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : 'Continue Anonymously'}
+            </Button>
             
-            <button 
-              className="btn btn-outline btn-block"
-              onClick={toggleAnonymousForm}
-            >
-              {t('auth.useCredentials')}
-            </button>
-          </>
+            <LoginFooter>
+              <p>
+                <a href="#" onClick={() => setShowAnonymousForm(false)}>
+                  Back to login
+                </a>
+              </p>
+            </LoginFooter>
+          </LoginForm>
         ) : (
           <>
-            <h3>{t('auth.login')}</h3>
-            <form className="auth-form" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="email">{t('auth.email')}</label>
-                <input
+            <LoginForm onSubmit={handleLogin}>
+              <FormGroup>
+                <Label htmlFor="email">Email</Label>
+                <Input
                   type="email"
                   id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   required
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label htmlFor="password">{t('auth.password')}</label>
-                <input
+              <FormGroup>
+                <Label htmlFor="password">Password</Label>
+                <Input
                   type="password"
                   id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   required
                 />
-              </div>
+              </FormGroup>
               
-              <button 
-                type="submit" 
-                className="btn btn-primary btn-block" 
-                disabled={isLoading}
-              >
-                {isLoading ? t('common.loading') : t('auth.login')}
-              </button>
-            </form>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </LoginForm>
             
-            <div className="auth-divider">
-              <span>{t('common.or')}</span>
-            </div>
+            <OrDivider>
+              <span>or</span>
+            </OrDivider>
             
-            <button 
-              className="btn btn-outline btn-block"
-              onClick={toggleAnonymousForm}
+            <AnonymousButton 
+              type="button" 
+              onClick={() => setShowAnonymousForm(true)}
             >
-              {t('auth.anonymousLogin')}
-            </button>
+              Continue Anonymously
+            </AnonymousButton>
+            
+            <LoginFooter>
+              <p>
+                Don't have an account?{' '}
+                <Link to="/register">Sign Up</Link>
+              </p>
+            </LoginFooter>
           </>
         )}
-        
-        <div className="auth-links">
-          <p>
-            {t('auth.noAccount')} <Link to="/register">{t('auth.register')}</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+      </LoginCard>
+    </LoginContainer>
   );
 };
 

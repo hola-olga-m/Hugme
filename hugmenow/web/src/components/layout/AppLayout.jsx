@@ -1,87 +1,173 @@
 import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
+/**
+ * AppLayout component that wraps all app pages with common layout elements
+ * including header, navigation, and footer.
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child elements to render inside the layout
+ * @returns {JSX.Element} - AppLayout component
+ */
 const AppLayout = ({ children }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // Toggle mobile menu
-  const toggleMenu = () => {
-    setMenuOpen(prev => !prev);
+  const location = useLocation();
+  
+  // State for mobile navigation
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  
+  // Toggle mobile navigation
+  const toggleMobileNav = () => {
+    setMobileNavOpen(prev => !prev);
   };
-
-  // Handle language change
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
+  
+  // Close mobile navigation
+  const closeMobileNav = () => {
+    setMobileNavOpen(false);
   };
-
+  
   // Handle logout
   const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+    try {
+      await logout();
+      closeMobileNav();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
-
+  
+  // Check if the current route matches the given path
+  const isActivePath = (path) => {
+    return location.pathname === path;
+  };
+  
   return (
     <div className="app-layout">
       <header className="app-header">
-        <div className="container">
-          <div className="nav-container">
-            <div className="nav-logo">
-              <Link to="/">{t('app.name')}</Link>
-            </div>
-            
-            <button 
-              className="mobile-menu-btn"
-              onClick={toggleMenu}
-              aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-            >
-              {menuOpen ? '✕' : '☰'}
-            </button>
-            
-            <nav>
-              <ul className={`nav-items ${menuOpen ? 'open' : ''}`}>
-                <li>
-                  <NavLink to="/">{t('nav.dashboard')}</NavLink>
-                </li>
-                <li>
-                  <NavLink to="/mood-tracker">{t('nav.moodTracker')}</NavLink>
-                </li>
-                <li>
-                  <NavLink to="/hug-center">{t('nav.hugCenter')}</NavLink>
-                </li>
-                <li>
-                  <NavLink to="/profile">{t('nav.profile')}</NavLink>
-                </li>
-                <li>
-                  <button onClick={handleLogout} className="nav-logout">
-                    {t('auth.logout')}
-                  </button>
-                </li>
-                <li className="nav-language">
-                  <button onClick={() => changeLanguage('en')}>EN</button>
-                  <button onClick={() => changeLanguage('ru')}>RU</button>
-                </li>
-              </ul>
-            </nav>
+        <div className="header-container">
+          <div className="logo">
+            <Link to="/" onClick={closeMobileNav}>
+              <h1>{t('app.name')}</h1>
+            </Link>
           </div>
+          
+          <button 
+            className="mobile-nav-toggle" 
+            aria-expanded={mobileNavOpen}
+            onClick={toggleMobileNav}
+          >
+            <span className="sr-only">
+              {mobileNavOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+            </span>
+            <div className={`hamburger ${mobileNavOpen ? 'open' : ''}`}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+          
+          <nav className={`main-nav ${mobileNavOpen ? 'open' : ''}`}>
+            <ul className="nav-list">
+              <li className="nav-item">
+                <Link 
+                  to="/" 
+                  className={isActivePath('/') ? 'active' : ''}
+                  onClick={closeMobileNav}
+                >
+                  {t('nav.dashboard')}
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link 
+                  to="/mood-tracker" 
+                  className={isActivePath('/mood-tracker') ? 'active' : ''}
+                  onClick={closeMobileNav}
+                >
+                  {t('nav.moodTracker')}
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link 
+                  to="/hug-center" 
+                  className={isActivePath('/hug-center') ? 'active' : ''}
+                  onClick={closeMobileNav}
+                >
+                  {t('nav.hugCenter')}
+                </Link>
+              </li>
+              
+              {user ? (
+                <>
+                  <li className="nav-item user-menu">
+                    <Link 
+                      to="/profile" 
+                      className={`user-link ${isActivePath('/profile') ? 'active' : ''}`}
+                      onClick={closeMobileNav}
+                    >
+                      {user.avatarUrl ? (
+                        <img 
+                          src={user.avatarUrl} 
+                          alt={user.name || user.username} 
+                          className="user-avatar"
+                        />
+                      ) : (
+                        <div className="avatar-placeholder">
+                          {(user.name || user.username || '?').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="user-name">{user.name || user.username}</span>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <button 
+                      className="logout-button"
+                      onClick={handleLogout}
+                    >
+                      {t('auth.logout')}
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li className="nav-item">
+                    <Link 
+                      to="/login" 
+                      className={`login-button ${isActivePath('/login') ? 'active' : ''}`}
+                      onClick={closeMobileNav}
+                    >
+                      {t('auth.login')}
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link 
+                      to="/register" 
+                      className={`register-button ${isActivePath('/register') ? 'active' : ''}`}
+                      onClick={closeMobileNav}
+                    >
+                      {t('auth.register')}
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </nav>
         </div>
       </header>
       
       <main className="app-main">
-        <div className="container">
-          {children}
-        </div>
+        {children}
       </main>
       
       <footer className="app-footer">
-        <div className="container">
-          <p>
-            &copy; {new Date().getFullYear()} {t('app.name')} - {t('app.footer')}
-          </p>
+        <div className="footer-container">
+          <div className="footer-content">
+            <p className="copyright">
+              &copy; {new Date().getFullYear()} {t('app.name')}. {t('app.footer')}
+            </p>
+          </div>
         </div>
       </footer>
     </div>

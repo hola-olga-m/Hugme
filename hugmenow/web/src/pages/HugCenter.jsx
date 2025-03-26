@@ -1,746 +1,562 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery } from '@apollo/client';
-import { 
-  SEND_HUG, 
-  MARK_HUG_AS_READ, 
-  CREATE_HUG_REQUEST,
-  RESPOND_TO_HUG_REQUEST
-} from '../graphql/mutations';
-import { 
-  GET_USERS, 
-  GET_SENT_HUGS, 
-  GET_RECEIVED_HUGS,
-  GET_MY_HUG_REQUESTS,
-  GET_PENDING_HUG_REQUESTS
-} from '../graphql/queries';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
-import AppLayout from '../components/layout/AppLayout';
 import LoadingScreen from '../components/common/LoadingScreen';
 
-const HugCenter = () => {
-  const { t } = useTranslation();
-  const { user } = useAuth();
+// Styled components
+const HugCenterContainer = styled.div`
+  min-height: 100vh;
+  background-color: var(--gray-100);
+`;
+
+const HugCenterHeader = styled.header`
+  background-color: white;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Logo = styled.div`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  cursor: pointer;
+`;
+
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
   
-  // Tab state
-  const [activeTab, setActiveTab] = useState('received');
-  
-  // Form state for sending a hug
-  const [sendHugForm, setSendHugForm] = useState({
-    recipientId: '',
-    type: 'SUPPORTIVE',
-    message: ''
-  });
-  
-  // Request form state
-  const [requestForm, setRequestForm] = useState({
-    recipientId: '',
-    message: '',
-    isCommunityRequest: false
-  });
-  
-  // UI states
-  const [formVisibility, setFormVisibility] = useState({
-    sendHug: false,
-    createRequest: false
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  
-  // GraphQL queries
-  const { loading: loadingUsers, data: usersData } = useQuery(GET_USERS, {
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingSent, data: sentData, refetch: refetchSent } = useQuery(GET_SENT_HUGS, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingReceived, data: receivedData, refetch: refetchReceived } = useQuery(GET_RECEIVED_HUGS, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingMyRequests, data: myRequestsData, refetch: refetchMyRequests } = useQuery(GET_MY_HUG_REQUESTS, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingPendingRequests, data: pendingRequestsData, refetch: refetchPendingRequests } = useQuery(GET_PENDING_HUG_REQUESTS, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  // GraphQL mutations
-  const [sendHug] = useMutation(SEND_HUG);
-  const [markHugAsRead] = useMutation(MARK_HUG_AS_READ);
-  const [createHugRequest] = useMutation(CREATE_HUG_REQUEST);
-  const [respondToHugRequest] = useMutation(RESPOND_TO_HUG_REQUEST);
-  
-  // Handle tab change
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setFormVisibility({
-      sendHug: false,
-      createRequest: false
-    });
-    setError(null);
-    setSuccess(null);
-  };
-  
-  // Toggle form visibility
-  const toggleForm = (formName) => {
-    setFormVisibility(prev => ({
-      ...prev,
-      [formName]: !prev[formName]
-    }));
-    setError(null);
-    setSuccess(null);
-  };
-  
-  // Handle send hug form change
-  const handleSendHugChange = (e) => {
-    const { name, value } = e.target;
-    setSendHugForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  // Handle request form change
-  const handleRequestFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setRequestForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-  
-  // Handle send hug submission
-  const handleSendHug = async (e) => {
-    e.preventDefault();
-    
-    if (!user) {
-      setError(t('error.notAuthenticated'));
-      return;
-    }
-    
-    if (!sendHugForm.recipientId) {
-      setError(t('hugCenter.selectRecipient'));
-      return;
-    }
-    
-    setSubmitting(true);
-    setError(null);
-    
-    try {
-      await sendHug({
-        variables: {
-          sendHugInput: {
-            recipientId: sendHugForm.recipientId,
-            type: sendHugForm.type,
-            message: sendHugForm.message.trim() || null
-          }
-        }
-      });
-      
-      // Show success message
-      setSuccess(t('hugCenter.hugSent'));
-      
-      // Reset form
-      setSendHugForm({
-        recipientId: '',
-        type: 'SUPPORTIVE',
-        message: ''
-      });
-      
-      // Hide form
-      setFormVisibility(prev => ({
-        ...prev,
-        sendHug: false
-      }));
-      
-      // Refetch data
-      refetchSent();
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
-    } catch (err) {
-      setError(err.message || t('error.unknownError'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  // Handle mark hug as read
-  const handleMarkAsRead = async (hugId) => {
-    if (!user) {
-      setError(t('error.notAuthenticated'));
-      return;
-    }
-    
-    try {
-      await markHugAsRead({
-        variables: {
-          hugId
-        }
-      });
-      
-      // Refetch received hugs
-      refetchReceived();
-    } catch (err) {
-      console.error('Error marking hug as read:', err);
-    }
-  };
-  
-  // Handle create hug request
-  const handleCreateRequest = async (e) => {
-    e.preventDefault();
-    
-    if (!user) {
-      setError(t('error.notAuthenticated'));
-      return;
-    }
-    
-    if (!requestForm.isCommunityRequest && !requestForm.recipientId) {
-      setError(t('hugCenter.selectRecipient'));
-      return;
-    }
-    
-    setSubmitting(true);
-    setError(null);
-    
-    try {
-      await createHugRequest({
-        variables: {
-          createHugRequestInput: {
-            recipientId: requestForm.isCommunityRequest ? null : requestForm.recipientId,
-            message: requestForm.message.trim() || null,
-            isCommunityRequest: requestForm.isCommunityRequest
-          }
-        }
-      });
-      
-      // Show success message
-      setSuccess(t('hugCenter.requestCreated'));
-      
-      // Reset form
-      setRequestForm({
-        recipientId: '',
-        message: '',
-        isCommunityRequest: false
-      });
-      
-      // Hide form
-      setFormVisibility(prev => ({
-        ...prev,
-        createRequest: false
-      }));
-      
-      // Refetch data
-      refetchMyRequests();
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
-    } catch (err) {
-      setError(err.message || t('error.unknownError'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  // Handle respond to hug request
-  const handleRespondToRequest = async (requestId, status) => {
-    if (!user) {
-      setError(t('error.notAuthenticated'));
-      return;
-    }
-    
-    try {
-      await respondToHugRequest({
-        variables: {
-          respondToRequestInput: {
-            requestId,
-            status
-          }
-        }
-      });
-      
-      // Refetch pending requests
-      refetchPendingRequests();
-      
-      // Show temporary success message
-      const statusText = status === 'ACCEPTED' 
-        ? t('hugCenter.requestAccepted') 
-        : t('hugCenter.requestDeclined');
-      
-      setSuccess(statusText);
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
-    } catch (err) {
-      setError(err.message || t('error.unknownError'));
-    }
-  };
-  
-  // Format date to relative time (today, yesterday, or date)
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-      return t('common.today') + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return t('common.yesterday') + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else {
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-  };
-  
-  // Display an appropriate avatar for a user
-  const renderAvatar = (userObj) => {
-    if (!userObj) return null;
-    
-    if (userObj.avatarUrl) {
-      return <img src={userObj.avatarUrl} alt={userObj.name || userObj.username} />;
-    } else {
-      return (
-        <div className="avatar-placeholder">
-          {(userObj.name || userObj.username || '?').charAt(0).toUpperCase()}
-        </div>
-      );
-    }
-  };
-  
-  // Check if any data is loading
-  const isLoading = loadingUsers || loadingSent || loadingReceived || 
-                    loadingMyRequests || loadingPendingRequests;
-  
-  // If loading, show loading screen
-  if (isLoading && !usersData && !sentData && !receivedData && !myRequestsData && !pendingRequestsData) {
-    return (
-      <AppLayout>
-        <LoadingScreen message={t('hugCenter.loading')} />
-      </AppLayout>
-    );
+  &:hover {
+    color: var(--primary-color);
   }
   
-  // Extract data
-  const users = usersData?.users || [];
-  const sentHugs = sentData?.sentHugs || [];
-  const receivedHugs = receivedData?.receivedHugs || [];
-  const myRequests = myRequestsData?.myHugRequests || [];
-  const pendingRequests = pendingRequestsData?.pendingHugRequests || [];
+  &::before {
+    content: '←';
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+  }
+`;
+
+const HugCenterContent = styled.main`
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+`;
+
+const HugCenterTitle = styled.h1`
+  color: var(--gray-800);
+  margin-bottom: 1.5rem;
+`;
+
+const HugCenterDescription = styled.p`
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+`;
+
+const TabContainer = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const TabButtons = styled.div`
+  display: flex;
+  border-bottom: 1px solid var(--gray-300);
+  margin-bottom: 2rem;
+`;
+
+const TabButton = styled.button`
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-weight: ${props => props.active ? '600' : '400'};
+  color: ${props => props.active ? 'var(--primary-color)' : 'var(--gray-600)'};
+  border-bottom: ${props => props.active ? '2px solid var(--primary-color)' : '2px solid transparent'};
+  margin-bottom: -1px;
+  transition: var(--transition-base);
   
-  // Filter out current user from users list
-  const otherUsers = users.filter(u => u.id !== user?.id);
+  &:hover {
+    color: var(--primary-color);
+  }
+`;
+
+const ActionCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+`;
+
+const SectionTitle = styled.h2`
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--gray-800);
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-base);
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.25);
+  }
+`;
+
+const Select = styled.select`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-base);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.25);
+  }
+`;
+
+const Textarea = styled.textarea`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-base);
+  min-height: 100px;
+  resize: vertical;
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.25);
+  }
+`;
+
+const Checkbox = styled.div`
+  display: flex;
+  align-items: center;
+  
+  input {
+    margin-right: 0.5rem;
+  }
+  
+  label {
+    font-weight: normal;
+  }
+`;
+
+const SubmitButton = styled.button`
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  &:disabled {
+    background-color: var(--gray-400);
+    cursor: not-allowed;
+  }
+`;
+
+const PlaceholderMessage = styled.div`
+  background-color: var(--gray-200);
+  color: var(--gray-600);
+  padding: 2rem;
+  text-align: center;
+  border-radius: var(--border-radius-md);
+`;
+
+const HugsList = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+`;
+
+const HugCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid ${props => props.received ? 'var(--secondary-color)' : 'var(--primary-color)'};
+`;
+
+const HugCardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const HugAvatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: ${props => props.received ? 'var(--secondary-light)' : 'var(--primary-light)'};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 0.75rem;
+`;
+
+const HugUser = styled.div`
+  flex: 1;
+  
+  .name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+  
+  .date {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+  }
+`;
+
+const HugType = styled.div`
+  background-color: ${props => props.received ? 'var(--secondary-color)' : 'var(--primary-color)'};
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  margin-left: 0.5rem;
+`;
+
+const HugMessage = styled.p`
+  color: var(--gray-700);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+`;
+
+const EmptyStateMessage = styled.div`
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--gray-600);
+  
+  p {
+    margin-bottom: 1.5rem;
+  }
+`;
+
+const HugCenter = () => {
+  const [activeTab, setActiveTab] = useState('sendHug');
+  const [formData, setFormData] = useState({
+    recipientId: '',
+    hugType: 'SUPPORTIVE',
+    message: '',
+    isCommunity: false,
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  
+  const navigateToDashboard = () => {
+    navigate('/dashboard');
+  };
+  
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+  
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // In a real app, you would submit this data to your API
+    console.log('Submitting hug:', formData);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setFormData({
+        recipientId: '',
+        hugType: 'SUPPORTIVE',
+        message: '',
+        isCommunity: false,
+      });
+      setIsSubmitting(false);
+      
+      // Display success message or update UI accordingly
+      alert('Hug sent successfully!');
+    }, 1000);
+  };
+  
+  const renderSendHugForm = () => (
+    <ActionCard>
+      <SectionTitle>Send a Virtual Hug</SectionTitle>
+      
+      <form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label htmlFor="recipientId">Recipient</Label>
+          <Select
+            id="recipientId"
+            name="recipientId"
+            value={formData.recipientId}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select a recipient</option>
+            <option value="user1">Sarah Johnson</option>
+            <option value="user2">Michael Chen</option>
+            <option value="user3">Aisha Patel</option>
+          </Select>
+        </FormGroup>
+        
+        <FormGroup>
+          <Label htmlFor="hugType">Hug Type</Label>
+          <Select
+            id="hugType"
+            name="hugType"
+            value={formData.hugType}
+            onChange={handleChange}
+            required
+          >
+            <option value="QUICK">Quick Hug</option>
+            <option value="WARM">Warm Hug</option>
+            <option value="SUPPORTIVE">Supportive Hug</option>
+            <option value="COMFORTING">Comforting Hug</option>
+            <option value="ENCOURAGING">Encouraging Hug</option>
+            <option value="CELEBRATORY">Celebratory Hug</option>
+          </Select>
+        </FormGroup>
+        
+        <FormGroup>
+          <Label htmlFor="message">Message (optional)</Label>
+          <Textarea
+            id="message"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Add a personal message with your hug..."
+          />
+        </FormGroup>
+        
+        <SubmitButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Sending...' : 'Send Hug'}
+        </SubmitButton>
+      </form>
+    </ActionCard>
+  );
+  
+  const renderRequestHugForm = () => (
+    <ActionCard>
+      <SectionTitle>Request a Hug</SectionTitle>
+      
+      <form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label htmlFor="message">Why do you need a hug?</Label>
+          <Textarea
+            id="message"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Share why you could use some support right now..."
+            required
+          />
+        </FormGroup>
+        
+        <FormGroup>
+          <Checkbox>
+            <input
+              type="checkbox"
+              id="isCommunity"
+              name="isCommunity"
+              checked={formData.isCommunity}
+              onChange={handleChange}
+            />
+            <label htmlFor="isCommunity">Make this a community request (anyone can respond)</label>
+          </Checkbox>
+        </FormGroup>
+        
+        {!formData.isCommunity && (
+          <FormGroup>
+            <Label htmlFor="recipientId">Request from specific person</Label>
+            <Select
+              id="recipientId"
+              name="recipientId"
+              value={formData.recipientId}
+              onChange={handleChange}
+              required={!formData.isCommunity}
+            >
+              <option value="">Select a person</option>
+              <option value="user1">Sarah Johnson</option>
+              <option value="user2">Michael Chen</option>
+              <option value="user3">Aisha Patel</option>
+            </Select>
+          </FormGroup>
+        )}
+        
+        <SubmitButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Request Hug'}
+        </SubmitButton>
+      </form>
+    </ActionCard>
+  );
+  
+  const renderHugHistory = () => (
+    <>
+      <SectionTitle>Hugs Received</SectionTitle>
+      <HugsList>
+        <HugCard received>
+          <HugCardHeader>
+            <HugAvatar received>MJ</HugAvatar>
+            <HugUser>
+              <div className="name">Michael Johnson</div>
+              <div className="date">March 20, 2025</div>
+            </HugUser>
+            <HugType received>SUPPORTIVE</HugType>
+          </HugCardHeader>
+          <HugMessage>
+            Hang in there! I know you've been going through a tough time lately, but you're stronger than you think. Here's a hug to remind you that you're not alone.
+          </HugMessage>
+        </HugCard>
+        
+        <HugCard received>
+          <HugCardHeader>
+            <HugAvatar received>AP</HugAvatar>
+            <HugUser>
+              <div className="name">Aisha Patel</div>
+              <div className="date">March 15, 2025</div>
+            </HugUser>
+            <HugType received>CELEBRATORY</HugType>
+          </HugCardHeader>
+          <HugMessage>
+            Congratulations on your achievement! So proud of you. Virtual hug sent your way! 🎉
+          </HugMessage>
+        </HugCard>
+      </HugsList>
+      
+      <SectionTitle style={{ marginTop: '2rem' }}>Hugs Sent</SectionTitle>
+      <HugsList>
+        <HugCard>
+          <HugCardHeader>
+            <HugAvatar>SJ</HugAvatar>
+            <HugUser>
+              <div className="name">Sarah Johnson</div>
+              <div className="date">March 22, 2025</div>
+            </HugUser>
+            <HugType>COMFORTING</HugType>
+          </HugCardHeader>
+          <HugMessage>
+            I heard about what happened. I'm here for you, always. This hug comes with my heartfelt support.
+          </HugMessage>
+        </HugCard>
+      </HugsList>
+    </>
+  );
+  
+  const renderPendingRequests = () => (
+    <PlaceholderMessage>
+      <p>There are no pending hug requests at this time.</p>
+      <p>When someone requests a hug from you, it will appear here.</p>
+    </PlaceholderMessage>
+  );
+  
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'sendHug':
+        return renderSendHugForm();
+      case 'requestHug':
+        return renderRequestHugForm();
+      case 'hugHistory':
+        return renderHugHistory();
+      case 'pendingRequests':
+        return renderPendingRequests();
+      default:
+        return null;
+    }
+  };
   
   return (
-    <AppLayout>
-      <div className="hug-center-container">
-        <div className="hug-center-header">
-          <h1>{t('hugCenter.title')}</h1>
-          <p>{t('hugCenter.subtitle')}</p>
-        </div>
+    <HugCenterContainer>
+      <HugCenterHeader>
+        <Logo onClick={navigateToDashboard}>HugMeNow</Logo>
+        <BackButton onClick={navigateToDashboard}>Back to Dashboard</BackButton>
+      </HugCenterHeader>
+      
+      <HugCenterContent>
+        <HugCenterTitle>Hug Center</HugCenterTitle>
+        <HugCenterDescription>
+          Send and receive virtual hugs to provide emotional support and connection with others.
+          Sometimes a simple gesture can make all the difference.
+        </HugCenterDescription>
         
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-        
-        {success && (
-          <div className="success-message">
-            {success}
-          </div>
-        )}
-        
-        <div className="hug-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={() => toggleForm('sendHug')}
-          >
-            {t('hugCenter.sendHug')}
-          </button>
-          <button 
-            className="btn btn-outline"
-            onClick={() => toggleForm('createRequest')}
-          >
-            {t('hugCenter.requestHug')}
-          </button>
-        </div>
-        
-        {/* Send Hug Form */}
-        {formVisibility.sendHug && (
-          <div className="hug-form-container">
-            <h2>{t('hugCenter.sendHug')}</h2>
-            <form onSubmit={handleSendHug} className="hug-form">
-              <div className="form-group">
-                <label htmlFor="recipientId">{t('hugCenter.recipient')}</label>
-                <select
-                  id="recipientId"
-                  name="recipientId"
-                  value={sendHugForm.recipientId}
-                  onChange={handleSendHugChange}
-                  required
-                >
-                  <option value="">{t('hugCenter.selectRecipient')}</option>
-                  {otherUsers.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.username}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="type">{t('hugCenter.hugType')}</label>
-                <select
-                  id="type"
-                  name="type"
-                  value={sendHugForm.type}
-                  onChange={handleSendHugChange}
-                  required
-                >
-                  <option value="SUPPORTIVE">{t('hugCenter.supportive')}</option>
-                  <option value="COMFORTING">{t('hugCenter.comforting')}</option>
-                  <option value="ENCOURAGING">{t('hugCenter.encouraging')}</option>
-                  <option value="CELEBRATORY">{t('hugCenter.celebratory')}</option>
-                  <option value="QUICK">{t('hugCenter.quick')}</option>
-                  <option value="WARM">{t('hugCenter.warm')}</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="message">{t('hugCenter.message')}</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={sendHugForm.message}
-                  onChange={handleSendHugChange}
-                  placeholder={t('hugCenter.messagePlaceholder')}
-                  rows={3}
-                ></textarea>
-              </div>
-              
-              <div className="form-actions">
-                <button 
-                  type="submit" 
-                  className="btn btn-primary" 
-                  disabled={submitting}
-                >
-                  {submitting ? t('common.sending') : t('hugCenter.sendHug')}
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-outline" 
-                  onClick={() => toggleForm('sendHug')}
-                  disabled={submitting}
-                >
-                  {t('common.cancel')}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-        
-        {/* Create Hug Request Form */}
-        {formVisibility.createRequest && (
-          <div className="hug-form-container">
-            <h2>{t('hugCenter.requestHug')}</h2>
-            <form onSubmit={handleCreateRequest} className="hug-form">
-              <div className="form-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="isCommunityRequest"
-                    checked={requestForm.isCommunityRequest}
-                    onChange={handleRequestFormChange}
-                  />
-                  <span>{t('hugCenter.communityRequest')}</span>
-                </label>
-                <p className="form-help-text">{t('hugCenter.communityRequestHelp')}</p>
-              </div>
-              
-              {!requestForm.isCommunityRequest && (
-                <div className="form-group">
-                  <label htmlFor="requestRecipientId">{t('hugCenter.recipient')}</label>
-                  <select
-                    id="requestRecipientId"
-                    name="recipientId"
-                    value={requestForm.recipientId}
-                    onChange={handleRequestFormChange}
-                    required={!requestForm.isCommunityRequest}
-                  >
-                    <option value="">{t('hugCenter.selectRecipient')}</option>
-                    {otherUsers.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.name || user.username}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              <div className="form-group">
-                <label htmlFor="requestMessage">{t('hugCenter.message')}</label>
-                <textarea
-                  id="requestMessage"
-                  name="message"
-                  value={requestForm.message}
-                  onChange={handleRequestFormChange}
-                  placeholder={t('hugCenter.requestMessagePlaceholder')}
-                  rows={3}
-                ></textarea>
-              </div>
-              
-              <div className="form-actions">
-                <button 
-                  type="submit" 
-                  className="btn btn-primary" 
-                  disabled={submitting}
-                >
-                  {submitting ? t('common.requesting') : t('hugCenter.requestHug')}
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-outline" 
-                  onClick={() => toggleForm('createRequest')}
-                  disabled={submitting}
-                >
-                  {t('common.cancel')}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-        
-        {/* Tabs */}
-        <div className="hug-tabs">
-          <button 
-            className={`tab-button ${activeTab === 'received' ? 'active' : ''}`}
-            onClick={() => handleTabChange('received')}
-          >
-            {t('hugCenter.receivedHugs')}
-            {receivedHugs.filter(h => !h.isRead).length > 0 && (
-              <span className="notification-badge">
-                {receivedHugs.filter(h => !h.isRead).length}
-              </span>
-            )}
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'sent' ? 'active' : ''}`}
-            onClick={() => handleTabChange('sent')}
-          >
-            {t('hugCenter.sentHugs')}
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'requests' ? 'active' : ''}`}
-            onClick={() => handleTabChange('requests')}
-          >
-            {t('hugCenter.hugRequests')}
-            {pendingRequests.length > 0 && (
-              <span className="notification-badge">
-                {pendingRequests.length}
-              </span>
-            )}
-          </button>
-        </div>
-        
-        {/* Tab Content */}
-        <div className="tab-content">
-          {/* Received Hugs Tab */}
-          {activeTab === 'received' && (
-            <div className="hugs-list received-hugs">
-              {receivedHugs.length === 0 ? (
-                <div className="empty-state">
-                  <p>{t('hugCenter.noReceivedHugs')}</p>
-                </div>
-              ) : (
-                <>
-                  {receivedHugs.map(hug => (
-                    <div 
-                      key={hug.id} 
-                      className={`hug-card ${!hug.isRead ? 'unread' : ''}`}
-                      onClick={() => !hug.isRead && handleMarkAsRead(hug.id)}
-                    >
-                      <div className="hug-avatar">
-                        {renderAvatar(hug.sender)}
-                      </div>
-                      <div className="hug-content">
-                        <div className="hug-sender">
-                          {hug.sender.name || hug.sender.username}
-                        </div>
-                        <div className="hug-type">
-                          {t(`hugCenter.${hug.type.toLowerCase()}`)}
-                        </div>
-                        {hug.message && (
-                          <div className="hug-message">
-                            <p>{hug.message}</p>
-                          </div>
-                        )}
-                        <div className="hug-time">
-                          {formatDate(hug.createdAt)}
-                        </div>
-                      </div>
-                      {!hug.isRead && (
-                        <div className="hug-unread-badge">
-                          {t('hugCenter.new')}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
+        <TabContainer>
+          <TabButtons>
+            <TabButton 
+              active={activeTab === 'sendHug'} 
+              onClick={() => handleTabChange('sendHug')}
+            >
+              Send a Hug
+            </TabButton>
+            <TabButton 
+              active={activeTab === 'requestHug'} 
+              onClick={() => handleTabChange('requestHug')}
+            >
+              Request a Hug
+            </TabButton>
+            <TabButton 
+              active={activeTab === 'hugHistory'} 
+              onClick={() => handleTabChange('hugHistory')}
+            >
+              Hug History
+            </TabButton>
+            <TabButton 
+              active={activeTab === 'pendingRequests'} 
+              onClick={() => handleTabChange('pendingRequests')}
+            >
+              Pending Requests
+            </TabButton>
+          </TabButtons>
           
-          {/* Sent Hugs Tab */}
-          {activeTab === 'sent' && (
-            <div className="hugs-list sent-hugs">
-              {sentHugs.length === 0 ? (
-                <div className="empty-state">
-                  <p>{t('hugCenter.noSentHugs')}</p>
-                </div>
-              ) : (
-                <>
-                  {sentHugs.map(hug => (
-                    <div key={hug.id} className="hug-card">
-                      <div className="hug-avatar">
-                        {renderAvatar(hug.recipient)}
-                      </div>
-                      <div className="hug-content">
-                        <div className="hug-recipient">
-                          {t('hugCenter.to')}: {hug.recipient.name || hug.recipient.username}
-                        </div>
-                        <div className="hug-type">
-                          {t(`hugCenter.${hug.type.toLowerCase()}`)}
-                        </div>
-                        {hug.message && (
-                          <div className="hug-message">
-                            <p>{hug.message}</p>
-                          </div>
-                        )}
-                        <div className="hug-time">
-                          {formatDate(hug.createdAt)}
-                        </div>
-                      </div>
-                      {hug.isRead ? (
-                        <div className="hug-read-badge">
-                          {t('hugCenter.read')}
-                        </div>
-                      ) : (
-                        <div className="hug-unread-badge">
-                          {t('hugCenter.unread')}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-          
-          {/* Requests Tab */}
-          {activeTab === 'requests' && (
-            <div className="hug-requests">
-              {/* Pending requests section */}
-              <div className="hug-requests-section">
-                <h3>{t('hugCenter.pendingRequests')}</h3>
-                {pendingRequests.length === 0 ? (
-                  <div className="empty-state">
-                    <p>{t('hugCenter.noPendingRequests')}</p>
-                  </div>
-                ) : (
-                  <div className="requests-list">
-                    {pendingRequests.map(request => (
-                      <div key={request.id} className="request-card">
-                        <div className="request-avatar">
-                          {renderAvatar(request.requester)}
-                        </div>
-                        <div className="request-content">
-                          <div className="request-user">
-                            {request.requester.name || request.requester.username}
-                          </div>
-                          {request.message && (
-                            <div className="request-message">
-                              <p>{request.message}</p>
-                            </div>
-                          )}
-                          <div className="request-time">
-                            {formatDate(request.createdAt)}
-                          </div>
-                        </div>
-                        <div className="request-actions">
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleRespondToRequest(request.id, 'ACCEPTED')}
-                          >
-                            {t('hugCenter.accept')}
-                          </button>
-                          <button 
-                            className="btn btn-outline btn-sm"
-                            onClick={() => handleRespondToRequest(request.id, 'DECLINED')}
-                          >
-                            {t('hugCenter.decline')}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* My requests section */}
-              <div className="hug-requests-section">
-                <h3>{t('hugCenter.myRequests')}</h3>
-                {myRequests.length === 0 ? (
-                  <div className="empty-state">
-                    <p>{t('hugCenter.noMyRequests')}</p>
-                  </div>
-                ) : (
-                  <div className="requests-list">
-                    {myRequests.map(request => (
-                      <div key={request.id} className="request-card">
-                        <div className="request-content">
-                          <div className="request-type">
-                            {request.isCommunityRequest 
-                              ? t('hugCenter.communityRequestLabel')
-                              : t('hugCenter.personalRequestLabel', { 
-                                  name: request.recipient?.name || request.recipient?.username 
-                                })
-                            }
-                          </div>
-                          {request.message && (
-                            <div className="request-message">
-                              <p>{request.message}</p>
-                            </div>
-                          )}
-                          <div className="request-time">
-                            {formatDate(request.createdAt)}
-                          </div>
-                          <div className="request-status">
-                            {t(`hugCenter.status${request.status.charAt(0) + request.status.slice(1).toLowerCase()}`)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </AppLayout>
+          {renderTabContent()}
+        </TabContainer>
+      </HugCenterContent>
+    </HugCenterContainer>
   );
 };
 

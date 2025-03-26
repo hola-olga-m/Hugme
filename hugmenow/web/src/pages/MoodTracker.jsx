@@ -1,259 +1,330 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery } from '@apollo/client';
-import { CREATE_MOOD } from '../graphql/mutations';
-import { GET_USER_MOODS, GET_MOOD_STREAK } from '../graphql/queries';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
-import AppLayout from '../components/layout/AppLayout';
 import LoadingScreen from '../components/common/LoadingScreen';
 
-const MoodTracker = () => {
-  const { t } = useTranslation();
-  const { user } = useAuth();
+// Styled components
+const MoodTrackerContainer = styled.div`
+  min-height: 100vh;
+  background-color: var(--gray-100);
+`;
+
+const MoodTrackerHeader = styled.header`
+  background-color: white;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Logo = styled.div`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  cursor: pointer;
+`;
+
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
   
-  // State for new mood entry
+  &:hover {
+    color: var(--primary-color);
+  }
+  
+  &::before {
+    content: '←';
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+  }
+`;
+
+const MoodTrackerContent = styled.main`
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+`;
+
+const MoodTrackerTitle = styled.h1`
+  color: var(--gray-800);
+  margin-bottom: 1.5rem;
+`;
+
+const MoodTrackerDescription = styled.p`
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+`;
+
+const MoodInputCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+`;
+
+const MoodHistoryCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+`;
+
+const SectionTitle = styled.h2`
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+`;
+
+const MoodSlider = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const SliderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const SliderInput = styled.input`
+  flex: 1;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: linear-gradient(
+    to right, 
+    var(--danger-color) 0%, 
+    var(--warning-color) 50%, 
+    var(--success-color) 100%
+  );
+  outline: none;
+  
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--primary-color);
+    cursor: pointer;
+  }
+  
+  &::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--primary-color);
+    cursor: pointer;
+  }
+`;
+
+const SliderValue = styled.div`
+  margin-left: 1rem;
+  font-weight: bold;
+  font-size: 1.25rem;
+  min-width: 40px;
+  color: ${props => {
+    const value = props.value;
+    if (value <= 3) return 'var(--danger-color)';
+    if (value <= 7) return 'var(--warning-color)';
+    return 'var(--success-color)';
+  }};
+`;
+
+const SliderLabels = styled.div`
+  display: flex;
+  justify-content: space-between;
+  
+  span {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+  }
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--gray-800);
+`;
+
+const Textarea = styled.textarea`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-base);
+  min-height: 100px;
+  resize: vertical;
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.25);
+  }
+`;
+
+const Checkbox = styled.div`
+  display: flex;
+  align-items: center;
+  
+  input {
+    margin-right: 0.5rem;
+  }
+  
+  label {
+    font-weight: normal;
+  }
+`;
+
+const SubmitButton = styled.button`
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  &:disabled {
+    background-color: var(--gray-400);
+    cursor: not-allowed;
+  }
+`;
+
+const PlaceholderMessage = styled.div`
+  background-color: var(--gray-200);
+  color: var(--gray-600);
+  padding: 2rem;
+  text-align: center;
+  border-radius: var(--border-radius-md);
+`;
+
+const MoodTracker = () => {
   const [moodScore, setMoodScore] = useState(5);
   const [moodNote, setMoodNote] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Fetch user moods
-  const { loading: loadingMoods, data: moodData, refetch: refetchMoods } = useQuery(GET_USER_MOODS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   
-  // Fetch mood streak
-  const { loading: loadingStreak, data: streakData, refetch: refetchStreak } = useQuery(GET_MOOD_STREAK, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  // Create mood mutation
-  const [createMood] = useMutation(CREATE_MOOD);
-  
-  // Handle mood score selection
-  const handleScoreSelect = (score) => {
-    setMoodScore(score);
+  const navigateToDashboard = () => {
+    navigate('/dashboard');
   };
   
-  // Handle note input
-  const handleNoteChange = (e) => {
-    setMoodNote(e.target.value);
-  };
-  
-  // Handle public/private toggle
-  const handlePublicToggle = () => {
-    setIsPublic(prev => !prev);
-  };
-  
-  // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    if (!user) {
-      setError(t('error.notAuthenticated'));
-      return;
-    }
+    // In a real app, you would submit this data to your API
+    console.log('Submitting mood:', { moodScore, moodNote, isPublic });
     
-    setSubmitting(true);
-    setError(null);
-    
-    try {
-      // Create mood entry
-      await createMood({
-        variables: {
-          createMoodInput: {
-            score: moodScore,
-            note: moodNote.trim() || null,
-            isPublic
-          }
-        }
-      });
-      
-      // Show success message
-      setSuccess(true);
-      
-      // Reset form
+    // Simulate API call
+    setTimeout(() => {
+      setMoodScore(5);
       setMoodNote('');
+      setIsPublic(false);
+      setIsSubmitting(false);
       
-      // Refetch mood data
-      refetchMoods();
-      refetchStreak();
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccess(false);
-      }, 3000);
-    } catch (err) {
-      setError(err.message || t('error.unknownError'));
-    } finally {
-      setSubmitting(false);
-    }
+      // Display success message or update UI accordingly
+      alert('Mood submitted successfully!');
+    }, 1000);
   };
-  
-  // Get mood text based on score
-  const getMoodText = (score) => {
-    if (score >= 9) return t('moods.excellent');
-    if (score >= 7) return t('moods.great');
-    if (score >= 5) return t('moods.good');
-    if (score >= 3) return t('moods.okay');
-    return t('moods.notGood');
-  };
-  
-  // Show loading screen if moods are loading
-  if (loadingMoods || loadingStreak) {
-    return (
-      <AppLayout>
-        <LoadingScreen message={t('moodTracker.loading')} />
-      </AppLayout>
-    );
-  }
-  
-  // Extract data
-  const moods = moodData?.userMoods || [];
-  const streak = streakData?.moodStreak || 0;
   
   return (
-    <AppLayout>
-      <div className="mood-tracker-container">
-        <div className="mood-tracker-header">
-          <h1>{t('moodTracker.title')}</h1>
-          <p>{t('moodTracker.subtitle')}</p>
-        </div>
+    <MoodTrackerContainer>
+      <MoodTrackerHeader>
+        <Logo onClick={navigateToDashboard}>HugMeNow</Logo>
+        <BackButton onClick={navigateToDashboard}>Back to Dashboard</BackButton>
+      </MoodTrackerHeader>
+      
+      <MoodTrackerContent>
+        <MoodTrackerTitle>Mood Tracker</MoodTrackerTitle>
+        <MoodTrackerDescription>
+          Track your mood and emotional well-being. Regular tracking helps you understand
+          patterns and improve self-awareness.
+        </MoodTrackerDescription>
         
-        <div className="mood-streak-banner">
-          <div className="streak-icon">🔥</div>
-          <div className="streak-text">
-            <h3>{t('moodTracker.currentStreak')}</h3>
-            <p>{t('moodTracker.streakCount', { count: streak })}</p>
-          </div>
-        </div>
-        
-        <div className="mood-entry-card">
-          <h2>{t('moodTracker.howAreYou')}</h2>
+        <MoodInputCard>
+          <SectionTitle>How are you feeling today?</SectionTitle>
           
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-          
-          {success && (
-            <div className="success-message">
-              {t('moodTracker.moodSaved')}
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="mood-form">
-            <div className="mood-score">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => (
-                <div 
-                  key={score} 
-                  className={`mood-score-item ${score === moodScore ? 'selected' : ''}`}
-                  onClick={() => handleScoreSelect(score)}
-                >
-                  <div className="mood-score-icon">
-                    {score <= 2 ? '😞' : 
-                     score <= 4 ? '😕' : 
-                     score <= 6 ? '😐' : 
-                     score <= 8 ? '🙂' : '😁'}
-                  </div>
-                  <div className="mood-score-number">{score}</div>
-                </div>
-              ))}
-            </div>
+          <form onSubmit={handleSubmit}>
+            <MoodSlider>
+              <SliderContainer>
+                <SliderInput
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={moodScore}
+                  onChange={(e) => setMoodScore(parseInt(e.target.value))}
+                />
+                <SliderValue value={moodScore}>{moodScore}</SliderValue>
+              </SliderContainer>
+              
+              <SliderLabels>
+                <span>Not well</span>
+                <span>Neutral</span>
+                <span>Excellent</span>
+              </SliderLabels>
+            </MoodSlider>
             
-            <div className="mood-description">
-              <p>{t('moodTracker.youSelected')} <strong>{moodScore}/10</strong> - {getMoodText(moodScore)}</p>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="moodNote">{t('moodTracker.addNote')}</label>
-              <textarea
+            <FormGroup>
+              <Label htmlFor="moodNote">Add a note (optional)</Label>
+              <Textarea
                 id="moodNote"
-                name="moodNote"
                 value={moodNote}
-                onChange={handleNoteChange}
-                placeholder={t('moodTracker.notePlaceholder')}
-                rows={4}
-              ></textarea>
-            </div>
+                onChange={(e) => setMoodNote(e.target.value)}
+                placeholder="Describe how you're feeling or what's been happening..."
+              />
+            </FormGroup>
             
-            <div className="form-group mood-visibility">
-              <label className="checkbox-label">
+            <FormGroup>
+              <Checkbox>
                 <input
                   type="checkbox"
+                  id="isPublic"
                   checked={isPublic}
-                  onChange={handlePublicToggle}
+                  onChange={(e) => setIsPublic(e.target.checked)}
                 />
-                <span>{t('moodTracker.sharePublicly')}</span>
-              </label>
-              <p className="form-help-text">{t('moodTracker.shareDescription')}</p>
-            </div>
+                <label htmlFor="isPublic">Share this mood entry with the community</label>
+              </Checkbox>
+            </FormGroup>
             
-            <button 
-              type="submit" 
-              className="btn btn-primary btn-block" 
-              disabled={submitting}
-            >
-              {submitting ? t('common.saving') : t('moodTracker.saveMood')}
-            </button>
+            <SubmitButton type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Record Mood'}
+            </SubmitButton>
           </form>
-        </div>
+        </MoodInputCard>
         
-        <div className="mood-history">
-          <h2>{t('moodTracker.recentMoods')}</h2>
+        <MoodHistoryCard>
+          <SectionTitle>Your Mood History</SectionTitle>
           
-          {moods.length === 0 ? (
-            <div className="empty-state">
-              <p>{t('moodTracker.noMoods')}</p>
-            </div>
-          ) : (
-            <div className="mood-list">
-              {moods.slice(0, 5).map(mood => (
-                <div key={mood.id} className="mood-item">
-                  <div className="mood-item-header">
-                    <div className="mood-item-score">
-                      <span className="score-number">{mood.score}</span>
-                      <span className="score-label">{getMoodText(mood.score)}</span>
-                    </div>
-                    <div className="mood-item-date">
-                      {new Date(mood.createdAt).toLocaleDateString()} - {new Date(mood.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                  
-                  {mood.note && (
-                    <div className="mood-item-note">
-                      <p>{mood.note}</p>
-                    </div>
-                  )}
-                  
-                  <div className="mood-item-visibility">
-                    {mood.isPublic ? (
-                      <span className="public-badge">{t('moodTracker.public')}</span>
-                    ) : (
-                      <span className="private-badge">{t('moodTracker.private')}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {moods.length > 5 && (
-                <div className="mood-list-more">
-                  <button className="btn btn-outline">
-                    {t('moodTracker.viewMore')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </AppLayout>
+          <PlaceholderMessage>
+            <p>Your mood history will be displayed here once you start tracking.</p>
+            <p>In the actual app, this would show a graph of your mood over time.</p>
+          </PlaceholderMessage>
+        </MoodHistoryCard>
+      </MoodTrackerContent>
+    </MoodTrackerContainer>
   );
 };
 

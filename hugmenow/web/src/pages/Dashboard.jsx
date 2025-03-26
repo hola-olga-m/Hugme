@@ -1,216 +1,256 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useQuery } from '@apollo/client';
-import { GET_USER_MOODS, GET_MOOD_STREAK, GET_RECEIVED_HUGS, GET_USER_STATS } from '../graphql/queries';
+import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import AppLayout from '../components/layout/AppLayout';
 import LoadingScreen from '../components/common/LoadingScreen';
 
-const Dashboard = () => {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-  const [greeting, setGreeting] = useState('');
+// Styled components
+const DashboardContainer = styled.div`
+  min-height: 100vh;
+  background-color: var(--gray-100);
+`;
+
+const DashboardHeader = styled.header`
+  background-color: white;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Logo = styled.div`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const Avatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 0.5rem;
+`;
+
+const Username = styled.span`
+  font-weight: 500;
+  margin-right: 1rem;
+`;
+
+const LogoutButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  cursor: pointer;
   
-  // Get time-based greeting
-  useEffect(() => {
-    const getGreeting = () => {
-      const hour = new Date().getHours();
-      if (hour < 12) return t('dashboard.welcomeMorning');
-      if (hour < 18) return t('dashboard.welcomeAfternoon');
-      return t('dashboard.welcomeEvening');
-    };
-    
-    setGreeting(getGreeting());
-  }, [t]);
+  &:hover {
+    color: var(--danger-color);
+  }
+`;
+
+const DashboardContent = styled.main`
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+`;
+
+const WelcomeCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
   
-  // GraphQL queries - only execute if user is logged in
-  const { loading: loadingMoods, data: moodData } = useQuery(GET_USER_MOODS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingStreak, data: streakData } = useQuery(GET_MOOD_STREAK, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingHugs, data: hugsData } = useQuery(GET_RECEIVED_HUGS, {
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  const { loading: loadingStats, data: statsData } = useQuery(GET_USER_STATS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network'
-  });
-  
-  // Show loading screen if data is loading
-  const isLoading = loadingMoods || loadingStreak || loadingHugs || loadingStats;
-  if (isLoading && user) {
-    return (
-      <AppLayout>
-        <LoadingScreen message={t('dashboard.loading')} />
-      </AppLayout>
-    );
+  h1 {
+    margin-bottom: 1rem;
+    color: var(--gray-800);
   }
   
-  // Extract data from queries
-  const moods = moodData?.userMoods || [];
-  const latestMood = moods[0]; // Assuming moods are sorted by date desc
-  const streak = streakData?.moodStreak || 0;
-  const receivedHugs = hugsData?.receivedHugs || [];
-  const stats = statsData?.userStats || { totalMoods: 0, totalHugs: 0 };
+  p {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+  }
+`;
+
+const FeaturesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+`;
+
+const FeatureCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+  cursor: pointer;
   
-  // Get mood text and emoji based on score
-  const getMoodDisplay = (score) => {
-    if (!score) return { text: '', emoji: '' };
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: var(--gray-600);
+  }
+`;
+
+const StatsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+
+const StatCard = styled.div`
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  
+  h3 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+  }
+`;
+
+const Dashboard = () => {
+  const { currentUser, logout } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    moodStreak: 0,
+    totalMoods: 0,
+    hugsSent: 0,
+    hugsReceived: 0,
+  });
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      // In a real app, you would fetch user stats from the API
+      setStats({
+        moodStreak: 3,
+        totalMoods: 15,
+        hugsSent: 7,
+        hugsReceived: 12,
+      });
+      setIsLoading(false);
+    }, 1000);
     
-    if (score >= 9) return { text: t('moods.excellent'), emoji: '😁' };
-    if (score >= 7) return { text: t('moods.great'), emoji: '🙂' };
-    if (score >= 5) return { text: t('moods.good'), emoji: '😐' };
-    if (score >= 3) return { text: t('moods.okay'), emoji: '😕' };
-    return { text: t('moods.notGood'), emoji: '😞' };
+    return () => clearTimeout(timer);
+  }, []);
+  
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
   
+  const navigateToFeature = (path) => {
+    navigate(path);
+  };
+  
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+  
+  if (isLoading) {
+    return <LoadingScreen text="Loading dashboard..." />;
+  }
+  
   return (
-    <AppLayout>
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1>
-            {user 
-              ? `${greeting}, ${user.name || user.username}!` 
-              : t('dashboard.welcomeGeneric')}
-          </h1>
-          {!user && (
-            <p className="login-prompt">
-              {t('dashboard.pleaseLogin')}
-            </p>
-          )}
-        </div>
+    <DashboardContainer>
+      <DashboardHeader>
+        <Logo>HugMeNow</Logo>
+        <UserInfo>
+          <Avatar>{getInitials(currentUser?.name)}</Avatar>
+          <Username>{currentUser?.name || 'Guest'}</Username>
+          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        </UserInfo>
+      </DashboardHeader>
+      
+      <DashboardContent>
+        <WelcomeCard>
+          <h1>Welcome, {currentUser?.name || 'Friend'}!</h1>
+          <p>
+            This is your personal dashboard where you can track your mood, 
+            send and receive virtual hugs, and connect with others.
+          </p>
+        </WelcomeCard>
         
-        {user ? (
-          <>
-            {/* Dashboard content for logged in users */}
-            <div className="dashboard-grid">
-              {/* Mood tracker section */}
-              <div className="dashboard-card mood-tracking-card">
-                <h2>{t('dashboard.checkinPrompt')}</h2>
-                <div className="card-content">
-                  <Link to="/mood-tracker" className="btn btn-primary">
-                    {t('moodTracker.title')}
-                  </Link>
-                  
-                  {latestMood && (
-                    <div className="latest-mood">
-                      <h3>{t('dashboard.latestMood')}</h3>
-                      <div className="mood-display">
-                        <span className="mood-emoji">
-                          {getMoodDisplay(latestMood.score).emoji}
-                        </span>
-                        <span className="mood-score">
-                          {latestMood.score}/10
-                        </span>
-                        <span className="mood-text">
-                          {getMoodDisplay(latestMood.score).text}
-                        </span>
-                        <span className="mood-date">
-                          {new Date(latestMood.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Stats section */}
-              <div className="dashboard-card stats-card">
-                <h2>{t('dashboard.currentStreak')}</h2>
-                <div className="card-content">
-                  <div className="stat-value streak">
-                    <span className="stat-number">{streak}</span>
-                    <span className="stat-label">{t('dashboard.daysTracked')}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="dashboard-card stats-card">
-                <h2>{t('dashboard.totalMoods')}</h2>
-                <div className="card-content">
-                  <div className="stat-value moods">
-                    <span className="stat-number">{stats.totalMoods || moods.length}</span>
-                    <span className="stat-label">{t('dashboard.moodsRecorded')}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="dashboard-card stats-card">
-                <h2>{t('dashboard.hugActivity')}</h2>
-                <div className="card-content">
-                  <div className="stat-value hugs">
-                    <span className="stat-number">{stats.totalHugs || receivedHugs.length}</span>
-                    <span className="stat-label">{t('dashboard.hugsReceived')}</span>
-                  </div>
-                  <Link to="/hug-center" className="btn btn-outline">
-                    {t('hugCenter.title')}
-                  </Link>
-                </div>
-              </div>
-              
-              {/* Daily suggestion */}
-              <div className="dashboard-card suggestion-card">
-                <h2>{t('dashboard.dailySuggestion')}</h2>
-                <div className="card-content">
-                  <p className="suggestion-text">
-                    {t('dashboard.suggestionText')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Dashboard content for guests */
-          <div className="guest-content">
-            <div className="auth-buttons">
-              <Link to="/login" className="btn btn-primary">
-                {t('auth.login')}
-              </Link>
-              <Link to="/register" className="btn btn-outline">
-                {t('auth.register')}
-              </Link>
-            </div>
-            <div className="app-description">
-              <h2>{t('app.tagline')}</h2>
-              <ul className="feature-list">
-                <li>
-                  <div className="feature-icon">📊</div>
-                  <div className="feature-text">
-                    <h3>{t('moodTracker.title')}</h3>
-                    <p>{t('moodTracker.subtitle')}</p>
-                  </div>
-                </li>
-                <li>
-                  <div className="feature-icon">🫂</div>
-                  <div className="feature-text">
-                    <h3>{t('hugCenter.title')}</h3>
-                    <p>{t('hugCenter.subtitle')}</p>
-                  </div>
-                </li>
-                <li>
-                  <div className="feature-icon">🔒</div>
-                  <div className="feature-text">
-                    <h3>Privacy-First</h3>
-                    <p>Your emotional data stays private and secure with our privacy-focused design.</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-    </AppLayout>
+        <StatsContainer>
+          <StatCard>
+            <h3>{stats.moodStreak}</h3>
+            <p>Day Streak</p>
+          </StatCard>
+          <StatCard>
+            <h3>{stats.totalMoods}</h3>
+            <p>Moods Tracked</p>
+          </StatCard>
+          <StatCard>
+            <h3>{stats.hugsSent}</h3>
+            <p>Hugs Sent</p>
+          </StatCard>
+          <StatCard>
+            <h3>{stats.hugsReceived}</h3>
+            <p>Hugs Received</p>
+          </StatCard>
+        </StatsContainer>
+        
+        <FeaturesGrid>
+          <FeatureCard onClick={() => navigateToFeature('/mood-tracker')}>
+            <h2>Mood Tracker</h2>
+            <p>
+              Track your daily mood and see patterns in your emotional wellbeing over time.
+            </p>
+          </FeatureCard>
+          
+          <FeatureCard onClick={() => navigateToFeature('/hug-center')}>
+            <h2>Hug Center</h2>
+            <p>
+              Send virtual hugs to friends or request hugs from the community when you need support.
+            </p>
+          </FeatureCard>
+          
+          <FeatureCard onClick={() => navigateToFeature('/profile')}>
+            <h2>Profile</h2>
+            <p>
+              Manage your personal information, preferences, and privacy settings.
+            </p>
+          </FeatureCard>
+        </FeaturesGrid>
+      </DashboardContent>
+    </DashboardContainer>
   );
 };
 
