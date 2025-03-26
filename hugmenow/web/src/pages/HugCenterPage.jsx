@@ -227,90 +227,395 @@ function HugCenterPage() {
 
   return (
     <MainLayout>
-      <div className="hug-center-page">
-        <div className="hug-center-header">
-          <h1>Hug Center</h1>
-          <p>Send and receive virtual hugs with friends and the community.</p>
+      <div className="hug-center-page" style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          background: 'linear-gradient(135deg, #fdfbfb 0%, #f8f7ff 100%)',
+          padding: '20px',
+          minHeight: '80vh'
+        }}>
+        {/* Ambient Background Animation */}
+        <div className="ambient-background" style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          opacity: 0.5,
+          overflow: 'hidden',
+          pointerEvents: 'none'
+        }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="floating-shape" style={{
+              position: 'absolute',
+              width: `${Math.random() * 40 + 30}px`,
+              height: `${Math.random() * 40 + 30}px`,
+              backgroundColor: `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, ${Math.random() * 200 + 55}, 0.2)`,
+              borderRadius: '50%',
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `float ${Math.random() * 15 + 10}s infinite ease-in-out`,
+              filter: 'blur(8px)',
+              transform: `scale(${Math.random() * 2 + 1})`,
+              opacity: Math.random() * 0.6 + 0.4
+            }} />
+          ))}
         </div>
+        
+        <div className="hug-center-content" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="hug-center-header" style={{
+            textAlign: 'center',
+            padding: '20px 0 30px',
+            position: 'relative'
+          }}>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              margin: '0',
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              position: 'relative'
+            }}>
+              Hug Center
+              <span style={{ 
+                position: 'absolute',
+                fontSize: '0.8rem',
+                top: '-10px',
+                right: '-30px',
+                background: '#ED64A6',
+                color: 'white',
+                padding: '3px 10px',
+                borderRadius: '20px',
+                transform: 'rotate(15deg)',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+              }}>✨ New</span>
+            </h1>
+            <p style={{
+              fontSize: '1.1rem',
+              color: '#6B7280',
+              maxWidth: '600px',
+              margin: '10px auto',
+              lineHeight: 1.5
+            }}>Connect through meaningful virtual embraces that brighten your day and strengthen bonds</p>
+            
+            <div className="heartbeat-indicator" style={{
+              position: 'absolute',
+              bottom: '0',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '100px',
+              height: '30px',
+              opacity: 0.7
+            }}>
+              <svg width="100%" height="100%" viewBox="0 0 100 30" fill="none">
+                <path 
+                  d="M0 15 H20 L25 5 L30 25 L35 10 L40 20 L45 15 L50 5 L55 15 L60 10 L65 20 L70 5 L75 25 L80 15 H100" 
+                  stroke="#F472B6" 
+                  strokeWidth="2"
+                  style={{ animation: 'pulse 1.5s infinite' }}
+                />
+              </svg>
+            </div>
+          </div>
 
-        {error && (
-          <div className="alert alert-error">
-            <div className="alert-content">
-              <span>{error}</span>
+          {error && (
+            <div className="alert alert-error" style={{
+              backgroundColor: '#FEE2E2',
+              borderLeft: '4px solid #EF4444',
+              color: '#B91C1C',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              margin: '10px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div className="alert-content" style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ marginRight: '8px', fontSize: '1.2rem' }}>⚠️</span>
+                <span>{error}</span>
+              </div>
               <button 
                 className="alert-close" 
                 onClick={() => setError(null)}
                 aria-label="Close"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#B91C1C',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer'
+                }}
               >
                 &times;
               </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {success && (
-          <div className="alert alert-success">
-            <div className="alert-content">
-              <span>{success}</span>
+          {success && (
+            <div className="alert alert-success" style={{
+              backgroundColor: '#D1FAE5',
+              borderLeft: '4px solid #10B981',
+              color: '#065F46',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              margin: '10px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div className="alert-content" style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ marginRight: '8px', fontSize: '1.2rem' }}>✅</span>
+                <span>{success}</span>
+              </div>
               <button 
                 className="alert-close" 
                 onClick={() => setSuccess(null)}
                 aria-label="Close"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#065F46',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer'
+                }}
               >
                 &times;
               </button>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="hug-center-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={() => openSendHugModal()}
-          >
-            Send a Hug
-          </button>
-          <button 
-            className="btn btn-outline"
-            onClick={() => openRequestModal()}
-          >
-            Request a Hug
-          </button>
-        </div>
-
-        <div className="hug-center-tabs">
-          <div className="tabs-header">
+          <div className="hug-center-actions" style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '16px',
+            margin: '20px 0 30px'
+          }}>
             <button 
-              className={`tab-button ${activeTab === 'received' ? 'active' : ''}`}
-              onClick={() => setActiveTab('received')}
+              className="btn btn-primary send-hug-btn"
+              onClick={() => openSendHugModal()}
+              style={{
+                backgroundColor: '#8B5CF6',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '50px',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
             >
-              Received Hugs
+              <span style={{ fontSize: '1.4rem' }}>👐</span>
+              Send a Hug
             </button>
             <button 
-              className={`tab-button ${activeTab === 'sent' ? 'active' : ''}`}
-              onClick={() => setActiveTab('sent')}
+              className="btn btn-outline request-hug-btn"
+              onClick={() => openRequestModal()}
+              style={{
+                backgroundColor: 'transparent',
+                color: '#8B5CF6',
+                border: '2px solid #8B5CF6',
+                padding: '12px 24px',
+                borderRadius: '50px',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
             >
-              Sent Hugs
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
-              onClick={() => setActiveTab('pending')}
-            >
-              Pending Requests
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'my-requests' ? 'active' : ''}`}
-              onClick={() => setActiveTab('my-requests')}
-            >
-              My Requests
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'community' ? 'active' : ''}`}
-              onClick={() => setActiveTab('community')}
-            >
-              Community
+              <span style={{ fontSize: '1.4rem' }}>✋</span>
+              Request a Hug
             </button>
           </div>
+
+          <div className="hug-visualizer" style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '20px'
+          }}>
+            <div className="hug-stat-circles" style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '20px'
+            }}>
+              <div className="stat-circle" style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                backgroundColor: '#EDE9FE',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(139, 92, 246, 0.15)'
+              }}>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B5CF6' }}>
+                  {sentHugsData?.sentHugs?.length || 0}
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>Sent</span>
+              </div>
+              <div className="stat-circle" style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                backgroundColor: '#DDD6FE',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.25)',
+                position: 'relative',
+                zIndex: 1
+              }}>
+                <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#7C3AED' }}>
+                  {(sentHugsData?.sentHugs?.length || 0) + (receivedHugsData?.receivedHugs?.length || 0)}
+                </span>
+                <span style={{ fontSize: '0.9rem', color: '#6B7280' }}>Total Hugs</span>
+              </div>
+              <div className="stat-circle" style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                backgroundColor: '#EDE9FE',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(139, 92, 246, 0.15)'
+              }}>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B5CF6' }}>
+                  {receivedHugsData?.receivedHugs?.length || 0}
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>Received</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hug-center-tabs" style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            overflow: 'hidden'
+          }}>
+            <div className="tabs-header" style={{
+              display: 'flex',
+              borderBottom: '1px solid #E5E7EB',
+              position: 'relative',
+              backgroundColor: 'white'
+            }}>
+              <button 
+                className={`tab-button ${activeTab === 'received' ? 'active' : ''}`}
+                onClick={() => setActiveTab('received')}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  border: 'none',
+                  background: 'none',
+                  fontWeight: activeTab === 'received' ? 'bold' : 'normal',
+                  color: activeTab === 'received' ? '#7C3AED' : '#6B7280',
+                  borderBottom: activeTab === 'received' ? '3px solid #7C3AED' : 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                Received
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'sent' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sent')}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  border: 'none',
+                  background: 'none',
+                  fontWeight: activeTab === 'sent' ? 'bold' : 'normal',
+                  color: activeTab === 'sent' ? '#7C3AED' : '#6B7280',
+                  borderBottom: activeTab === 'sent' ? '3px solid #7C3AED' : 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                Sent
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
+                onClick={() => setActiveTab('pending')}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  border: 'none',
+                  background: 'none',
+                  fontWeight: activeTab === 'pending' ? 'bold' : 'normal',
+                  color: activeTab === 'pending' ? '#7C3AED' : '#6B7280',
+                  borderBottom: activeTab === 'pending' ? '3px solid #7C3AED' : 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                Requests
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'my-requests' ? 'active' : ''}`}
+                onClick={() => setActiveTab('my-requests')}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  border: 'none',
+                  background: 'none',
+                  fontWeight: activeTab === 'my-requests' ? 'bold' : 'normal',
+                  color: activeTab === 'my-requests' ? '#7C3AED' : '#6B7280',
+                  borderBottom: activeTab === 'my-requests' ? '3px solid #7C3AED' : 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                My Requests
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'community' ? 'active' : ''}`}
+                onClick={() => setActiveTab('community')}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  border: 'none',
+                  background: 'none',
+                  fontWeight: activeTab === 'community' ? 'bold' : 'normal',
+                  color: activeTab === 'community' ? '#7C3AED' : '#6B7280',
+                  borderBottom: activeTab === 'community' ? '3px solid #7C3AED' : 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                Community
+              </button>
+              
+              {/* Animated Indicator */}
+              <div 
+                className="tab-indicator" 
+                style={{
+                  height: '3px',
+                  backgroundColor: '#7C3AED',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  width: '20%',
+                  transform: `translateX(${['received', 'sent', 'pending', 'my-requests', 'community'].indexOf(activeTab) * 100}%)`,
+                  transition: 'transform 0.3s ease',
+                  display: 'none' // Hidden because we're using individual border-bottom
+                }}
+              />
+            </div>
 
           <div className="tabs-content">
             {/* Received Hugs Tab */}
@@ -332,10 +637,80 @@ function HugCenterPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="empty-state">
-                    <p>You haven't received any hugs yet.</p>
-                    <AnimatedHug type="WARM" size="large" speed="slow" />
-                    <p>Send a hug to get started!</p>
+                  <div className="empty-state" style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    backgroundColor: 'rgba(237, 233, 254, 0.3)',
+                    borderRadius: '16px',
+                    margin: '20px 0',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <div className="empty-state-decoration" style={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      top: 0,
+                      left: 0,
+                      opacity: 0.1,
+                      zIndex: 0,
+                      pointerEvents: 'none'
+                    }}>
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} style={{
+                          position: 'absolute',
+                          width: '80px',
+                          height: '80px',
+                          borderRadius: '50%',
+                          border: '3px solid #8B5CF6',
+                          top: `${Math.random() * 100}%`,
+                          left: `${Math.random() * 100}%`,
+                          opacity: Math.random() * 0.8 + 0.2
+                        }} />
+                      ))}
+                    </div>
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                      <p style={{
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold',
+                        color: '#6D28D9',
+                        marginBottom: '20px'
+                      }}>Your hug inbox is waiting for warmth!</p>
+                      <div style={{ margin: '20px 0' }}>
+                        <AnimatedHug type="WARM" size="large" speed="slow" />
+                      </div>
+                      <p style={{
+                        fontSize: '1rem',
+                        color: '#6B7280',
+                        maxWidth: '400px',
+                        margin: '15px auto',
+                        lineHeight: 1.5
+                      }}>When friends send you hugs, they'll appear here. Why not spread some joy by sending the first hug?</p>
+                      <button 
+                        onClick={() => openSendHugModal()}
+                        style={{
+                          backgroundColor: '#8B5CF6',
+                          color: 'white',
+                          border: 'none',
+                          padding: '12px 24px',
+                          borderRadius: '50px',
+                          fontWeight: 'bold',
+                          marginTop: '15px',
+                          boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>👐</span>
+                        Send Your First Hug
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -359,10 +734,81 @@ function HugCenterPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="empty-state">
-                    <p>You haven't sent any hugs yet.</p>
-                    <AnimatedHug type="ENCOURAGING" size="large" speed="slow" />
-                    <p>Send your first hug to brighten someone's day!</p>
+                  <div className="empty-state" style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    backgroundColor: 'rgba(237, 233, 254, 0.3)',
+                    borderRadius: '16px',
+                    margin: '20px 0',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <div className="empty-state-decoration" style={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      top: 0,
+                      left: 0,
+                      opacity: 0.1,
+                      zIndex: 0,
+                      pointerEvents: 'none'
+                    }}>
+                      {Array.from({ length: 20 }).map((_, i) => (
+                        <div key={i} style={{
+                          position: 'absolute',
+                          width: '15px',
+                          height: '15px',
+                          backgroundColor: '#8B5CF6',
+                          borderRadius: '50%',
+                          top: `${Math.random() * 100}%`,
+                          left: `${Math.random() * 100}%`,
+                          opacity: Math.random() * 0.5 + 0.1,
+                          transform: `scale(${Math.random() * 1.5 + 0.5})`
+                        }} />
+                      ))}
+                    </div>
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                      <p style={{
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold',
+                        color: '#6D28D9',
+                        marginBottom: '20px'
+                      }}>Time to share some positive vibes!</p>
+                      <div style={{ margin: '20px 0' }}>
+                        <AnimatedHug type="ENCOURAGING" size="large" speed="slow" />
+                      </div>
+                      <p style={{
+                        fontSize: '1rem',
+                        color: '#6B7280',
+                        maxWidth: '400px',
+                        margin: '15px auto',
+                        lineHeight: 1.5
+                      }}>Your sent hugs will appear here. A simple virtual embrace can make someone's day brighter!</p>
+                      <button 
+                        onClick={() => openSendHugModal()}
+                        style={{
+                          backgroundColor: '#8B5CF6',
+                          color: 'white',
+                          border: 'none',
+                          padding: '12px 24px',
+                          borderRadius: '50px',
+                          fontWeight: 'bold',
+                          marginTop: '15px',
+                          boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>💫</span>
+                        Send a Hug Now
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -413,8 +859,41 @@ function HugCenterPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="empty-state">
-                    <p>You don't have any pending hug requests.</p>
+                  <div className="empty-state" style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    backgroundColor: 'rgba(237, 233, 254, 0.3)',
+                    borderRadius: '16px',
+                    margin: '20px 0',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                      <div style={{ 
+                        fontSize: '4rem', 
+                        marginBottom: '15px',
+                        opacity: 0.8
+                      }}>
+                        🧸
+                      </div>
+                      <p style={{
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold',
+                        color: '#6D28D9',
+                        marginBottom: '10px'
+                      }}>All caught up!</p>
+                      <p style={{
+                        fontSize: '1rem',
+                        color: '#6B7280',
+                        maxWidth: '400px',
+                        margin: '15px auto',
+                        lineHeight: 1.5
+                      }}>You don't have any pending hug requests at the moment. Check back later!</p>
+                    </div>
                   </div>
                 )}
               </div>

@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
     
     // Define a function to handle both REST and GraphQL responses
     const handleAuthResponse = (response) => {
-      console.log('Registration successful, user:', response.user.username);
+      console.log('Registration successful, user:', response.user?.username);
       localStorage.setItem('authToken', response.accessToken);
       setCurrentUser(response.user);
       setIsAuthenticated(true);
@@ -110,29 +110,81 @@ export const AuthProvider = ({ children }) => {
     try {
       // Try GraphQL first this time
       try {
-        console.log('Attempting GraphQL registration...');
+        console.log('Attempting GraphQL registration with input:', JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          name: userData.name,
+          avatarUrl: userData.avatarUrl || null // include avatarUrl if it exists
+        }));
+        
+        // Ensure the input data format matches exactly what the GraphQL API expects
+        const graphQLInput = {
+          username: userData.username,
+          email: userData.email,
+          name: userData.name,
+          password: userData.password
+        };
+        
+        // Only add avatarUrl if it exists
+        if (userData.avatarUrl) {
+          graphQLInput.avatarUrl = userData.avatarUrl;
+        }
+        
         const { data } = await registerMutation({
           variables: {
-            registerInput: userData
+            registerInput: graphQLInput
           }
         });
+        
+        console.log('GraphQL register response:', data);
         
         if (data && data.register) {
           return handleAuthResponse(data.register);
         } else {
+          console.error('Invalid GraphQL response structure:', data);
           throw new Error('Invalid GraphQL response');
         }
       } catch (graphqlError) {
-        console.error('GraphQL register error:', graphqlError);
+        console.error('GraphQL register error details:', graphqlError);
+        if (graphqlError.networkError) {
+          console.error('Network error details:', graphqlError.networkError);
+        }
+        if (graphqlError.graphQLErrors) {
+          console.error('GraphQL error details:', graphqlError.graphQLErrors);
+        }
         
         // Fallback to REST API
         console.log('Falling back to REST API registration...');
-        const response = await authApi.register(userData);
-        return handleAuthResponse(response);
+        try {
+          const response = await authApi.register(userData);
+          console.log('REST API register response:', response);
+          return handleAuthResponse(response);
+        } catch (restError) {
+          console.error('REST API register error:', restError);
+          throw restError;
+        }
       }
     } catch (error) {
       console.error('Registration failed completely:', error);
-      setError(error.message || 'Registration failed');
+      
+      // Provide more specific error message based on the error
+      let errorMessage = 'Registration failed';
+      
+      if (error.message) {
+        if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Could not connect to the server';
+        } else if (error.message.includes('username')) {
+          errorMessage = 'Username error: ' + error.message;
+        } else if (error.message.includes('email')) {
+          errorMessage = 'Email error: ' + error.message;
+        } else if (error.message.includes('password')) {
+          errorMessage = 'Password error: ' + error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
       throw error;
     } finally {
       setLoading(false);

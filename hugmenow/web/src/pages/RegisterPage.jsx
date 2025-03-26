@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { isValidUsername, isValidEmail, validatePassword, isValidName, getValidationErrorMessage } from '../validation/userValidation';
 
 const RegisterPage = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState('');
+  const [formSubmitted, setFormSubmitted] = useState(false);
   
   // Password validation state
   const [passwordValidation, setPasswordValidation] = useState({
@@ -25,6 +27,14 @@ const RegisterPage = () => {
     hasNumber: false,
     isValid: false
   });
+  
+  // Clear errors when inputs change after a submission attempt
+  useEffect(() => {
+    if (formSubmitted) {
+      clearError();
+      setFormError('');
+    }
+  }, [username, email, name, password, confirmPassword, formSubmitted, clearError]);
   
   // Effect to validate password as user types
   useEffect(() => {
@@ -54,6 +64,14 @@ const RegisterPage = () => {
     }
   }, [password]);
   
+  // Effect to sync with auth context errors
+  useEffect(() => {
+    if (error && formSubmitted) {
+      console.log('Auth context reported error:', error);
+      setFormError(error);
+    }
+  }, [error, formSubmitted]);
+  
   // Handle registration
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -61,6 +79,7 @@ const RegisterPage = () => {
     // Clear previous errors
     clearError();
     setFormError('');
+    setFormSubmitted(true);
     
     // Simple validation
     if (!username || !email || !name || !password || !confirmPassword) {
@@ -74,52 +93,78 @@ const RegisterPage = () => {
       return;
     }
     
-    // Check password length
-    if (password.length < 8) {
+    // Use our imported validation functions
+    const passwordValidationResult = validatePassword(password);
+    if (!passwordValidationResult.isValid) {
       setFormError(t('auth.passwordRequirements'));
       return;
     }
     
-    // More strict password validation for backend
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setFormError(t('auth.passwordRequirements'));
+    // Check that username is not an email address
+    if (!isValidUsername(username)) {
+      if (username.includes('@')) {
+        setFormError('Username cannot be an email address. Please use a simple name without the @ symbol.');
+      } else {
+        setFormError(t('validation.usernameFormat'));
+      }
       return;
     }
     
-    // Check username format
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    if (!usernameRegex.test(username)) {
-      setFormError(t('validation.usernameFormat'));
+    // Check email format
+    if (!isValidEmail(email)) {
+      setFormError(t('validation.emailFormat'));
+      return;
+    }
+    
+    // Check name is valid
+    if (!isValidName(name)) {
+      setFormError(t('validation.nameTooShort'));
       return;
     }
     
     try {
-      console.log('RegisterPage: Submitting registration data');
+      console.log('RegisterPage: Submitting registration data', {
+        username,
+        email,
+        name,
+        // Password omitted for security
+      });
       
       // Call register method from AuthContext
-      await register({
+      const user = await register({
         username,
         email,
         name,
         password
       });
       
-      console.log('RegisterPage: Registration successful, redirecting to dashboard');
+      console.log('RegisterPage: Registration successful, user:', user?.username);
+      
       // Redirect to dashboard on success
       navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error('RegisterPage: Registration error:', err);
       
       // Provide more specific error messages based on the error
-      if (err.message && err.message.includes('already exists')) {
-        setFormError(t('validation.alreadyExists'));
-      } else if (err.message && err.message.includes('password')) {
-        setFormError(t('auth.passwordRequirements'));
-      } else if (err.message && err.message.includes('username')) {
-        setFormError(t('validation.usernameFormat'));
-      } else if (err.message && err.message.includes('email')) {
-        setFormError(t('validation.emailFormat'));
+      if (err.message) {
+        if (err.message.includes('already exists') || 
+            err.message.includes('duplicate') || 
+            err.message.includes('unique constraint')) {
+          setFormError(t('validation.alreadyExists'));
+        } else if (err.message.includes('password')) {
+          setFormError(t('auth.passwordRequirements'));
+        } else if (err.message.includes('username')) {
+          setFormError(t('validation.usernameFormat'));
+        } else if (err.message.includes('email')) {
+          setFormError(t('validation.emailFormat'));
+        } else if (err.message.includes('Network Error') || 
+                  err.message.includes('Failed to fetch') ||
+                  err.message.includes('timeout')) {
+          setFormError(t('errors.network'));
+        } else {
+          // Use the specific error message
+          setFormError(err.message);
+        }
       } else {
         // Use the error from auth context if available, or a generic message
         setFormError(error || t('errors.register'));

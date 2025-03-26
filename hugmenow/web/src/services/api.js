@@ -103,7 +103,13 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   register: async (userData) => {
-    console.log('API Service: Register request to REST endpoint');
+    console.log('API Service: Register request to REST endpoint with data:', {
+      username: userData.username,
+      email: userData.email,
+      name: userData.name,
+      // Password omitted for security
+      avatarUrl: userData.avatarUrl || '(not provided)'
+    });
     
     // Ensure all required fields are present and properly formatted
     const registrationData = {
@@ -119,17 +125,70 @@ export const authApi = {
     }
     
     try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      console.log('Sending REST registration request to:', `${API_BASE_URL}/register`);
       const response = await fetch(`${API_BASE_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registrationData),
-        credentials: 'include'
+        credentials: 'include',
+        signal: controller.signal
       });
       
-      return handleResponse(response);
+      clearTimeout(timeoutId);
+      
+      // Log response status before parsing
+      console.log('Registration response status:', response.status, response.statusText);
+      
+      // Special handling for known server issues
+      if (response.status === 500) {
+        try {
+          const errorData = await response.json();
+          console.error('Server error during registration:', errorData);
+          
+          // Check if this is a duplicate key error (common for unique fields like username/email)
+          if (errorData.message && (
+            errorData.message.includes('duplicate') || 
+            errorData.message.includes('already exists') ||
+            errorData.message.includes('unique constraint')
+          )) {
+            throw new Error('This username or email is already registered. Please try a different one.');
+          }
+          
+          throw new Error(errorData.message || 'Server error during registration');
+        } catch (parseError) {
+          // If we can't parse the JSON, throw a generic error
+          console.error('Could not parse error response:', parseError);
+          throw new Error('Server error during registration. Please try again later.');
+        }
+      }
+      
+      const result = await handleResponse(response);
+      console.log('Registration successful, response:', {
+        accessToken: result.accessToken ? '(token present)' : '(missing)',
+        user: result.user ? { 
+          id: result.user.id,
+          username: result.user.username 
+        } : '(missing user data)'
+      });
+      
+      return result;
     } catch (error) {
-      console.error('Network error during registration:', error);
-      throw new Error(`Registration failed: Network error - ${error.message}`);
+      console.error('Error during registration:', error);
+      
+      if (error.name === 'AbortError') {
+        throw new Error('Registration request timed out. Please check your connection and try again.');
+      }
+      
+      // Enhance error messages with more details
+      if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Could not connect to the server. Please check your internet connection.');
+      }
+      
+      throw error;
     }
   },
   
