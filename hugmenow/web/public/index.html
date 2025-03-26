@@ -1,89 +1,187 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HugMeNow Test Server</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-    h1 { color: #4a4a4a; }
-    .content { margin-top: 30px; }
-    .nav { display: flex; gap: 15px; margin: 20px 0; }
-    .nav a { color: #0066cc; text-decoration: none; font-weight: bold; }
-    .login-form, .register-form { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; }
-    input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-    button { background: #0066cc; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HugMeNow</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 1.5rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .hero {
+            background-color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #4a90e2;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #4a90e2;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #357abd;
+        }
+        
+        .features {
+            padding: 3rem 0;
+            background-color: #f8f9fa;
+        }
+        
+        .features h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #4a90e2;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .feature-content {
+            padding: 1.5rem;
+        }
+        
+        .feature-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #4a90e2;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>HugMeNow Server Test</h1>
-  <p>This simple server is running on port 5000.</p>
-  
-  <div class="nav">
-    <a href="/">Home</a>
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
-    <a href="/dashboard">Dashboard</a>
-  </div>
-  
-  <div class="content" id="content">
-    <p>Welcome to the HugMeNow testing server!</p>
-    <p>The server is correctly configured and running.</p>
-  </div>
-  
-  <script>
-    // Simple client-side router to show different content based on path
-    const contentDiv = document.getElementById('content');
-    const path = window.location.pathname;
-    
-    if (path === '/login') {
-      contentDiv.innerHTML = `
-        <div class="login-form">
-          <h2>Login</h2>
-          <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email">
-          </div>
-          <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password">
-          </div>
-          <button id="login-btn">Login</button>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">HugMeNow</div>
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/features">Features</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/register">Register</a></li>
+                </ul>
+            </nav>
         </div>
-      `;
-    } else if (path === '/register') {
-      contentDiv.innerHTML = `
-        <div class="register-form">
-          <h2>Register</h2>
-          <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" id="username">
-          </div>
-          <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email">
-          </div>
-          <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password">
-          </div>
-          <div class="form-group">
-            <label for="confirm-password">Confirm Password:</label>
-            <input type="password" id="confirm-password">
-          </div>
-          <button id="register-btn">Register</button>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Welcome to HugMeNow</h1>
+            <p>Your emotional wellness platform for mental health tracking and support</p>
+            <a href="/register" class="btn">Get Started</a>
         </div>
-      `;
-    } else if (path === '/dashboard') {
-      contentDiv.innerHTML = `
-        <h2>Dashboard</h2>
-        <p>This is a protected dashboard page.</p>
-        <p>You would need to be authenticated to view this in the real app.</p>
-      `;
-    }
-  </script>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3 class="feature-title">Mood Tracking</h3>
+                        <p>Track your daily moods and emotions to gain insights into your mental wellbeing.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3 class="feature-title">Virtual Hugs</h3>
+                        <p>Send and receive virtual hugs to provide support to friends and loved ones.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3 class="feature-title">Community Support</h3>
+                        <p>Connect with a supportive community of users who are on similar journeys.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 HugMeNow. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -17,7 +17,7 @@ args = "NestJS Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Frontend Server"
+args = "React Frontend Server"
 
 [[workflows.workflow]]
 name = "NestJS Server"
@@ -35,7 +35,7 @@ args = "cd hugmenow/api && npm run start:dev"
 waitForPort = 3000
 
 [[workflows.workflow]]
-name = "Frontend Server"
+name = "React Frontend Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && node server.js"
+args = "cd hugmenow/web && node express-server.js"
 waitForPort = 5000
 
 [deployment]
