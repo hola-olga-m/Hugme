@@ -30,13 +30,33 @@ app.use('/api', createProxyMiddleware({
   }
 }));
 
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`[EXPRESS] Received request: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Proxy GraphQL requests to the NestJS server
 app.use('/graphql', createProxyMiddleware({
   target: 'http://localhost:3000',
-  changeOrigin: true
+  changeOrigin: true,
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`[EXPRESS] Proxying GraphQL request: ${req.method} ${req.url} -> NestJS backend`);
+  }
 }));
 
-// Handle all other routes
+// Handle POST requests that aren't handled by other routes (like GraphQL)
+app.post('*', (req, res) => {
+  console.log('[EXPRESS] Unhandled POST request:', req.originalUrl);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.originalUrl}`,
+    statusCode: 404
+  });
+});
+
+// Handle all other GET routes
 app.get('*', (req, res) => {
   res.send(`
     <html>
