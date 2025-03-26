@@ -6,6 +6,73 @@ import { authApi } from '../services/api';
 // Create an authentication context
 export const AuthContext = createContext();
 
+// Auth storage keys and constants
+const AUTH_TOKEN_KEY = 'authToken';
+const USER_DATA_KEY = 'user';
+const AUTH_EXPIRY_KEY = 'authExpiry';
+const REDIRECT_FLAG_KEY = 'redirectToDashboard';
+// Token expiration time in milliseconds (defaults to 7 days if not set by the server)
+const DEFAULT_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000;
+
+// Helper functions for auth data management
+const storeAuthData = (token, user, expiresIn = DEFAULT_TOKEN_EXPIRATION) => {
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+    
+    // Calculate expiry time based on current time + expiration period
+    const expiry = Date.now() + expiresIn;
+    localStorage.setItem(AUTH_EXPIRY_KEY, expiry.toString());
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to store auth data in localStorage:', error);
+    return false;
+  }
+};
+
+const clearAuthData = () => {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(USER_DATA_KEY);
+    localStorage.removeItem(AUTH_EXPIRY_KEY);
+    localStorage.removeItem(REDIRECT_FLAG_KEY);
+    return true;
+  } catch (error) {
+    console.error('Failed to clear auth data from localStorage:', error);
+    return false;
+  }
+};
+
+const getStoredAuthData = () => {
+  try {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const userStr = localStorage.getItem(USER_DATA_KEY);
+    const expiryStr = localStorage.getItem(AUTH_EXPIRY_KEY);
+    
+    if (!token || !userStr) {
+      return null;
+    }
+    
+    // Parse stored data
+    const user = JSON.parse(userStr);
+    const expiry = expiryStr ? parseInt(expiryStr, 10) : null;
+    
+    // Check if token has expired locally
+    if (expiry && Date.now() > expiry) {
+      console.warn('Auth token expired based on client-side expiry time');
+      clearAuthData();
+      return null;
+    }
+    
+    return { token, user };
+  } catch (error) {
+    console.error('Failed to retrieve auth data from localStorage:', error);
+    clearAuthData(); // Clear potentially corrupted data
+    return null;
+  }
+};
+
 // Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
@@ -24,32 +91,57 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth state from local storage
   useEffect(() => {
     const initAuth = async () => {
+      setLoading(true);
+      console.log('Initializing authentication state...');
+      
       try {
-        const storedToken = localStorage.getItem('authToken');
-        const storedUser = localStorage.getItem('user');
+        // Use our helper to get stored auth data
+        const authData = getStoredAuthData();
         
-        if (storedToken && storedUser) {
-          setAuthToken(storedToken);
-          setCurrentUser(JSON.parse(storedUser));
+        if (authData) {
+          console.log('Found stored auth data, initializing state');
+          // Set initial state from stored data
+          setAuthToken(authData.token);
+          setCurrentUser(authData.user);
           
           // Validate token by making a request to get current user
           try {
+            console.log('Validating stored token with server...');
             const currentUserData = await authApi.getCurrentUser();
+            
+            // Update user data with fresh data from server
             setCurrentUser(currentUserData);
+            console.log('Successfully validated token and fetched current user data');
+            
+            // Update the stored user data with the latest from server
+            storeAuthData(authData.token, currentUserData);
           } catch (validationError) {
             console.error('Token validation failed:', validationError);
-            // Token is invalid, clear auth data
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            setAuthToken(null);
-            setCurrentUser(null);
+            
+            // Check if this is a network error (server might be down or restarting)
+            if (validationError.message && validationError.message.includes('NetworkError')) {
+              console.log('Network error occurred during validation, keeping current user data');
+              // Keep the current user data since this might just be a temporary network issue
+            } else if (validationError.message && validationError.message.includes('AuthenticationExpired')) {
+              console.log('Authentication expired, clearing auth data');
+              clearAuthData();
+              setAuthToken(null);
+              setCurrentUser(null);
+            } else {
+              // Some other error occurred with the token validation
+              console.log('Invalid token, clearing auth data');
+              clearAuthData();
+              setAuthToken(null);
+              setCurrentUser(null);
+            }
           }
+        } else {
+          console.log('No stored auth data found or token expired');
         }
       } catch (err) {
         console.error('Failed to initialize auth:', err);
         // Clear potentially corrupted auth data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        clearAuthData();
       } finally {
         setLoading(false);
       }
@@ -66,6 +158,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Try GraphQL mutation first
       try {
+        console.log('Attempting GraphQL login mutation');
         const { data } = await loginMutation({
           variables: {
             loginInput: { email, password }
@@ -73,33 +166,46 @@ export const AuthProvider = ({ children }) => {
         });
         
         const authData = data.login;
+        const token = authData.accessToken;
+        const user = authData.user;
         
-        // Store auth data
-        localStorage.setItem('authToken', authData.accessToken);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
         
         // Update state
-        setAuthToken(authData.accessToken);
-        setCurrentUser(authData.user);
+        setAuthToken(token);
+        setCurrentUser(user);
         
+        // Set redirect flag
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
+        
+        console.log('Successfully logged in via GraphQL');
         return authData;
       } catch (graphqlError) {
         console.error('GraphQL login failed, trying REST API:', graphqlError);
         
         // Fallback to REST API
+        console.log('Attempting REST API login');
         const authData = await authApi.login({ email, password });
         
-        // Store auth data
-        localStorage.setItem('authToken', authData.accessToken || authData.token);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        const token = authData.accessToken || authData.token;
+        const user = authData.user;
+        
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
         
         // Update state
-        setAuthToken(authData.accessToken || authData.token);
-        setCurrentUser(authData.user);
+        setAuthToken(token);
+        setCurrentUser(user);
         
+        // Set redirect flag
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
+        
+        console.log('Successfully logged in via REST API');
         return authData;
       }
     } catch (err) {
+      console.error('Login failed completely:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -130,14 +236,18 @@ export const AuthProvider = ({ children }) => {
         
         console.log('GraphQL registration successful. Response:', JSON.stringify(data));
         const authData = data.register;
+        const token = authData.accessToken;
+        const user = authData.user;
         
-        // Store auth data
-        localStorage.setItem('authToken', authData.accessToken);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
+        // Set flag for dashboard to know we're coming from registration
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
         
         // Update state
-        setAuthToken(authData.accessToken);
-        setCurrentUser(authData.user);
+        setAuthToken(token);
+        setCurrentUser(user);
         
         return authData;
       } catch (graphqlError) {
@@ -167,13 +277,18 @@ export const AuthProvider = ({ children }) => {
           } : null
         }));
         
-        // Store auth data
-        localStorage.setItem('authToken', authData.accessToken || authData.token);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        const token = authData.accessToken || authData.token;
+        const user = authData.user;
+        
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
+        // Set flag for dashboard to know we're coming from registration
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
         
         // Update state
-        setAuthToken(authData.accessToken || authData.token);
-        setCurrentUser(authData.user);
+        setAuthToken(token);
+        setCurrentUser(user);
         
         return authData;
       }
@@ -206,16 +321,18 @@ export const AuthProvider = ({ children }) => {
         
         console.log('GraphQL anonymous login successful. Response:', JSON.stringify(data));
         const authData = data.anonymousLogin;
+        const token = authData.accessToken;
+        const user = authData.user;
         
-        // Store auth data
-        localStorage.setItem('authToken', authData.accessToken);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
         // Set flag for dashboard to know we're coming from login
-        localStorage.setItem('redirectToDashboard', 'true');
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
         
         // Update state
-        setAuthToken(authData.accessToken);
-        setCurrentUser(authData.user);
+        setAuthToken(token);
+        setCurrentUser(user);
         
         console.log('Updated auth state after successful anonymous login, set redirect flag');
         
@@ -247,15 +364,18 @@ export const AuthProvider = ({ children }) => {
           } : null
         }));
         
-        // Store auth data
-        localStorage.setItem('authToken', authData.accessToken || authData.token);
-        localStorage.setItem('user', JSON.stringify(authData.user));
+        const token = authData.accessToken || authData.token;
+        const user = authData.user;
+        
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
         // Set flag for dashboard to know we're coming from login
-        localStorage.setItem('redirectToDashboard', 'true');
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
         
         // Update state
-        setAuthToken(authData.accessToken || authData.token);
-        setCurrentUser(authData.user);
+        setAuthToken(token);
+        setCurrentUser(user);
         
         console.log('Updated auth state after successful anonymous login via REST API, set redirect flag');
         
@@ -282,12 +402,12 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      // Clear local storage and state regardless of API call success
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      // Clear auth data and state regardless of API call success
+      clearAuthData();
       setAuthToken(null);
       setCurrentUser(null);
       setLoading(false);
+      console.log('Successfully logged out');
     }
   };
 
@@ -304,8 +424,16 @@ export const AuthProvider = ({ children }) => {
       // Use the updateProfile method from authApi
       const updatedUser = await authApi.updateProfile(currentUser.id, userData);
       
-      // Update stored user data
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      // Update stored user data but keep the same token and expiry
+      const storedData = getStoredAuthData();
+      if (storedData && storedData.token) {
+        storeAuthData(storedData.token, updatedUser);
+      } else {
+        // Fallback if there is no stored data
+        storeAuthData(authToken, updatedUser);
+      }
+      
+      // Update state
       setCurrentUser(updatedUser);
       
       return updatedUser;

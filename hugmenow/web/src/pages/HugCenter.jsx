@@ -396,24 +396,26 @@ const EmptyState = styled.div`
 // Helper functions
 const getHugTypeEmoji = (type) => {
   const emojiMap = {
-    STANDARD: '🤗',
-    VIRTUAL: '💻',
-    SPECIAL: '✨',
-    ANIMATED: '🎭',
-    CUSTOM: '🎨'
+    QUICK: '🤗',
+    WARM: '💗',
+    SUPPORTIVE: '💪',
+    COMFORTING: '🌈',
+    ENCOURAGING: '✨',
+    CELEBRATORY: '🎉'
   };
   return emojiMap[type] || '🤗';
 };
 
 const getHugTypeLabel = (type) => {
   const labelMap = {
-    STANDARD: 'Standard',
-    VIRTUAL: 'Virtual',
-    SPECIAL: 'Special',
-    ANIMATED: 'Animated',
-    CUSTOM: 'Custom'
+    QUICK: 'Quick',
+    WARM: 'Warm',
+    SUPPORTIVE: 'Supportive',
+    COMFORTING: 'Comforting',
+    ENCOURAGING: 'Encouraging',
+    CELEBRATORY: 'Celebratory'
   };
-  return labelMap[type] || 'Standard';
+  return labelMap[type] || 'Quick';
 };
 
 const getRequestStatusLabel = (status) => {
@@ -452,7 +454,7 @@ const HugCenter = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('send');
   const [selectedRecipient, setSelectedRecipient] = useState('');
-  const [hugType, setHugType] = useState('STANDARD');
+  const [hugType, setHugType] = useState('QUICK');
   const [hugMessage, setHugMessage] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
   const [isCommunityRequest, setIsCommunityRequest] = useState(false);
@@ -543,7 +545,7 @@ const HugCenter = () => {
   
   const resetSendForm = () => {
     setSelectedRecipient('');
-    setHugType('STANDARD');
+    setHugType('QUICK');
     setHugMessage('');
   };
   
@@ -710,7 +712,7 @@ const HugCenter = () => {
               <FormRow>
                 <label>Hug Type</label>
                 <HugTypeSelector>
-                  {['STANDARD', 'VIRTUAL', 'SPECIAL', 'ANIMATED', 'CUSTOM'].map(type => (
+                  {['QUICK', 'WARM', 'SUPPORTIVE', 'COMFORTING', 'ENCOURAGING', 'CELEBRATORY'].map(type => (
                     <HugTypeOption 
                       key={type}
                       type="button"

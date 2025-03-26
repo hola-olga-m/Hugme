@@ -39,7 +39,26 @@ const handleResponse = async (response) => {
     try {
       errorData = await response.json();
     } catch (e) {
+      // If we can't parse the JSON, check if it's a network error
+      if (response.status === 0 || response.status === 504 || response.status === 503) {
+        // This is likely a network error or service unavailable
+        throw new Error(`NetworkError: Server unavailable or connection failed - status ${response.status}`);
+      }
       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    // Special handling for authentication errors
+    if (response.status === 401) {
+      // Check if this is an expired token
+      if (errorData.message && (
+        errorData.message.includes('expired') || 
+        errorData.message.includes('invalid') || 
+        errorData.message.includes('token')
+      )) {
+        console.warn('Authentication token expired or invalid');
+        // Custom error for token expiry
+        throw new Error('AuthenticationExpired: Your session has expired, please login again');
+      }
     }
     
     // Throw error with message from the server if available

@@ -1,4 +1,4 @@
-export declare enum HugType {
+export declare enum HugTypeOld {
     STANDARD = "STANDARD",
     VIRTUAL = "VIRTUAL",
     SPECIAL = "SPECIAL",

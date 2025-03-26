@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HugType = void 0;
-var HugType;
-(function (HugType) {
-    HugType["STANDARD"] = "STANDARD";
-    HugType["VIRTUAL"] = "VIRTUAL";
-    HugType["SPECIAL"] = "SPECIAL";
-    HugType["ANIMATED"] = "ANIMATED";
-    HugType["CUSTOM"] = "CUSTOM";
-})(HugType || (exports.HugType = HugType = {}));
+exports.HugTypeOld = void 0;
+var HugTypeOld;
+(function (HugTypeOld) {
+    HugTypeOld["STANDARD"] = "STANDARD";
+    HugTypeOld["VIRTUAL"] = "VIRTUAL";
+    HugTypeOld["SPECIAL"] = "SPECIAL";
+    HugTypeOld["ANIMATED"] = "ANIMATED";
+    HugTypeOld["CUSTOM"] = "CUSTOM";
+})(HugTypeOld || (exports.HugTypeOld = HugTypeOld = {}));
 //# sourceMappingURL=hug-type.enum.js.map
