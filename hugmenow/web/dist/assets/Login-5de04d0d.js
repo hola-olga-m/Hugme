@@ -1,11 +1,4 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { useAuth } from '../context/AuthContext';
-import LoadingScreen from '../components/common/LoadingScreen';
-
-// Enhanced styled components with modern design
-const LoginContainer = styled.div`
+import{d as o,r as n,u as I,a as D,j as r,L as E,b as F}from"./main-35d8db85.js";const N=o.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -55,9 +48,7 @@ const LoginContainer = styled.div`
       100% { transform: translate(20px, -20px) rotate(-5deg); }
     }
   }
-`;
-
-const LoginCard = styled.div`
+`,T=o.div`
   position: relative;
   z-index: 1;
   background: var(--glassmorph-bg);
@@ -82,9 +73,7 @@ const LoginCard = styled.div`
     transform: translateY(-5px);
     box-shadow: var(--shadow-xl);
   }
-`;
-
-const LoginLogo = styled.div`
+`,Y=o.div`
   text-align: center;
   margin-bottom: var(--spacing-xl);
   
@@ -110,19 +99,13 @@ const LoginLogo = styled.div`
     font-weight: var(--font-weight-medium);
     margin-top: var(--spacing-xs);
   }
-`;
-
-const LoginForm = styled.form`
+`,v=o.form`
   display: flex;
   flex-direction: column;
-`;
-
-const FormGroup = styled.div`
+`,c=o.div`
   margin-bottom: var(--spacing-lg);
   position: relative;
-`;
-
-const Label = styled.label`
+`,m=o.label`
   display: block;
   margin-bottom: var(--spacing-xs);
   font-weight: var(--font-weight-medium);
@@ -130,12 +113,10 @@ const Label = styled.label`
   font-size: var(--font-size-sm);
   transition: color 0.3s ease;
   
-  ${FormGroup}:focus-within & {
+  ${c}:focus-within & {
     color: var(--primary-color);
   }
-`;
-
-const Input = styled.input`
+`,p=o.input`
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--input-bg);
@@ -159,9 +140,7 @@ const Input = styled.input`
   &:hover:not(:focus) {
     border-color: var(--input-border-hover);
   }
-`;
-
-const Button = styled.button`
+`,b=o.button`
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
   background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
@@ -215,9 +194,7 @@ const Button = styled.button`
       display: none;
     }
   }
-`;
-
-const ErrorMessage = styled.div`
+`,P=o.div`
   background-color: var(--danger-alpha-10);
   color: var(--danger-dark);
   padding: var(--spacing-md) var(--spacing-lg);
@@ -242,9 +219,7 @@ const ErrorMessage = styled.div`
     margin-right: var(--spacing-sm);
     flex-shrink: 0;
   }
-`;
-
-const LoginFooter = styled.div`
+`,x=o.div`
   text-align: center;
   margin-top: var(--spacing-lg);
   
@@ -283,9 +258,7 @@ const LoginFooter = styled.div`
       }
     }
   }
-`;
-
-const OrDivider = styled.div`
+`,O=o.div`
   display: flex;
   align-items: center;
   margin: var(--spacing-lg) 0;
@@ -303,9 +276,7 @@ const OrDivider = styled.div`
     text-transform: uppercase;
     letter-spacing: 1px;
   }
-`;
-
-const AnonymousButton = styled.button`
+`,X=o.button`
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
   background-color: transparent;
@@ -343,198 +314,5 @@ const AnonymousButton = styled.button`
       transform: scaleX(1);
     }
   }
-`;
-
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [showAnonymousForm, setShowAnonymousForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState('');
-  
-  const { login, anonymousLogin, loading } = useAuth();
-  const navigate = useNavigate();
-  
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      setFormError('Please enter both email and password');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setFormError('');
-    
-    try {
-      console.log('Starting regular login with email:', email);
-      await login(email, password);
-      
-      console.log('Regular login successful, setting redirect flag');
-      // Set flag for dashboard to know we're coming from login
-      localStorage.setItem('redirectToDashboard', 'true');
-      
-      console.log('Navigating to dashboard after login');
-      navigate('/dashboard', { 
-        replace: true,
-        state: { 
-          fromLogin: true,
-          loginTime: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      setFormError(error.message || 'Invalid email or password');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  const handleAnonymousLogin = async (e) => {
-    e.preventDefault();
-    
-    if (!nickname) {
-      setFormError('Please enter a nickname');
-      return;
-    }
-    
-    console.log('Starting anonymous login process with nickname:', nickname);
-    setIsSubmitting(true);
-    setFormError('');
-    
-    try {
-      console.log('Calling anonymousLogin from AuthContext');
-      const authData = await anonymousLogin(nickname);
-      console.log('Anonymous login successful, received auth data:', JSON.stringify({
-        ...authData,
-        accessToken: authData.accessToken ? '[REDACTED]' : undefined,
-        user: authData.user ? {
-          ...authData.user,
-          id: authData.user.id || '[MISSING ID]'
-        } : null
-      }));
-      
-      // Force refresh auth state and clear any cached routes
-      console.log('Forcing auth state refresh before navigation');
-      setTimeout(() => {
-        // Explicit navigation with state and force reload
-        console.log('Attempting navigation to dashboard after successful login');
-        // First set a flag in localStorage to indicate we're coming from login
-        localStorage.setItem('redirectToDashboard', 'true');
-        
-        // Then use navigate with replace to avoid back button issues
-        navigate('/dashboard', { 
-          replace: true,
-          state: { 
-            fromLogin: true,
-            loginTime: new Date().toISOString()
-          }
-        });
-        console.log('Navigation completed');
-      }, 500); // Small delay to ensure state is fully updated
-    } catch (error) {
-      console.error('Anonymous login error:', error);
-      setFormError(error.message || 'Failed to login anonymously');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  if (loading) {
-    return <LoadingScreen text="Checking authentication..." />;
-  }
-  
-  return (
-    <LoginContainer>
-      <LoginCard>
-        <LoginLogo>
-          <h1>HugMeNow</h1>
-          <p>Your emotional wellness companion</p>
-        </LoginLogo>
-        
-        {formError && <ErrorMessage>{formError}</ErrorMessage>}
-        
-        {showAnonymousForm ? (
-          <LoginForm onSubmit={handleAnonymousLogin}>
-            <FormGroup>
-              <Label htmlFor="nickname">Nickname</Label>
-              <Input
-                type="text"
-                id="nickname"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                placeholder="Enter your nickname"
-                required
-              />
-            </FormGroup>
-            
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Processing...' : 'Continue Anonymously'}
-            </Button>
-            
-            <LoginFooter>
-              <p>
-                <a href="#" onClick={() => setShowAnonymousForm(false)}>
-                  Back to login
-                </a>
-              </p>
-            </LoginFooter>
-          </LoginForm>
-        ) : (
-          <>
-            <LoginForm onSubmit={handleLogin}>
-              <FormGroup>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                />
-              </FormGroup>
-              
-              <FormGroup>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                />
-              </FormGroup>
-              
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </LoginForm>
-            
-            <OrDivider>
-              <span>or</span>
-            </OrDivider>
-            
-            <AnonymousButton 
-              type="button" 
-              onClick={() => setShowAnonymousForm(true)}
-            >
-              Continue Anonymously
-            </AnonymousButton>
-            
-            <LoginFooter>
-              <p>
-                Don't have an account?{' '}
-                <Link to="/register">Sign Up</Link>
-              </p>
-            </LoginFooter>
-          </>
-        )}
-      </LoginCard>
-    </LoginContainer>
-  );
-};
-
-export default Login;
+`,B=()=>{const[i,y]=n.useState(""),[g,w]=n.useState(""),[s,k]=n.useState(""),[j,u]=n.useState(!1),[l,d]=n.useState(!1),[h,t]=n.useState(""),{login:S,anonymousLogin:z,loading:L}=I(),f=D(),A=async a=>{if(a.preventDefault(),!i||!g){t("Please enter both email and password");return}d(!0),t("");try{console.log("Starting regular login with email:",i),await S(i,g),console.log("Regular login successful, setting redirect flag"),localStorage.setItem("redirectToDashboard","true"),console.log("Navigating to dashboard after login"),f("/dashboard",{replace:!0,state:{fromLogin:!0,loginTime:new Date().toISOString()}})}catch(e){console.error("Login error:",e),t(e.message||"Invalid email or password")}finally{d(!1)}},C=async a=>{if(a.preventDefault(),!s){t("Please enter a nickname");return}console.log("Starting anonymous login process with nickname:",s),d(!0),t("");try{console.log("Calling anonymousLogin from AuthContext");const e=await z(s);console.log("Anonymous login successful, received auth data:",JSON.stringify({...e,accessToken:e.accessToken?"[REDACTED]":void 0,user:e.user?{...e.user,id:e.user.id||"[MISSING ID]"}:null})),console.log("Forcing auth state refresh before navigation"),setTimeout(()=>{console.log("Attempting navigation to dashboard after successful login"),localStorage.setItem("redirectToDashboard","true"),f("/dashboard",{replace:!0,state:{fromLogin:!0,loginTime:new Date().toISOString()}}),console.log("Navigation completed")},500)}catch(e){console.error("Anonymous login error:",e),t(e.message||"Failed to login anonymously")}finally{d(!1)}};return L?r.jsx(E,{text:"Checking authentication..."}):r.jsx(N,{children:r.jsxs(T,{children:[r.jsxs(Y,{children:[r.jsx("h1",{children:"HugMeNow"}),r.jsx("p",{children:"Your emotional wellness companion"})]}),h&&r.jsx(P,{children:h}),j?r.jsxs(v,{onSubmit:C,children:[r.jsxs(c,{children:[r.jsx(m,{htmlFor:"nickname",children:"Nickname"}),r.jsx(p,{type:"text",id:"nickname",value:s,onChange:a=>k(a.target.value),placeholder:"Enter your nickname",required:!0})]}),r.jsx(b,{type:"submit",disabled:l,children:l?"Processing...":"Continue Anonymously"}),r.jsx(x,{children:r.jsx("p",{children:r.jsx("a",{href:"#",onClick:()=>u(!1),children:"Back to login"})})})]}):r.jsxs(r.Fragment,{children:[r.jsxs(v,{onSubmit:A,children:[r.jsxs(c,{children:[r.jsx(m,{htmlFor:"email",children:"Email"}),r.jsx(p,{type:"email",id:"email",value:i,onChange:a=>y(a.target.value),placeholder:"Enter your email",required:!0})]}),r.jsxs(c,{children:[r.jsx(m,{htmlFor:"password",children:"Password"}),r.jsx(p,{type:"password",id:"password",value:g,onChange:a=>w(a.target.value),placeholder:"Enter your password",required:!0})]}),r.jsx(b,{type:"submit",disabled:l,children:l?"Signing in...":"Sign In"})]}),r.jsx(O,{children:r.jsx("span",{children:"or"})}),r.jsx(X,{type:"button",onClick:()=>u(!0),children:"Continue Anonymously"}),r.jsx(x,{children:r.jsxs("p",{children:["Don't have an account?"," ",r.jsx(F,{to:"/register",children:"Sign Up"})]})})]})]})})};export{B as default};
+//# sourceMappingURL=Login-5de04d0d.js.map

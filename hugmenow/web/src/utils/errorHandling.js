@@ -110,8 +110,20 @@ export const logError = (error, context = {}) => {
   
   console.group(`Error: ${title}`);
   console.error('Error object:', error);
+  console.error('Error name:', error?.name);
+  console.error('Error message:', error?.message);
+  console.error('Error stack:', error?.stack);
   console.error('Error type:', errorType);
   console.error('Error context:', context);
+  
+  // Log "y is not iterable" specific debugging info
+  if (error?.message?.includes('is not iterable')) {
+    console.error('Iterable error detected. Variable info:');
+    console.error('Variable type:', typeof error?.y);
+    console.error('Variable value:', error?.y);
+    console.error('Current component:', context?.component || 'Unknown');
+  }
+  
   console.groupEnd();
   
   // Could add additional logging here, e.g. to an error tracking service
