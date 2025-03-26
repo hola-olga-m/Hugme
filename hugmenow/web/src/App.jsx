@@ -19,27 +19,86 @@ const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+// Theme error boundary component definition
+const ThemeErrorBoundary = ({ children }) => {
+  const [hasError, setHasError] = React.useState(false);
+  const [errorDetails, setErrorDetails] = React.useState(null);
+  
+  React.useEffect(() => {
+    const handleThemeError = (error) => {
+      console.error('Theme Provider Error:', error);
+      console.error('Error Stack:', error.stack);
+      setErrorDetails(error);
+      setHasError(true);
+    };
+    
+    const handleGlobalError = (event) => {
+      if (event.error && event.error.message && event.error.message.includes('is not iterable')) {
+        console.error('Caught iterable error in global handler:', event.error);
+        handleThemeError(event.error);
+        event.preventDefault();
+      }
+    };
+    
+    window.addEventListener('error', handleGlobalError);
+    return () => window.removeEventListener('error', handleGlobalError);
+  }, []);
+  
+  if (hasError) {
+    return (
+      <div style={{ 
+        padding: '20px', 
+        backgroundColor: '#f8d7da', 
+        color: '#721c24',
+        borderRadius: '5px',
+        margin: '20px',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <h2>Theme Error</h2>
+        <p>There was an error with the theme system: {errorDetails?.message}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          style={{
+            backgroundColor: '#dc3545', 
+            color: 'white',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Reload App
+        </button>
+      </div>
+    );
+  }
+  
+  return children;
+};
+
 // Main App component
 const App = () => {
+
   return (
     <ApolloProvider client={client}>
       <AuthProvider>
-        <ThemeProvider>
-          <Router>
-            <Suspense fallback={<LoadingScreen text="Loading application..." />}>
-              <DebugPanel />
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={
-                  <PublicRoute>
-                    <Navigate to="/login" replace />
-                  </PublicRoute>
-                } />
-                <Route path="/login" element={
-                  <PublicRoute>
-                    <Login />
-                  </PublicRoute>
-                } />
+        <ThemeErrorBoundary>
+          <ThemeProvider>
+            <Router>
+              <Suspense fallback={<LoadingScreen text="Loading application..." />}>
+                <DebugPanel />
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={
+                    <PublicRoute>
+                      <Navigate to="/login" replace />
+                    </PublicRoute>
+                  } />
+                  <Route path="/login" element={
+                    <PublicRoute>
+                      <Login />
+                    </PublicRoute>
+                  } />
                 <Route path="/register" element={
                   <PublicRoute>
                     <Register />
@@ -79,6 +138,7 @@ const App = () => {
             </Suspense>
           </Router>
         </ThemeProvider>
+        </ThemeErrorBoundary>
       </AuthProvider>
     </ApolloProvider>
   );

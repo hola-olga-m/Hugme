@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-// Enhanced Default color palette for modern design
+// Explicitly define and log an error handling function
+function logThemeError(message, details) {
+  console.error(`ThemeContext ERROR: ${message}`, details);
+}
+
+// Safely define our default palette to ensure it exists
 const defaultPalette = {
   id: 'indigo',
   name: 'Modern Indigo',
@@ -96,14 +101,21 @@ const themePresets = {
   }
 };
 
-// Fixed available themes array for the theme selector
-const availableThemes = [
-  themePresets.indigo,
-  themePresets.purple,
-  themePresets.teal,
-  themePresets.blue,
-  themePresets.dark
-];
+// Create a safe array of available themes
+const safeThemePresetsArray = () => {
+  try {
+    return [
+      themePresets.indigo,
+      themePresets.purple,
+      themePresets.teal,
+      themePresets.blue,
+      themePresets.dark
+    ].filter(Boolean); // Remove any undefined entries
+  } catch (error) {
+    logThemeError('Error creating themes array', error);
+    return [defaultPalette]; // Fallback to just the default
+  }
+};
 
 // Create ThemeContext
 const ThemeContext = createContext();
@@ -117,35 +129,105 @@ export const useTheme = () => {
   return context;
 };
 
+// Log helper for debugging ThemeContext
+const logThemeAction = (action, details = {}) => {
+  console.log(`ThemeContext - ${action}:`, details);
+};
+
+// Safely parse JSON with fallback
+const safeJsonParse = (jsonString, fallback) => {
+  if (!jsonString) return fallback;
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error('Error parsing JSON in ThemeContext:', error);
+    return fallback;
+  }
+};
+
+// Safely access localStorage
+const safeGetItem = (key, fallback) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item === null ? fallback : item;
+  } catch (error) {
+    console.error(`Error accessing localStorage key "${key}":`, error);
+    return fallback;
+  }
+};
+
 // ThemeProvider component
 export const ThemeProvider = ({ children }) => {
-  // Initialize theme state from localStorage or use default
+  // Log initialization
+  logThemeAction('Initializing ThemeProvider');
+  
+  // Use safer initialization with proper error handling
   const [colorPalette, setColorPalette] = useState(() => {
-    const savedPalette = localStorage.getItem('hugmenow-color-palette');
-    return savedPalette ? JSON.parse(savedPalette) : defaultPalette;
+    try {
+      logThemeAction('Reading color palette from localStorage');
+      const savedPalette = safeGetItem('hugmenow-color-palette', null);
+      const parsedPalette = safeJsonParse(savedPalette, null);
+      
+      // Verify the parsed data has the expected structure
+      if (parsedPalette && typeof parsedPalette === 'object' && parsedPalette.colors) {
+        logThemeAction('Using stored color palette', { id: parsedPalette.id });
+        return parsedPalette;
+      } else {
+        logThemeAction('Using default color palette', { id: defaultPalette.id });
+        return defaultPalette;
+      }
+    } catch (error) {
+      console.error('Failed to initialize color palette:', error);
+      return defaultPalette;
+    }
   });
   
   // Track if theme has changed for transition effects
   const [hasThemeChanged, setHasThemeChanged] = useState(false);
   
-  // Track dark mode
+  // Track dark mode with safer initialization
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedDarkMode = localStorage.getItem('hugmenow-dark-mode');
-    if (savedDarkMode !== null) {
-      return JSON.parse(savedDarkMode);
+    try {
+      logThemeAction('Reading dark mode preference');
+      const savedDarkMode = safeGetItem('hugmenow-dark-mode', null);
+      
+      if (savedDarkMode !== null) {
+        const parsedDarkMode = safeJsonParse(savedDarkMode, false);
+        logThemeAction('Using stored dark mode preference', { isDarkMode: parsedDarkMode });
+        return parsedDarkMode;
+      }
+      
+      // Check if user prefers dark mode at OS level
+      const prefersDarkMode = window.matchMedia && 
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      logThemeAction('Using system dark mode preference', { isDarkMode: prefersDarkMode });
+      return prefersDarkMode;
+    } catch (error) {
+      console.error('Failed to initialize dark mode preference:', error);
+      return false;
     }
-    // Check if user prefers dark mode at OS level
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  // Track animation preference
+  // Track animation preference with safer initialization
   const [useAnimations, setUseAnimations] = useState(() => {
-    const savedAnimPref = localStorage.getItem('hugmenow-use-animations');
-    if (savedAnimPref !== null) {
-      return JSON.parse(savedAnimPref);
+    try {
+      logThemeAction('Reading animation preference');
+      const savedAnimPref = safeGetItem('hugmenow-use-animations', null);
+      
+      if (savedAnimPref !== null) {
+        const parsedAnimPref = safeJsonParse(savedAnimPref, true);
+        logThemeAction('Using stored animation preference', { useAnimations: parsedAnimPref });
+        return parsedAnimPref;
+      }
+      
+      // Default to animations on
+      logThemeAction('Using default animation preference', { useAnimations: true });
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize animation preference:', error);
+      return true;
     }
-    // Default to animations on 
-    return true;
   });
   
   // Color calculations utility functions
@@ -221,104 +303,114 @@ export const ThemeProvider = ({ children }) => {
   
   // Apply CSS variables whenever colorPalette or dark mode changes
   useEffect(() => {
-    const root = document.documentElement;
-    
-    // Set the data-theme attribute for CSS selectors
-    root.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    
-    // Set animation preference
-    root.setAttribute('data-animate', useAnimations ? 'true' : 'false');
-    
-    // Get effective palette (if dark mode is on and current palette isn't already dark)
-    const effectivePalette = 
-      isDarkMode && colorPalette.id !== 'dark' 
-        ? themePresets.dark 
-        : colorPalette;
-    
-    // Apply all colors from the palette to CSS variables
-    Object.entries(effectivePalette.colors).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}-color`, value);
+    try {
+      const root = document.documentElement;
       
-      // Create additional grays for better dark mode
-      if (key === 'background' || key === 'text') {
-        const rgb = hexToRgb(value);
-        if (rgb) {
-          const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
-          
-          if (key === 'background') {
-            // Create gray shades based on background color
-            for (let i = 1; i <= 9; i++) {
-              const step = i * 10;
-              const newL = isDarkMode 
-                ? Math.min(95, l + step / 2) // In dark mode, make lighter grays
-                : Math.max(5, l - step / 2); // In light mode, make darker grays
-              
-              const [r, g, b] = hslToRgb(h, s, newL);
-              root.style.setProperty(`--gray-${step}0`, `rgb(${r}, ${g}, ${b})`);
+      // Set the data-theme attribute for CSS selectors
+      root.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+      
+      // Set animation preference
+      root.setAttribute('data-animate', useAnimations ? 'true' : 'false');
+      
+      // Get effective palette (if dark mode is on and current palette isn't already dark)
+      const effectivePalette = 
+        isDarkMode && colorPalette.id !== 'dark' 
+          ? themePresets.dark 
+          : colorPalette;
+      
+      // Apply all colors from the palette to CSS variables
+      Object.entries(effectivePalette.colors).forEach(([key, value]) => {
+        root.style.setProperty(`--${key}-color`, value);
+        
+        // Create additional grays for better dark mode
+        if (key === 'background' || key === 'text') {
+          const rgb = hexToRgb(value);
+          if (rgb) {
+            const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            
+            if (key === 'background') {
+              // Create gray shades based on background color
+              for (let i = 1; i <= 9; i++) {
+                const step = i * 10;
+                const newL = isDarkMode 
+                  ? Math.min(95, l + step / 2) // In dark mode, make lighter grays
+                  : Math.max(5, l - step / 2); // In light mode, make darker grays
+                
+                const [r, g, b] = hslToRgb(h, s, newL);
+                root.style.setProperty(`--gray-${step}0`, `rgb(${r}, ${g}, ${b})`);
+              }
+            }
+            
+            // Set text variations based on main text color
+            if (key === 'text') {
+              const [r, g, b] = rgb;
+              root.style.setProperty(`--text-primary`, value);
+              root.style.setProperty(`--text-secondary`, `rgba(${r}, ${g}, ${b}, 0.75)`);
+              root.style.setProperty(`--text-tertiary`, `rgba(${r}, ${g}, ${b}, 0.5)`);
+              root.style.setProperty(`--text-placeholder`, `rgba(${r}, ${g}, ${b}, 0.3)`);
             }
           }
-          
-          // Set text variations based on main text color
-          if (key === 'text') {
-            const [r, g, b] = rgb;
-            root.style.setProperty(`--text-primary`, value);
-            root.style.setProperty(`--text-secondary`, `rgba(${r}, ${g}, ${b}, 0.75)`);
-            root.style.setProperty(`--text-tertiary`, `rgba(${r}, ${g}, ${b}, 0.5)`);
-            root.style.setProperty(`--text-placeholder`, `rgba(${r}, ${g}, ${b}, 0.3)`);
+        }
+        
+        // Enhanced color variant creation for our design system
+        if (['primary', 'secondary', 'tertiary', 'success', 'info', 'warning', 'danger'].includes(key)) {
+          const rgb = hexToRgb(value);
+          if (rgb) {
+            // Convert to HSL for better color manipulation
+            const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            
+            // Create variants based on lightness adjustments
+            const createColorVariant = (lightAdjust) => {
+              const newL = Math.max(0, Math.min(100, l + lightAdjust));
+              const [r, g, b] = hslToRgb(h, s, newL);
+              return `rgb(${r}, ${g}, ${b})`;
+            };
+            
+            // Create multiple variants for enhanced color system
+            root.style.setProperty(`--${key}-lightest`, createColorVariant(30));
+            root.style.setProperty(`--${key}-light`, createColorVariant(10));
+            root.style.setProperty(`--${key}-dark`, createColorVariant(-10));
+            root.style.setProperty(`--${key}-darkest`, createColorVariant(-20));
+            
+            // Add semi-transparent variants for overlays and subtle UI elements
+            root.style.setProperty(`--${key}-alpha-10`, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)`);
+            root.style.setProperty(`--${key}-alpha-20`, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`);
+            root.style.setProperty(`--${key}-alpha-50`, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.5)`);
           }
         }
-      }
+      });
       
-      // Enhanced color variant creation for our design system
-      if (['primary', 'secondary', 'tertiary', 'success', 'info', 'warning', 'danger'].includes(key)) {
-        const rgb = hexToRgb(value);
-        if (rgb) {
-          // Convert to HSL for better color manipulation
-          const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
-          
-          // Create variants based on lightness adjustments
-          const createColorVariant = (lightAdjust) => {
-            const newL = Math.max(0, Math.min(100, l + lightAdjust));
-            const [r, g, b] = hslToRgb(h, s, newL);
-            return `rgb(${r}, ${g}, ${b})`;
-          };
-          
-          // Create multiple variants for enhanced color system
-          root.style.setProperty(`--${key}-lightest`, createColorVariant(30));
-          root.style.setProperty(`--${key}-light`, createColorVariant(10));
-          root.style.setProperty(`--${key}-dark`, createColorVariant(-10));
-          root.style.setProperty(`--${key}-darkest`, createColorVariant(-20));
-          
-          // Add semi-transparent variants for overlays and subtle UI elements
-          root.style.setProperty(`--${key}-alpha-10`, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)`);
-          root.style.setProperty(`--${key}-alpha-20`, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`);
-          root.style.setProperty(`--${key}-alpha-50`, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.5)`);
-        }
+      // Set other theme related variables
+      root.style.setProperty('--input-bg', isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.9)');
+      root.style.setProperty('--input-border', isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
+      root.style.setProperty('--input-border-hover', isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)');
+      root.style.setProperty('--glassmorph-bg', isDarkMode ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.7)');
+      root.style.setProperty('--glassmorph-border', isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.18)');
+      
+      // Save state to localStorage
+      localStorage.setItem('hugmenow-color-palette', JSON.stringify(colorPalette));
+      localStorage.setItem('hugmenow-dark-mode', JSON.stringify(isDarkMode));
+      localStorage.setItem('hugmenow-use-animations', JSON.stringify(useAnimations));
+      
+      // Mark that theme has changed for animations
+      if (!hasThemeChanged) {
+        setHasThemeChanged(true);
       }
-    });
-    
-    // Set other theme related variables
-    root.style.setProperty('--input-bg', isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.9)');
-    root.style.setProperty('--input-border', isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
-    root.style.setProperty('--input-border-hover', isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)');
-    root.style.setProperty('--glassmorph-bg', isDarkMode ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.7)');
-    root.style.setProperty('--glassmorph-border', isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.18)');
-    
-    // Save state to localStorage
-    localStorage.setItem('hugmenow-color-palette', JSON.stringify(colorPalette));
-    localStorage.setItem('hugmenow-dark-mode', JSON.stringify(isDarkMode));
-    localStorage.setItem('hugmenow-use-animations', JSON.stringify(useAnimations));
-    
-    // Mark that theme has changed for animations
-    if (!hasThemeChanged) {
-      setHasThemeChanged(true);
+    } catch (error) {
+      console.error('Error applying theme CSS variables:', error);
     }
   }, [colorPalette, isDarkMode, useAnimations, hexToRgb, rgbToHsl, hslToRgb, hasThemeChanged]);
   
   // Function to update the color palette
   const setTheme = (newPaletteId) => {
-    const newPalette = themePresets[newPaletteId] || defaultPalette;
-    setColorPalette(newPalette);
+    try {
+      const newPalette = themePresets[newPaletteId] || defaultPalette;
+      setColorPalette(newPalette);
+    } catch (error) {
+      console.error('Error setting theme:', error);
+      // If there's an error, set to default palette as a fallback
+      setColorPalette(defaultPalette);
+    }
   };
   
   // Toggle dark mode
@@ -331,6 +423,35 @@ export const ThemeProvider = ({ children }) => {
     setUseAnimations(prev => !prev);
   };
   
+  // Get available themes safely
+  const getAvailableThemes = () => {
+    try {
+      // First check if we already have a themes array function
+      if (typeof safeThemePresetsArray === 'function') {
+        return safeThemePresetsArray();
+      }
+      
+      // Fallback to trying direct access
+      const themes = [
+        themePresets.indigo,
+        themePresets.purple,
+        themePresets.teal,
+        themePresets.blue,
+        themePresets.dark
+      ].filter(Boolean);
+      
+      if (themes.length > 0) {
+        return themes;
+      }
+      
+      // Final fallback
+      return [defaultPalette];
+    } catch (error) {
+      console.error('Error getting available themes:', error);
+      return [defaultPalette];
+    }
+  };
+  
   // Value to be provided by context
   const contextValue = {
     colorPalette,
@@ -340,8 +461,8 @@ export const ThemeProvider = ({ children }) => {
     useAnimations,
     toggleAnimations,
     hasThemeChanged,
-    // Make sure availableThemes is always an array to prevent "is not iterable" errors
-    availableThemes: Array.isArray(availableThemes) ? availableThemes : Object.values(themePresets)
+    // Use our safe getter function to avoid 'is not iterable' errors
+    availableThemes: getAvailableThemes()
   };
   
   return (
