@@ -1,13 +1,17 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import SimpleLayout from '../../layouts/SimpleLayout';
 
 /**
- * StaticRoute Component
- * A route that doesn't require authentication - always renders regardless of auth state
- * This is a simple pass-through component
+ * StaticRoute component
+ * Used for routes that should always be accessible without authentication
+ * or theme context dependencies
  */
 const StaticRoute = ({ children }) => {
-  return children || <Outlet />;
+  return (
+    <SimpleLayout>
+      {children}
+    </SimpleLayout>
+  );
 };
 
 export default StaticRoute;
