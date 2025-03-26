@@ -11,7 +11,7 @@ const SpinnerContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1.5rem;
 `;
 
 const Spinner = styled.div`
@@ -21,10 +21,10 @@ const Spinner = styled.div`
   border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
-  margin-bottom: 1rem;
 `;
 
-const LoadingText = styled.p`
+const SpinnerText = styled.div`
+  margin-top: 1rem;
   color: var(--gray-600);
   font-size: 0.9rem;
 `;
@@ -33,7 +33,7 @@ const LoadingSpinner = ({ text = 'Loading...' }) => {
   return (
     <SpinnerContainer>
       <Spinner />
-      <LoadingText>{text}</LoadingText>
+      {text && <SpinnerText>{text}</SpinnerText>}
     </SpinnerContainer>
   );
 };

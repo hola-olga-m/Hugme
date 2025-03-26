@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && node simplified-server.js"
+args = "cd hugmenow/web && node direct-server.js"
 waitForPort = 5000
 
 [deployment]

@@ -131,6 +131,19 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0'; // Making sure we bind to all interfaces
 
+// Add more detailed headers for debugging
+app.use((req, res, next) => {
+  // Set some standard headers
+  res.setHeader('X-Powered-By', 'HugMeNow Express Server');
+  res.setHeader('X-Framework', 'Express');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Continue with next middleware
+  next();
+});
+
 // Explicit listen with better error handling
 app.listen(PORT, HOST, (err) => {
   if (err) {

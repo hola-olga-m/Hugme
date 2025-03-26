@@ -1,65 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import AuthStatus from '../AuthStatus';
+import { useAuth } from '../../context/AuthContext';
 
 const DebugContainer = styled.div`
   position: fixed;
-  bottom: 0;
-  right: 0;
-  z-index: 1000;
-  background-color: rgba(250, 250, 250, 0.95);
-  border-radius: 8px 0 0 0;
-  border-left: 1px solid #ddd;
-  border-top: 1px solid #ddd;
-  box-shadow: -2px -2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  transform: ${props => props.$isOpen ? 'translateY(0)' : 'translateY(calc(100% - 40px))'};
-  max-height: 80vh;
-  overflow-y: auto;
-`;
-
-const DebugHeader = styled.div`
-  padding: 10px 15px;
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-`;
-
-const DebugTitle = styled.h3`
-  margin: 0;
-  font-size: 14px;
-  color: #555;
-`;
-
-const DebugContent = styled.div`
-  padding: 15px;
-  min-width: 300px;
-`;
-
-/**
- * Debug panel component that can be toggled open/closed
- * Contains debugging information for developers
- */
-const DebugPanel = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 12px;
+  max-width: 300px;
+  max-height: 200px;
+  overflow: auto;
+  z-index: 9999;
+  opacity: ${props => props.expanded ? 1 : 0.7};
+  transition: all 0.3s ease;
   
-  const togglePanel = () => {
-    setIsOpen(!isOpen);
-  };
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const ToggleButton = styled.button`
+  background: none;
+  border: none;
+  color: #00ff00;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 5px;
+  font-family: monospace;
+  font-size: 12px;
+`;
+
+const DebugItem = styled.div`
+  margin-bottom: 5px;
+  word-break: break-all;
+  
+  span.label {
+    color: #00ff00;
+    margin-right: 5px;
+  }
+  
+  span.value {
+    color: #ffffff;
+  }
+`;
+
+// This component is only for development use
+const DebugPanel = () => {
+  const [expanded, setExpanded] = useState(false);
+  const [isDev, setIsDev] = useState(false);
+  const { currentUser, isAuthenticated } = useAuth();
+  
+  useEffect(() => {
+    // Check if we're in development environment
+    setIsDev(process.env.NODE_ENV === 'development' || 
+             window.location.hostname === 'localhost' ||
+             window.location.hostname.includes('replit'));
+  }, []);
+  
+  // Only render in development
+  if (!isDev) return null;
   
   return (
-    <DebugContainer $isOpen={isOpen}>
-      <DebugHeader onClick={togglePanel}>
-        <DebugTitle>Debug Panel {isOpen ? '▼' : '▲'}</DebugTitle>
-      </DebugHeader>
+    <DebugContainer expanded={expanded}>
+      <ToggleButton onClick={() => setExpanded(!expanded)}>
+        {expanded ? '[-] Debug Info' : '[+] Debug Info'}
+      </ToggleButton>
       
-      {isOpen && (
-        <DebugContent>
-          <AuthStatus />
-        </DebugContent>
+      {expanded && (
+        <>
+          <DebugItem>
+            <span className="label">Auth:</span>
+            <span className="value">{isAuthenticated ? 'Logged In' : 'Not Logged In'}</span>
+          </DebugItem>
+          
+          {currentUser && (
+            <>
+              <DebugItem>
+                <span className="label">User ID:</span>
+                <span className="value">{currentUser.id}</span>
+              </DebugItem>
+              
+              <DebugItem>
+                <span className="label">Username:</span>
+                <span className="value">{currentUser.username}</span>
+              </DebugItem>
+              
+              <DebugItem>
+                <span className="label">Anonymous:</span>
+                <span className="value">{currentUser.isAnonymous ? 'Yes' : 'No'}</span>
+              </DebugItem>
+            </>
+          )}
+          
+          <DebugItem>
+            <span className="label">Route:</span>
+            <span className="value">{window.location.pathname}</span>
+          </DebugItem>
+          
+          <DebugItem>
+            <span className="label">Env:</span>
+            <span className="value">{process.env.NODE_ENV}</span>
+          </DebugItem>
+        </>
       )}
     </DebugContainer>
   );
