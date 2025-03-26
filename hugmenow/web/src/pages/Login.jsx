@@ -192,12 +192,32 @@ const Login = () => {
       return;
     }
     
+    console.log('Starting anonymous login process with nickname:', nickname);
     setIsSubmitting(true);
     setFormError('');
     
     try {
-      await anonymousLogin(nickname);
-      navigate('/dashboard');
+      console.log('Calling anonymousLogin from AuthContext');
+      const authData = await anonymousLogin(nickname);
+      console.log('Anonymous login successful, received auth data:', JSON.stringify({
+        ...authData,
+        accessToken: authData.accessToken ? '[REDACTED]' : undefined,
+        user: authData.user ? {
+          ...authData.user,
+          id: authData.user.id || '[MISSING ID]'
+        } : null
+      }));
+      
+      // Explicit navigation with state
+      console.log('Attempting navigation to dashboard after successful login');
+      navigate('/dashboard', { 
+        replace: true,
+        state: { 
+          fromLogin: true,
+          loginTime: new Date().toISOString()
+        }
+      });
+      console.log('Navigation completed');
     } catch (error) {
       console.error('Anonymous login error:', error);
       setFormError(error.message || 'Failed to login anonymously');

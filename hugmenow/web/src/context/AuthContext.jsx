@@ -112,15 +112,23 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     
+    // Add debugging
+    console.log('Attempting to register user with data:', JSON.stringify({
+      ...userData,
+      password: '[REDACTED]' // Don't log actual password
+    }));
+    
     try {
       // Try GraphQL mutation first
       try {
+        console.log('Attempting GraphQL registration mutation');
         const { data } = await registerMutation({
           variables: {
             registerInput: userData
           }
         });
         
+        console.log('GraphQL registration successful. Response:', JSON.stringify(data));
         const authData = data.register;
         
         // Store auth data
@@ -135,8 +143,29 @@ export const AuthProvider = ({ children }) => {
       } catch (graphqlError) {
         console.error('GraphQL register failed, trying REST API:', graphqlError);
         
+        // Log more details about the GraphQL error
+        if (graphqlError.networkError) {
+          console.error('Network error details:', graphqlError.networkError);
+          if (graphqlError.networkError.result) {
+            console.error('Server response:', graphqlError.networkError.result);
+          }
+        }
+        
+        if (graphqlError.graphQLErrors) {
+          console.error('GraphQL error details:', graphqlError.graphQLErrors);
+        }
+        
         // Fallback to REST API
+        console.log('Attempting REST API registration');
         const authData = await authApi.register(userData);
+        
+        console.log('REST API registration successful. Response:', JSON.stringify({
+          ...authData,
+          user: authData.user ? {
+            ...authData.user,
+            id: authData.user.id || '[ID]' // Include ID for debugging
+          } : null
+        }));
         
         // Store auth data
         localStorage.setItem('authToken', authData.accessToken || authData.token);
@@ -149,6 +178,7 @@ export const AuthProvider = ({ children }) => {
         return authData;
       }
     } catch (err) {
+      console.error('Registration failed completely:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -161,15 +191,20 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     
+    // Add debugging
+    console.log('Attempting anonymous login with nickname:', nickname);
+    
     try {
       // Try GraphQL mutation first
       try {
+        console.log('Attempting GraphQL anonymous login mutation');
         const { data } = await anonymousLoginMutation({
           variables: {
             anonymousLoginInput: { nickname, avatarUrl }
           }
         });
         
+        console.log('GraphQL anonymous login successful. Response:', JSON.stringify(data));
         const authData = data.anonymousLogin;
         
         // Store auth data
@@ -180,12 +215,35 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(authData.accessToken);
         setCurrentUser(authData.user);
         
+        console.log('Updated auth state after successful anonymous login');
+        
         return authData;
       } catch (graphqlError) {
         console.error('GraphQL anonymous login failed, trying REST API:', graphqlError);
         
+        // Log more details about the GraphQL error
+        if (graphqlError.networkError) {
+          console.error('Network error details:', graphqlError.networkError);
+          if (graphqlError.networkError.result) {
+            console.error('Server response:', graphqlError.networkError.result);
+          }
+        }
+        
+        if (graphqlError.graphQLErrors) {
+          console.error('GraphQL error details:', graphqlError.graphQLErrors);
+        }
+        
         // Fallback to REST API
+        console.log('Attempting REST API anonymous login');
         const authData = await authApi.anonymousLogin({ nickname, avatarUrl });
+        
+        console.log('REST API anonymous login successful. Response:', JSON.stringify({
+          ...authData,
+          user: authData.user ? {
+            ...authData.user,
+            id: authData.user.id || '[ID]' // Include ID for debugging
+          } : null
+        }));
         
         // Store auth data
         localStorage.setItem('authToken', authData.accessToken || authData.token);
@@ -195,9 +253,12 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(authData.accessToken || authData.token);
         setCurrentUser(authData.user);
         
+        console.log('Updated auth state after successful anonymous login via REST API');
+        
         return authData;
       }
     } catch (err) {
+      console.error('Anonymous login failed completely:', err);
       setError(err.message);
       throw err;
     } finally {
