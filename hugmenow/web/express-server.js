@@ -97,13 +97,34 @@ if (isDevelopment) {
   }));
 } else {
   console.log('Production mode detected - serving from dist directory');
-  // Serve static files from the Vite build output directory
-  app.use(express.static(distPath));
+  
+  // Serve static files from the Vite build output directory with proper caching
+  app.use(express.static(distPath, {
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, path) => {
+      // For JS, CSS assets (contains hash in filename)
+      if (path.endsWith('.js') || path.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'max-age=31536000, immutable');
+      } else {
+        // For non-hashed assets
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    }
+  }));
   
   // For all routes not handled by static files or proxies, serve index.html
   app.get('*', (req, res) => {
     console.log(`Serving index.html for route: ${req.path}`);
-    res.sendFile(path.join(distPath, 'index.html'));
+    if (req.path.includes('.')) {
+      // If the route includes a dot, it's likely looking for an asset
+      // If we reach here, the asset couldn't be found in dist directory
+      console.log(`Asset not found: ${req.path}`);
+      res.status(404).send(`Asset not found: ${req.path}`);
+    } else {
+      // For all other routes, serve the index.html for SPA routing
+      res.sendFile(path.join(distPath, 'index.html'));
+    }
   });
 }
 
