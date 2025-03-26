@@ -1,24 +1,24 @@
 /* Global CSS styles - Enhanced Design 2025 */
 
 :root {
-  /* Core Brand Colors - Modern Gradient-ready Palette */
-  --primary-color: #6366f1; /* Enhanced indigo for brand identity */
-  --primary-light: #818cf8;
-  --primary-lightest: #c7d2fe;
-  --primary-dark: #4f46e5;
-  --primary-darkest: #3730a3;
+  /* Core Brand Colors - Refreshed Emotion-focused Palette */
+  --primary-color: #5e72e4; /* Serene blue-purple for trust and comfort */
+  --primary-light: #7f97ff;
+  --primary-lightest: #e0e6ff;
+  --primary-dark: #3a56d4;
+  --primary-darkest: #2a419f;
   
-  --secondary-color: #ec4899; /* Vibrant pink for emotional connection */
-  --secondary-light: #f472b6;
-  --secondary-lightest: #fbcfe8;
-  --secondary-dark: #db2777;
-  --secondary-darkest: #be185d;
+  --secondary-color: #ff7eb3; /* Warm pink for emotional warmth and connection */
+  --secondary-light: #ffa0c7;
+  --secondary-lightest: #ffe5f0;
+  --secondary-dark: #e45c90;
+  --secondary-darkest: #b33e6f;
   
-  --tertiary-color: #14b8a6; /* Teal for balance and calm */
-  --tertiary-light: #2dd4bf;
-  --tertiary-lightest: #99f6e4;
-  --tertiary-dark: #0d9488;
-  --tertiary-darkest: #115e59;
+  --tertiary-color: #36d6b7; /* Energetic teal for wellness and calm */
+  --tertiary-light: #5eecd1;
+  --tertiary-lightest: #dcfff7;
+  --tertiary-dark: #29b99e;
+  --tertiary-darkest: #1e8a75;
   
   /* Semantic Colors - Expanded for better UX */
   --success-color: #22c55e; /* Enhanced green */
