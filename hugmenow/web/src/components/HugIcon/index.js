@@ -2,10 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { getHugIconByType, getHugTypeColor, getHugTypeDisplayName } from '../../utils/hugIcons';
-import { getAnimalHugIconByType, getAnimalHugTypeColor, getAnimalHugTypeDisplayName } from '../../utils/animalsHugIcons';
+import { 
+  getAnimalHugIconByType, 
+  getAnimalHugTypeColor, 
+  getAnimalHugTypeDisplayName, 
+  ANIMAL_HUG_ICONS,
+  convertToAnimalType as convertStandardToAnimalType
+} from '../../utils/animalsHugIcons';
 
-// Import animal hug types directly to avoid circular dependencies
+// Animal hug types
 const ANIMAL_HUG_TYPES = [
   'fox', 'bear', 'hedgehog', 'rabbit', 'penguin', 'yinyang',
   'sloth', 'panda', 'cat', 'unicorn'
@@ -109,18 +114,13 @@ const HugIcon = ({
   // Check if this is an animal icon type or standard type
   const isAnimalType = ANIMAL_HUG_TYPES.includes(type);
   
-  // Get the icon source and color based on the type
-  const iconSrc = isAnimalType 
-    ? getAnimalHugIconByType(type) 
-    : getHugIconByType(type);
-    
-  const color = isAnimalType 
-    ? getAnimalHugTypeColor(type) 
-    : getHugTypeColor(type);
-    
-  const name = isAnimalType 
-    ? getAnimalHugTypeDisplayName(type) 
-    : getHugTypeDisplayName(type);
+  // Map standard types to animal types if needed
+  const mappedType = isAnimalType ? type : convertStandardToAnimalType(type);
+  
+  // Get the icon source and color
+  const iconSrc = getAnimalHugIconByType(mappedType);
+  const color = getAnimalHugTypeColor(mappedType);
+  const name = getAnimalHugTypeDisplayName(mappedType);
 
   return (
     <IconContainer 

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HUG_ICONS, getHugTypeDescription } from '../../utils/hugIcons';
+import { ANIMAL_HUG_ICONS, getAnimalHugTypeDescription } from '../../utils/animalsHugIcons';
 
 /**
  * A simplified public version of the HugGalleryDemo page
  * Uses plain HTML/CSS instead of styled-components to avoid theme dependencies
  */
 const PublicHugGallery = () => {
-  const [selectedType, setSelectedType] = useState('standard');
+  const [selectedType, setSelectedType] = useState('fox');
   
   // Get hug types
-  const hugTypes = Object.keys(HUG_ICONS);
+  const hugTypes = Object.keys(ANIMAL_HUG_ICONS);
   
   return (
     <div style={{
@@ -100,13 +100,13 @@ const PublicHugGallery = () => {
                     borderRadius: '8px',
                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                     cursor: 'pointer',
-                    border: selectedType === hugType ? `2px solid ${HUG_ICONS[hugType].color}` : '2px solid transparent'
+                    border: selectedType === hugType ? `2px solid ${ANIMAL_HUG_ICONS[hugType].color}` : '2px solid transparent'
                   }}
                   onClick={() => setSelectedType(hugType)}
                 >
                   <img 
-                    src={HUG_ICONS[hugType].icon} 
-                    alt={HUG_ICONS[hugType].name}
+                    src={ANIMAL_HUG_ICONS[hugType].icon} 
+                    alt={ANIMAL_HUG_ICONS[hugType].name}
                     style={{
                       width: '64px',
                       height: '64px'
@@ -117,7 +117,7 @@ const PublicHugGallery = () => {
                     color: '#333',
                     margin: '8px 0 0 0',
                     textAlign: 'center'
-                  }}>{HUG_ICONS[hugType].name}</h3>
+                  }}>{ANIMAL_HUG_ICONS[hugType].name}</h3>
                 </div>
               ))}
             </div>
@@ -141,15 +141,15 @@ const PublicHugGallery = () => {
             }}>Selected Hug Type</h2>
             
             <img 
-              src={HUG_ICONS[selectedType].icon} 
-              alt={HUG_ICONS[selectedType].name}
+              src={ANIMAL_HUG_ICONS[selectedType].icon} 
+              alt={ANIMAL_HUG_ICONS[selectedType].name}
               style={{
                 width: '80px',
                 height: '80px',
                 padding: '8px',
                 backgroundColor: 'white',
                 borderRadius: '50%',
-                border: `2px solid ${HUG_ICONS[selectedType].color}`
+                border: `2px solid ${ANIMAL_HUG_ICONS[selectedType].color}`
               }}
             />
             
@@ -161,12 +161,12 @@ const PublicHugGallery = () => {
                 fontSize: '1.2rem',
                 color: '#333',
                 margin: '0 0 8px 0'
-              }}>{HUG_ICONS[selectedType].name}</h3>
+              }}>{ANIMAL_HUG_ICONS[selectedType].name}</h3>
               <p style={{
                 fontSize: '0.9rem',
                 color: '#666',
                 margin: 0
-              }}>{getHugTypeDescription(selectedType)}</p>
+              }}>{getAnimalHugTypeDescription(selectedType)}</p>
             </div>
           </div>
           

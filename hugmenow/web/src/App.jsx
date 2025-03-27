@@ -9,9 +9,7 @@ import DebugPanel from './components/common/DebugPanel';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicRoute from './components/routing/PublicRoute';
 import StaticRoute from './components/routing/StaticRoute';
-import StaticHugGallery from './pages/StaticHugGallery';
-import HumanHugGallery from './pages/HumanHugGallery'; // Import directly to avoid circular dependency
-import PurpleHugGallery from './pages/PurpleHugGallery'; // Import directly our new component
+import PurpleHugGallery from './pages/PurpleHugGallery/PurpleHugGallery'; // Import directly our new component
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -21,11 +19,7 @@ const MoodTracker = lazy(() => import('./pages/MoodTracker'));
 const HugCenter = lazy(() => import('./pages/HugCenter'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
-const HugGalleryDemo = lazy(() => import('./pages/HugGalleryDemo'));
-const PublicHugGallery = lazy(() => import('./pages/PublicHugGallery'));
-const AnimalHugGalleryDemo = lazy(() => import('./pages/AnimalHugGalleryDemo'));
-// Import HumanHugGalleryDemo directly to avoid circular dependency
-// const HumanHugGalleryDemo = lazy(() => import('./pages/HumanHugGalleryDemo'));
+// Only keeping the latest gallery - PurpleHugGallery
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -141,26 +135,15 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 {/* Static demo routes - always accessible */}
-                <Route path="/hug-gallery" element={
-                  <StaticRoute>
-                    <PublicHugGallery />
-                  </StaticRoute>
-                } />
-                <Route path="/animal-hug-gallery" element={
-                  <StaticRoute>
-                    <AnimalHugGalleryDemo />
-                  </StaticRoute>
-                } />
-                <Route path="/human-hug-gallery" element={
-                  <StaticRoute>
-                    <HumanHugGallery />
-                  </StaticRoute>
-                } />
                 <Route path="/purple-hug-gallery" element={
                   <StaticRoute>
                     <PurpleHugGallery />
                   </StaticRoute>
                 } />
+                {/* Redirect old gallery URLs to the new purple gallery */}
+                <Route path="/hug-gallery" element={<Navigate to="/purple-hug-gallery" replace />} />
+                <Route path="/animal-hug-gallery" element={<Navigate to="/purple-hug-gallery" replace />} />
+                <Route path="/human-hug-gallery" element={<Navigate to="/purple-hug-gallery" replace />} />
                 
                 {/* Not found route */}
                 <Route path="*" element={<NotFound />} />

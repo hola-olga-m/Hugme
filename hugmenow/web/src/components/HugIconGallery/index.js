@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { HUG_ICONS, getHugTypeDescription } from '../../utils/hugIcons';
+import { ANIMAL_HUG_ICONS, getAnimalHugTypeDescription } from '../../utils/animalsHugIcons';
 import HugIcon from '../HugIcon';
 
 const GalleryContainer = styled.div`
@@ -134,7 +134,14 @@ const HugIconGallery = ({
   };
   
   // Get the description for the selected hug type
-  const selectedDescription = getHugTypeDescription(selectedType);
+  // Map standard types to animal types if needed
+  const mappedType = selectedType.includes('fox') || selectedType.includes('bear') || selectedType.includes('hedgehog') || 
+                     selectedType.includes('rabbit') || selectedType.includes('penguin') || 
+                     selectedType.includes('yinyang') || selectedType.includes('sloth') || 
+                     selectedType.includes('panda') || selectedType.includes('cat') || 
+                     selectedType.includes('unicorn') ? selectedType : 'fox';
+  
+  const selectedDescription = getAnimalHugTypeDescription(mappedType);
   
   return (
     <GalleryContainer data-testid="hug-icon-gallery">
@@ -149,7 +156,7 @@ const HugIconGallery = ({
         animate="visible"
       >
         <GalleryGrid showSelectedSection={showSelectedSection}>
-          {Object.keys(HUG_ICONS).map((hugType) => (
+          {Object.keys(ANIMAL_HUG_ICONS).map((hugType) => (
             <motion.div key={hugType} variants={fadeInVariants}>
               <HugIcon
                 type={hugType}
@@ -178,7 +185,7 @@ const HugIconGallery = ({
             isSelected
           />
           <SelectedIconDetails>
-            <SelectedIconName>{HUG_ICONS[selectedType]?.name}</SelectedIconName>
+            <SelectedIconName>{ANIMAL_HUG_ICONS[mappedType]?.name}</SelectedIconName>
             <SelectedIconDescription>{selectedDescription}</SelectedIconDescription>
           </SelectedIconDetails>
         </SelectedIconSection>
@@ -191,7 +198,7 @@ HugIconGallery.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
   showSelectedSection: PropTypes.bool,
-  defaultSelectedType: PropTypes.oneOf(Object.keys(HUG_ICONS)),
+  defaultSelectedType: PropTypes.oneOf(Object.keys(ANIMAL_HUG_ICONS)),
   onSelectHugType: PropTypes.func
 };
 

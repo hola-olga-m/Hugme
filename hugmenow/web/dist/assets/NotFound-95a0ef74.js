@@ -1,4 +1,4 @@
-import{d as r,j as o}from"./animal-hug-gallery-3fae840f.js";import{b as e}from"./main-591979d9.js";import"./hug-icons-90039baa.js";const t=r.div`
+import{d as r,j as o}from"./animal-hug-gallery-a8416bfb.js";import{b as e}from"./main-cd7794cf.js";const t=r.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,5 +42,5 @@ import{d as r,j as o}from"./animal-hug-gallery-3fae840f.js";import{b as e}from".
     background-color: var(--primary-dark);
     text-decoration: none;
   }
-`,l=()=>o.jsxs(t,{children:[o.jsx(n,{children:"404"}),o.jsx(i,{children:"Page Not Found"}),o.jsx(a,{children:"The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."}),o.jsx(d,{to:"/",children:"Return to Home"})]});export{l as default};
-//# sourceMappingURL=NotFound-2eafef2b.js.map
+`,s=()=>o.jsxs(t,{children:[o.jsx(n,{children:"404"}),o.jsx(i,{children:"Page Not Found"}),o.jsx(a,{children:"The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."}),o.jsx(d,{to:"/",children:"Return to Home"})]});export{s as default};
+//# sourceMappingURL=NotFound-95a0ef74.js.map

@@ -1,1 +1,387 @@
-[]
+[
+  {
+    "name": "Gentle",
+    "variant": "",
+    "filename": "purple-Gentle.png",
+    "animationPrefix": "purple-Gentle-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Gentle",
+    "variant": "2",
+    "filename": "purple-Gentle2.png",
+    "animationPrefix": "purple-Gentle2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Gentle",
+    "variant": "3",
+    "filename": "purple-Gentle3.png",
+    "animationPrefix": "purple-Gentle3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Gentle",
+    "variant": "4",
+    "filename": "purple-Gentle4.png",
+    "animationPrefix": "purple-Gentle4-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Gentle",
+    "variant": "5",
+    "filename": "purple-Gentle5.png",
+    "animationPrefix": "purple-Gentle5-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Gentle",
+    "variant": "6",
+    "filename": "purple-Gentle6.png",
+    "animationPrefix": "purple-Gentle6-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Gentle",
+    "variant": "7",
+    "filename": "purple-Gentle7.png",
+    "animationPrefix": "purple-Gentle7-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Shy",
+    "variant": "",
+    "filename": "purple-Shy.png",
+    "animationPrefix": "purple-Shy-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Shy",
+    "variant": "2",
+    "filename": "purple-Shy2.png",
+    "animationPrefix": "purple-Shy2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Shy",
+    "variant": "3",
+    "filename": "purple-Shy3.png",
+    "animationPrefix": "purple-Shy3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Shy",
+    "variant": "4",
+    "filename": "purple-Shy4.png",
+    "animationPrefix": "purple-Shy4-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Shy",
+    "variant": "5",
+    "filename": "purple-Shy5.png",
+    "animationPrefix": "purple-Shy5-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soft",
+    "variant": "",
+    "filename": "purple-Soft.png",
+    "animationPrefix": "purple-Soft-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soft",
+    "variant": "2",
+    "filename": "purple-Soft2.png",
+    "animationPrefix": "purple-Soft2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soft",
+    "variant": "3",
+    "filename": "purple-Soft3.png",
+    "animationPrefix": "purple-Soft3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soft",
+    "variant": "4",
+    "filename": "purple-Soft4.png",
+    "animationPrefix": "purple-Soft4-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soft",
+    "variant": "5",
+    "filename": "purple-Soft5.png",
+    "animationPrefix": "purple-Soft5-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Sweet",
+    "variant": "",
+    "filename": "purple-Sweet.png",
+    "animationPrefix": "purple-Sweet-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Sweet",
+    "variant": "2",
+    "filename": "purple-Sweet2.png",
+    "animationPrefix": "purple-Sweet2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Sweet",
+    "variant": "3",
+    "filename": "purple-Sweet3.png",
+    "animationPrefix": "purple-Sweet3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Sweet",
+    "variant": "4",
+    "filename": "purple-Sweet4.png",
+    "animationPrefix": "purple-Sweet4-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Sweet",
+    "variant": "5",
+    "filename": "purple-Sweet5.png",
+    "animationPrefix": "purple-Sweet5-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Tender",
+    "variant": "",
+    "filename": "purple-Tender.png",
+    "animationPrefix": "purple-Tender-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Tender",
+    "variant": "2",
+    "filename": "purple-Tender2.png",
+    "animationPrefix": "purple-Tender2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Tender",
+    "variant": "3",
+    "filename": "purple-Tender3.png",
+    "animationPrefix": "purple-Tender3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cheerful",
+    "variant": "",
+    "filename": "purple-Cheerful.png",
+    "animationPrefix": "purple-Cheerful-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cheerful",
+    "variant": "2",
+    "filename": "purple-Cheerful2.png",
+    "animationPrefix": "purple-Cheerful2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cheerful",
+    "variant": "3",
+    "filename": "purple-Cheerful3.png",
+    "animationPrefix": "purple-Cheerful3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cheerful",
+    "variant": "4",
+    "filename": "purple-Cheerful4.png",
+    "animationPrefix": "purple-Cheerful4-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cheerful",
+    "variant": "5",
+    "filename": "purple-Cheerful5.png",
+    "animationPrefix": "purple-Cheerful5-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Calm",
+    "variant": "",
+    "filename": "purple-Calm.png",
+    "animationPrefix": "purple-Calm-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Calm",
+    "variant": "2",
+    "filename": "purple-Calm2.png",
+    "animationPrefix": "purple-Calm2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Caring",
+    "variant": "",
+    "filename": "purple-Caring.png",
+    "animationPrefix": "purple-Caring-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Warm",
+    "variant": "",
+    "filename": "purple-Warm.png",
+    "animationPrefix": "purple-Warm-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Warm",
+    "variant": "2",
+    "filename": "purple-Warm2.png",
+    "animationPrefix": "purple-Warm2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Friendly",
+    "variant": "",
+    "filename": "purple-Friendly.png",
+    "animationPrefix": "purple-Friendly-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Friendly",
+    "variant": "2",
+    "filename": "purple-Friendly2.png",
+    "animationPrefix": "purple-Friendly2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Relaxed",
+    "variant": "",
+    "filename": "purple-Relaxed.png",
+    "animationPrefix": "purple-Relaxed-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Relaxed",
+    "variant": "2",
+    "filename": "purple-Relaxed2.png",
+    "animationPrefix": "purple-Relaxed2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soothing",
+    "variant": "",
+    "filename": "purple-Soothing.png",
+    "animationPrefix": "purple-Soothing-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Soothing",
+    "variant": "2",
+    "filename": "purple-Soothing2.png",
+    "animationPrefix": "purple-Soothing2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cozy",
+    "variant": "",
+    "filename": "purple-Cozy.png",
+    "animationPrefix": "purple-Cozy-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cozy",
+    "variant": "2",
+    "filename": "purple-Cozy2.png",
+    "animationPrefix": "purple-Cozy2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Happy",
+    "variant": "",
+    "filename": "purple-Happy.png",
+    "animationPrefix": "purple-Happy-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cute",
+    "variant": "",
+    "filename": "purple-Cute.png",
+    "animationPrefix": "purple-Cute-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Cute",
+    "variant": "2",
+    "filename": "purple-Cute2.png",
+    "animationPrefix": "purple-Cute2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Glasses",
+    "variant": "",
+    "filename": "purple-Glasses.png",
+    "animationPrefix": "purple-Glasses-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Glasses",
+    "variant": "2",
+    "filename": "purple-Glasses2.png",
+    "animationPrefix": "purple-Glasses2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Glasses",
+    "variant": "3",
+    "filename": "purple-Glasses3.png",
+    "animationPrefix": "purple-Glasses3-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Empathetic",
+    "variant": "",
+    "filename": "purple-Empathetic.png",
+    "animationPrefix": "purple-Empathetic-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Empathetic",
+    "variant": "2",
+    "filename": "purple-Empathetic2.png",
+    "animationPrefix": "purple-Empathetic2-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "Encouraging",
+    "variant": "",
+    "filename": "purple-Encouraging.png",
+    "animationPrefix": "purple-Encouraging-animated_frame",
+    "isSpecial": false
+  },
+  {
+    "name": "FamilyHug",
+    "variant": "",
+    "filename": "purple-FamilyHug.png",
+    "animationPrefix": "purple-FamilyHug-animated_frame",
+    "isSpecial": true
+  },
+  {
+    "name": "ParentHug",
+    "variant": "",
+    "filename": "purple-ParentHug.png",
+    "animationPrefix": "purple-ParentHug-animated_frame",
+    "isSpecial": true
+  },
+  {
+    "name": "FriendHug",
+    "variant": "",
+    "filename": "purple-FriendHug.png",
+    "animationPrefix": "purple-FriendHug-animated_frame",
+    "isSpecial": true
+  }
+]

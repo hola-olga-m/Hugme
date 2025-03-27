@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import SimpleLayout from '../../layouts/SimpleLayout';
 import HugIconGallery from '../../components/HugIconGallery';
 import HugIcon from '../../components/HugIcon';
-import { getHugTypes, getHugTypeColor, getHugTypeDisplayName } from '../../utils/hugIcons';
+import { getAnimalHugTypes, getAnimalHugTypeColor, getAnimalHugTypeDisplayName } from '../../utils/animalsHugIcons';
 
 // Styled components
 const PageContainer = styled.div`
@@ -116,7 +116,7 @@ const cardVariants = {
  */
 const HugGalleryDemo = () => {
   const navigate = useNavigate();
-  const [selectedHugType, setSelectedHugType] = useState('standard');
+  const [selectedHugType, setSelectedHugType] = useState('fox');
   
   // Handle hug type selection
   const handleSelectHugType = (type) => {
@@ -143,14 +143,14 @@ const HugGalleryDemo = () => {
         <Section>
           <SectionTitle>Individual Hug Icons</SectionTitle>
           <CardGrid>
-            {getHugTypes().map((hugType) => (
+            {getAnimalHugTypes().map((hugType) => (
               <IconCard 
                 key={hugType}
                 whileHover="hover"
                 whileTap="tap"
                 variants={cardVariants}
                 isSelected={selectedHugType === hugType}
-                color={getHugTypeColor(hugType)}
+                color={getAnimalHugTypeColor(hugType)}
                 onClick={() => handleSelectHugType(hugType)}
               >
                 <HugIcon 
@@ -158,7 +158,7 @@ const HugGalleryDemo = () => {
                   size="md" 
                   showBackground={false}
                 />
-                <IconName>{getHugTypeDisplayName(hugType)}</IconName>
+                <IconName>{getAnimalHugTypeDisplayName(hugType)}</IconName>
               </IconCard>
             ))}
           </CardGrid>
