@@ -35,7 +35,7 @@ API_STATUS=$(curl -s http://localhost:3001/health)
 echo "API Status: $API_STATUS"
 
 # Check if Frontend server is already running
-if curl -s http://localhost:5000/health-text > /dev/null; then
+if curl -s http://localhost:5000/health-check > /dev/null || curl -s http://localhost:5000/health-text > /dev/null; then
   echo "Frontend server is already running on port 5000"
   FRONTEND_RUNNING=true
 else
@@ -49,7 +49,7 @@ else
   echo "Waiting for Frontend server to be ready..."
   MAX_RETRIES=30
   RETRY_COUNT=0
-  while ! curl -s http://localhost:5000/health-text > /dev/null; do
+  while ! (curl -s http://localhost:5000/health-check > /dev/null || curl -s http://localhost:5000/health-text > /dev/null); do
     echo "Frontend server not ready yet, retrying in 1 second..."
     sleep 1
     RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -75,7 +75,10 @@ echo ""
 echo "The frontend is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co"
 echo "The API is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/api"
 echo "The GraphQL endpoint is at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/graphql"
-echo "Health check endpoint: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/health"
+echo "Health check endpoints:"
+echo "- Full status page: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/health-check"
+echo "- JSON response: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/health"
+echo "- Plain text: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/health-text"
 echo "Server info endpoint: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/info"
 
 # Wait for both servers to complete (they should run indefinitely)
