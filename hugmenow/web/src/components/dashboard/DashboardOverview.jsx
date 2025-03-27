@@ -150,21 +150,25 @@ const DashboardOverview = () => {
   }
   
   // Extract data
-  const userStats = userStatsData?.userStats || {
-    totalMoodEntries: 0,
-    averageMoodScore: 0,
-    highestMoodThisMonth: 0,
-    lowestMoodThisMonth: 0
-  };
+  const userMoods = userStatsData?.userMoods || [];
+  
+  // Calculate statistics from user moods
+  const totalMoodEntries = userMoods.length;
+  let averageMoodScore = 0;
+  
+  if (totalMoodEntries > 0) {
+    const sum = userMoods.reduce((acc, mood) => acc + mood.score, 0);
+    averageMoodScore = sum / totalMoodEntries;
+  }
   
   const moodStreak = streakData?.moodStreak || 0;
   const receivedHugs = hugsData?.receivedHugs || [];
   const unreadHugs = receivedHugs.filter(hug => !hug.isRead).length;
   
   // Calculate average mood
-  const averageMood = Math.round(userStats.averageMoodScore * 10) / 10;
-  const hasDataToShow = userStats.totalMoodEntries > 0;
-  const moodTrend = hasDataToShow && userStats.averageMoodScore > 3 ? 'positive' : 'negative';
+  const averageMood = Math.round(averageMoodScore * 10) / 10;
+  const hasDataToShow = totalMoodEntries > 0;
+  const moodTrend = hasDataToShow && averageMoodScore > 3 ? 'positive' : 'negative';
   
   // Get mood emoji
   const getMoodEmoji = (score) => {
@@ -213,7 +217,7 @@ const DashboardOverview = () => {
         </StatValue>
         <StatDescription>
           {hasDataToShow
-            ? `Based on ${userStats.totalMoodEntries} mood entries`
+            ? `Based on ${totalMoodEntries} mood entries`
             : "Start tracking to see your average mood"}
         </StatDescription>
         <StatFooter>

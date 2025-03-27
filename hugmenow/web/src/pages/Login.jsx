@@ -369,7 +369,11 @@ const Login = () => {
     
     try {
       console.log('Starting regular login with email:', email);
-      await login(email, password);
+      // Pass credentials as a proper loginInput object
+      await login({
+        email,
+        password
+      });
       
       console.log('Regular login successful, setting redirect flag');
       // Set flag for dashboard to know we're coming from login
@@ -405,7 +409,9 @@ const Login = () => {
     
     try {
       console.log('Calling anonymousLogin from AuthContext');
-      const authData = await anonymousLogin(nickname);
+      const authData = await anonymousLogin({
+        nickname: nickname
+      });
       console.log('Anonymous login successful, received auth data:', JSON.stringify({
         ...authData,
         accessToken: authData.accessToken ? '[REDACTED]' : undefined,
