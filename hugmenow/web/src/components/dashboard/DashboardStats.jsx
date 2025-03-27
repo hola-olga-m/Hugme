@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useQuery } from '@apollo/client';
 import { Icon } from '../ui/IconComponent';
-import { GET_USER_STATS } from '../../graphql/queries';
+import { 
+  GET_MOOD_STREAK, 
+  GET_USER_MOODS_COUNT, 
+  GET_SENT_HUGS_COUNT, 
+  GET_RECEIVED_HUGS_COUNT 
+} from '../../graphql/queries';
 
 // Styled components
 const StatsContainer = styled.div`
@@ -114,14 +119,24 @@ const cardVariants = {
  * using PNG icons for visual appeal
  */
 const DashboardStats = () => {
-  const { data: statsData, loading: statsLoading } = useQuery(GET_USER_STATS);
+  // Use individual queries for each stat
+  const { data: streakData, loading: streakLoading } = useQuery(GET_MOOD_STREAK);
+  const { data: moodsData, loading: moodsLoading } = useQuery(GET_USER_MOODS_COUNT);
+  const { data: sentHugsData, loading: sentHugsLoading } = useQuery(GET_SENT_HUGS_COUNT);
+  const { data: receivedHugsData, loading: receivedHugsLoading } = useQuery(GET_RECEIVED_HUGS_COUNT);
   
-  const stats = statsData?.userStats || {
-    moodStreak: 0,
-    totalMoodEntries: 0,
-    hugsSent: 0,
-    hugsReceived: 0
-  };
+  // Combine loading states
+  const isLoading = streakLoading || moodsLoading || sentHugsLoading || receivedHugsLoading;
+  
+  // Use useMemo to calculate stats from the raw data
+  const stats = useMemo(() => {
+    return {
+      moodStreak: streakData?.moodStreak || 0,
+      totalMoodEntries: moodsData?.userMoods?.length || 0,
+      hugsSent: sentHugsData?.sentHugs?.length || 0,
+      hugsReceived: receivedHugsData?.receivedHugs?.length || 0
+    };
+  }, [streakData, moodsData, sentHugsData, receivedHugsData]);
   
   // Define stats cards data with updated styling
   const statsCards = [
@@ -175,7 +190,7 @@ const DashboardStats = () => {
     }
   ];
   
-  if (statsLoading) {
+  if (isLoading) {
     return (
       <StatsContainer>
         {[1, 2, 3, 4].map((_, index) => (

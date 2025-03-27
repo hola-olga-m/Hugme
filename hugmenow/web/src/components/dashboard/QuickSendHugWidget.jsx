@@ -373,7 +373,6 @@ const QuickSendHugWidget = () => {
   
   // GraphQL queries and mutations
   const { loading, error, data } = useQuery(GET_USERS, {
-    variables: { limit: 10, search: searchTerm },
     fetchPolicy: 'network-only',
   });
   
@@ -459,8 +458,8 @@ const QuickSendHugWidget = () => {
       if (selectedTab === 'friends' && selectedRecipient) {
         const response = await sendHug({
           variables: {
-            input: {
-              receiverId: selectedRecipient.id,
+            sendHugInput: {
+              recipientId: selectedRecipient.id,
               type: selectedHugType,
               message: message.trim(),
             }
@@ -477,7 +476,7 @@ const QuickSendHugWidget = () => {
       else if (selectedTab === 'external' && isExternalValid) {
         const response = await sendHug({
           variables: {
-            input: {
+            sendHugInput: {
               externalRecipient: {
                 type: externalType,
                 contact: externalRecipient.trim(),
@@ -547,9 +546,23 @@ const QuickSendHugWidget = () => {
       return <EmptyState>No friends found. Add some friends to send hugs!</EmptyState>;
     }
     
+    // Filter users based on search term
+    const filteredUsers = data.users.filter(user => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        (user.name && user.name.toLowerCase().includes(term)) ||
+        (user.username && user.username.toLowerCase().includes(term))
+      );
+    });
+    
+    if (filteredUsers.length === 0) {
+      return <EmptyState>No friends match your search.</EmptyState>;
+    }
+    
     return (
       <RecipientsList>
-        {data.users.map(user => (
+        {filteredUsers.map(user => (
           <RecipientOption 
             key={user.id}
             selected={selectedRecipient && selectedRecipient.id === user.id}

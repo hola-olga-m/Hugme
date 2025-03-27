@@ -78,17 +78,27 @@ export const GET_USER_PROFILE = gql`
   }
 `;
 
-// Dashboard stats
-export const GET_USER_STATS = gql`
-  query GetUserStats {
-    userStats {
-      moodStreak
-      totalMoodEntries
-      averageMoodScore
-      highestMoodThisMonth
-      lowestMoodThisMonth
-      hugsSent
-      hugsReceived
+// Dashboard stats - simplified version using individual queries
+export const GET_USER_MOODS_COUNT = gql`
+  query GetUserMoodsCount {
+    userMoods {
+      id
+    }
+  }
+`;
+
+export const GET_SENT_HUGS_COUNT = gql`
+  query GetSentHugsCount {
+    sentHugs {
+      id
+    }
+  }
+`;
+
+export const GET_RECEIVED_HUGS_COUNT = gql`
+  query GetReceivedHugsCount {
+    receivedHugs {
+      id
     }
   }
 `;
@@ -101,27 +111,23 @@ export const GET_MOOD_STREAK = gql`
 
 // Mood queries
 export const GET_USER_MOODS = gql`
-  query GetUserMoods($limit: Int, $offset: Int) {
-    userMoods(limit: $limit, offset: $offset) {
+  query GetUserMoods {
+    userMoods {
       id
       score
       note
-      tags
       createdAt
-      updatedAt
     }
   }
 `;
 
 export const GET_PUBLIC_MOODS = gql`
-  query GetPublicMoods($limit: Int, $offset: Int) {
-    publicMoods(limit: $limit, offset: $offset) {
+  query GetPublicMoods {
+    publicMoods {
       id
       score
       note
-      tags
       createdAt
-      updatedAt
       user {
         id
         username
@@ -133,12 +139,11 @@ export const GET_PUBLIC_MOODS = gql`
 `;
 
 export const GET_FRIENDS_MOODS = gql`
-  query GetFriendsMoods($limit: Float) {
-    friendsMoods(limit: $limit) {
+  query GetFriendsMoods {
+    friendsMoods {
       id
       score
       note
-      isPublic
       createdAt
       user {
         id
@@ -156,9 +161,7 @@ export const CREATE_MOOD_ENTRY = gql`
       id
       score
       note
-      tags
       createdAt
-      updatedAt
     }
   }
 `;
@@ -233,8 +236,8 @@ export const MARK_HUG_AS_READ = gql`
 
 // Community feed
 export const GET_COMMUNITY_FEED = gql`
-  query GetCommunityFeed($limit: Int, $offset: Int) {
-    communityFeed(limit: $limit, offset: $offset) {
+  query GetCommunityFeed {
+    communityFeed {
       id
       type
       content
@@ -247,7 +250,6 @@ export const GET_COMMUNITY_FEED = gql`
       }
       ... on MoodPost {
         score
-        tags
       }
       ... on HugPost {
         hugType
@@ -269,8 +271,8 @@ export const GET_COMMUNITY_FEED = gql`
 
 // User queries
 export const GET_USERS = gql`
-  query GetUsers($search: String, $limit: Int, $offset: Int) {
-    users(search: $search, limit: $limit, offset: $offset) {
+  query GetUsers {
+    users {
       id
       username
       name
@@ -283,8 +285,8 @@ export const GET_USERS = gql`
 
 // Hug requests
 export const GET_HUG_REQUESTS = gql`
-  query GetHugRequests($status: String, $limit: Int, $offset: Int) {
-    hugRequests(status: $status, limit: $limit, offset: $offset) {
+  query GetHugRequests($status: String) {
+    hugRequests(status: $status) {
       id
       message
       type
@@ -301,21 +303,20 @@ export const GET_HUG_REQUESTS = gql`
 `;
 
 export const GET_MY_HUG_REQUESTS = gql`
-  query GetMyHugRequests($limit: Int, $offset: Int) {
-    myHugRequests(limit: $limit, offset: $offset) {
+  query GetMyHugRequests {
+    myHugRequests {
       id
       message
       type
       status
       createdAt
-      updatedAt
     }
   }
 `;
 
 export const GET_PENDING_HUG_REQUESTS = gql`
-  query GetPendingHugRequests($limit: Int, $offset: Int) {
-    pendingHugRequests(limit: $limit, offset: $offset) {
+  query GetPendingHugRequests {
+    pendingHugRequests {
       id
       message
       type
@@ -332,8 +333,8 @@ export const GET_PENDING_HUG_REQUESTS = gql`
 `;
 
 export const GET_COMMUNITY_HUG_REQUESTS = gql`
-  query GetCommunityHugRequests($limit: Int, $offset: Int) {
-    communityHugRequests(limit: $limit, offset: $offset) {
+  query GetCommunityHugRequests {
+    communityHugRequests {
       id
       message
       type
