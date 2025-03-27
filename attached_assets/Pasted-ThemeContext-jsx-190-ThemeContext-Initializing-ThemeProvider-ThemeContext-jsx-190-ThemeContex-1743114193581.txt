@@ -1,0 +1,809 @@
+ThemeContext.jsx:190 ThemeContext - Initializing ThemeProvider: {}
+ThemeContext.jsx:190 ThemeContext - Reading color palette from localStorage: {}
+ThemeContext.jsx:190 ThemeContext - Using stored color palette: {id: 'serenity'}
+ThemeContext.jsx:190 ThemeContext - Reading dark mode preference: {}
+ThemeContext.jsx:190 ThemeContext - Using stored dark mode preference: {isDarkMode: true}
+ThemeContext.jsx:190 ThemeContext - Reading animation preference: {}
+ThemeContext.jsx:190 ThemeContext - Using stored animation preference: {useAnimations: true}
+PublicRoute.jsx:11 PublicRoute - Loading: true
+ThemeContext.jsx:190 ThemeContext - Initializing ThemeProvider: {}
+PublicRoute.jsx:11 PublicRoute - Loading: false
+PublicRoute.jsx:17 PublicRoute - Auth state: {isAuthenticated: false, hasCurrentUser: false, currentUser: null}
+PublicRoute.jsx:32 PublicRoute - Not authenticated, rendering children
+login:1 <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PublicRoute.jsx:11 PublicRoute - Loading: false
+PublicRoute.jsx:17 PublicRoute - Auth state: {isAuthenticated: false, hasCurrentUser: false, currentUser: null}
+PublicRoute.jsx:32 PublicRoute - Not authenticated, rendering children
+login:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input type=​"password" id=​"password" placeholder=​"Enter your password" required class=​"sc-cUzBaJ bvUNEJ" value=​"Uez4j*88C277ZPq">​
+Login.jsx:371 Starting regular login with email: misty12@yandex.ru
+PublicRoute.jsx:11 PublicRoute - Loading: true
+api.js:85 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/login 404 (Not Found)
+login @ api.js:85
+login @ AuthContext.jsx:56
+A @ Login.jsx:373
+L0 @ react-dom.production.min.js:54
+F0 @ react-dom.production.min.js:54
+j0 @ react-dom.production.min.js:55
+Sd @ react-dom.production.min.js:105
+zv @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+nf @ react-dom.production.min.js:273
+uv @ react-dom.production.min.js:52
+ul @ react-dom.production.min.js:109
+Pc @ react-dom.production.min.js:74
+e1 @ react-dom.production.min.js:73
+AuthContext.jsx:64 REST login error: Error: HTTP error 404: Not Found
+    at $r (api.js:47:13)
+    at async login (AuthContext.jsx:56:24)
+    at async A (Login.jsx:373:7)
+login @ AuthContext.jsx:64
+await in login
+A @ Login.jsx:373
+L0 @ react-dom.production.min.js:54
+F0 @ react-dom.production.min.js:54
+j0 @ react-dom.production.min.js:55
+Sd @ react-dom.production.min.js:105
+zv @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+nf @ react-dom.production.min.js:273
+uv @ react-dom.production.min.js:52
+ul @ react-dom.production.min.js:109
+Pc @ react-dom.production.min.js:74
+e1 @ react-dom.production.min.js:73
+PublicRoute.jsx:11 PublicRoute - Loading: true
+Login.jsx:378 Regular login successful, setting redirect flag
+Login.jsx:382 Navigating to dashboard after login
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: false, hasUser: true, userId: '4a560361-600e-4b6b-9f2f-c9d536c618f2', username: 'misty'}
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: false, hasUser: true, userId: '4a560361-600e-4b6b-9f2f-c9d536c618f2', username: 'misty'}
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: false, hasUser: true, userId: '4a560361-600e-4b6b-9f2f-c9d536c618f2', username: 'misty'}
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+Dashboard.jsx:299 Dashboard detected redirect flag from login
+invariant.js:35 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+Dashboard.jsx:309 Dashboard fully loaded after login redirect
+createHttpLink.js:127 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/graphql 400 (Bad Request)
+(anonymous) @ createHttpLink.js:127
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "offset" on field "Query.friendsMoods"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Variable "$limit" of type "Int" used in position expecting type "Float"., Location: [object Object],[object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+createHttpLink.js:127 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/graphql 400 (Bad Request)
+(anonymous) @ createHttpLink.js:127
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1151
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "limit" on field "Query.publicMoods"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1151
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "offset" on field "Query.publicMoods"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1151
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1151
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+createHttpLink.js:127 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/graphql 400 (Bad Request)
+(anonymous) @ createHttpLink.js:127
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "limit" on field "Query.receivedHugs"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "offset" on field "Query.receivedHugs"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+createHttpLink.js:127 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000/graphql 400 (Bad Request)
+(anonymous) @ createHttpLink.js:127
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "search" on field "Query.users"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "limit" on field "Query.users"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:14 [GraphQL error]: Message: Unknown argument "offset" on field "Query.users"., Location: [object Object], Path: undefined
+(anonymous) @ client.js:14
+(anonymous) @ client.js:13
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+error @ index.js:41
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+Vy @ module.js:137
+Tl @ module.js:176
+t.error @ module.js:229
+i_ @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:742
+e.getResultsFromLink @ QueryManager.js:784
+c @ QueryManager.js:1113
+e.fetchQueryByPolicy @ QueryManager.js:1165
+w @ QueryManager.js:855
+e.fetchConcastWithInfo @ QueryManager.js:897
+t.fetch @ ObservableQuery.js:577
+t.reobserveAsConcast @ ObservableQuery.js:698
+t.reobserve @ ObservableQuery.js:732
+(anonymous) @ ObservableQuery.js:40
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ useQuery.js:250
+tm @ react-dom.production.min.js:167
+ks @ react-dom.production.min.js:243
+Un @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+g @ scheduler.production.min.js:13
+Q @ scheduler.production.min.js:14
