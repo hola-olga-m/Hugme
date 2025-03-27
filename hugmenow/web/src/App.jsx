@@ -8,6 +8,7 @@ import LoadingScreen from './components/common/LoadingScreen';
 import DebugPanel from './components/common/DebugPanel';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicRoute from './components/routing/PublicRoute';
+import StaticRoute from './components/routing/StaticRoute';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -18,6 +19,7 @@ const HugCenter = lazy(() => import('./pages/HugCenter'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
 const HugGalleryDemo = lazy(() => import('./pages/HugGalleryDemo'));
+const PublicHugGallery = lazy(() => import('./pages/PublicHugGallery'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -132,10 +134,11 @@ const App = () => {
                     <ThemeSettings />
                   </ProtectedRoute>
                 } />
+                {/* Static demo route - always accessible */}
                 <Route path="/hug-gallery" element={
-                  <ProtectedRoute>
-                    <HugGalleryDemo />
-                  </ProtectedRoute>
+                  <StaticRoute>
+                    <PublicHugGallery />
+                  </StaticRoute>
                 } />
                 
                 {/* Not found route */}

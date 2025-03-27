@@ -32,11 +32,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Test route for health check
-app.get('/test', (req, res) => {
-  res.status(200).send('HugMeNow Frontend Server is running properly');
-});
-
 // Setup API proxy
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:3000',
