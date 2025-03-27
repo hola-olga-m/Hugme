@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translations
 import en from './locales/en';
+import ru from './locales/ru';
 
 // Initialize i18next
 i18n
@@ -12,7 +13,7 @@ i18n
   .init({
     resources: {
       en: { translation: en },
-      // Additional languages can be added here
+      ru: { translation: ru }
     },
     fallbackLng: 'en',
     debug: process.env.NODE_ENV === 'development',
@@ -27,5 +28,7 @@ i18n
       useSuspense: false,
     },
   });
+
+console.log('i18n initialized with languages:', Object.keys(i18n.options.resources));
 
 export default i18n;

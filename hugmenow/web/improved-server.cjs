@@ -62,6 +62,19 @@ app.get('/_rcp', (req, res) => {
   res.status(200).send('HugMeNow Web Application is running');
 });
 
+// Special endpoints for Replit web application feedback tool
+app.get('/__antml_status', (req, res) => {
+  res.status(200).send('HugMeNow Web Application is running and ready for feedback');
+});
+
+app.get('/__antml_check', (req, res) => {
+  res.status(200).send('ok');
+});
+
+app.get('/__antml', (req, res) => {
+  res.status(200).send('HugMeNow Web Application is running');
+});
+
 // Dedicated route for the feedback check HTML file
 app.get('/feedback_check', (req, res) => {
   const feedbackCheckPath = path.join(__dirname, 'feedback_check.html');

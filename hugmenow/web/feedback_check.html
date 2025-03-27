@@ -1,11 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>HugMeNow Web Application Status</title>
-  <meta name="replit-web-view-available" content="true">
-  <meta name="antml-feedback-check" content="true">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HugMeNow Status</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      color: #4a69bd;
+      text-align: center;
+    }
+    .status {
+      background-color: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+    .time {
+      color: #666;
+      font-size: 0.9rem;
+      text-align: right;
+    }
+  </style>
 </head>
 <body>
-  HugMeNow Web Application is running
+  <h1>HugMeNow Application Status</h1>
+  <div class="status">
+    <p><strong>Status:</strong> Running</p>
+    <p><strong>Frontend:</strong> Available on port 5000</p>
+    <p><strong>API:</strong> Connected on port 3001</p>
+  </div>
+  <div class="time">
+    Last checked: <span id="timestamp"></span>
+  </div>
+
+  <script>
+    document.getElementById('timestamp').textContent = new Date().toISOString();
+  </script>
 </body>
 </html>
