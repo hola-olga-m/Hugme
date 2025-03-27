@@ -181,6 +181,46 @@ export const Icon = ({ type, score, size = 40, animate = true, ...props }) => {
   }
   
   if (animate) {
+    // More elaborate animation for hug icons
+    if (alt && alt.includes('Hug')) {
+      return (
+        <motion.img 
+          src={src} 
+          alt={alt}
+          width={size}
+          height={size}
+          initial={{ scale: 0, rotate: -5 }}
+          animate={{ 
+            scale: 1, 
+            rotate: 0,
+            y: [0, -5, 0]
+          }}
+          whileHover={{ 
+            scale: 1.1, 
+            rotate: [-2, 2, -2, 0],
+            transition: { 
+              rotate: { repeat: 0, duration: 0.5 },
+              scale: { duration: 0.2 }
+            }
+          }}
+          transition={{ 
+            type: "spring",
+            damping: 12,
+            stiffness: 150,
+            delay: 0.2,
+            y: {
+              repeat: Infinity,
+              repeatType: "reverse",
+              duration: 1.5,
+              ease: "easeInOut"
+            }
+          }}
+          {...props}
+        />
+      );
+    }
+    
+    // Standard animation for other icons
     return (
       <motion.img 
         src={src} 

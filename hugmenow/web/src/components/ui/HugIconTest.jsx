@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 // Import the IconComponent to test its PNG rendering capability
-import Icon from './IconComponent';
+import { Icon } from './IconComponent';
 
 const TestWrapper = styled.div`
   padding: 20px;

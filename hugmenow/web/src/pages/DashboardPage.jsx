@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { GET_USER_MOODS, GET_RECEIVED_HUGS, GET_PENDING_HUG_REQUESTS, GET_MOOD_STREAK } from '../graphql/queries';
 import { Icon, UserAvatar } from '../components/ui/IconComponent';
 import HugIconTest from '../components/ui/HugIconTest';
+import ReceivedHugCarousel from '../components/ui/ReceivedHugCarousel';
 import '../styles/dashboard.css';
 
 function DashboardPage() {
@@ -80,6 +81,22 @@ function DashboardPage() {
 
         {/* Icon Test Component */}
         <HugIconTest />
+        
+        {/* Received Hugs Carousel */}
+        {!hugsLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              type: "spring",
+              damping: 12,
+              stiffness: 100,
+              delay: 0.2
+            }}
+          >
+            <ReceivedHugCarousel hugs={hugsData?.receivedHugs || []} />
+          </motion.div>
+        )}
         
         <div className="dashboard-grid">
           {/* Current Mood Card */}
