@@ -1,671 +1,728 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_RECEIVED_HUGS, MARK_HUG_AS_READ, SEND_HUG } from '../../graphql/queries';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMutation } from '@apollo/client';
+import { FiUser, FiClock, FiMessageCircle, FiCheck, FiHeart, FiCornerUpRight } from 'react-icons/fi';
+import { formatDistanceToNow } from 'date-fns';
 import { Icon } from '../ui/IconComponent';
-import { SEND_HUG } from '../../graphql/queries';
 
-// Styled components for the widget
-const WidgetContainer = styled.div`
-  background: white;
+// Styled Components
+const WidgetContainer = styled(motion.div)`
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  width: 100%;
   overflow: hidden;
-  position: relative;
 `;
 
 const WidgetHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 `;
 
 const Title = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--gray-800);
+  color: #333;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
 `;
 
-const HugCountBadge = styled.span`
-  background-color: var(--primary-color);
-  color: white;
-  border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-`;
+const ViewAllButton = styled.button`
+  background: none;
+  border: none;
+  color: #6c5ce7;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
 
-const HugCardsContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  margin-top: 12px;
+  &:hover {
+    background: rgba(108, 92, 231, 0.1);
+  }
 `;
 
 const EmptyState = styled.div`
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #888;
+`;
+
+const HugsList = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-  text-align: center;
-  
-  h4 {
-    margin: 16px 0 8px;
-    color: var(--gray-700);
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
   }
   
-  p {
-    color: var(--gray-500);
-    max-width: 360px;
-    margin: 0 auto;
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(108, 92, 231, 0.2);
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(108, 92, 231, 0.4);
   }
 `;
 
-// Animation variants
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.4,
-      ease: [0.2, 0.65, 0.3, 0.9]
-    }
-  })
-};
-
-/**
- * The enhanced ReceivedHugsWidget component for the dashboard
- * Using PNG icons for better visual appeal
- */
-const ReceivedHugsWidget = ({ hugs = [] }) => {
-  const unreadCount = hugs.filter(hug => !hug.isRead).length;
-  
-  if (hugs.length === 0) {
-    return (
-      <WidgetContainer>
-        <WidgetHeader>
-          <Title>
-            <Icon type="hugIcon" size={24} />
-            Received Hugs
-          </Title>
-        </WidgetHeader>
-        
-        <EmptyState>
-          <Icon type="ComfortingHug" size={80} animate={true} />
-          <h4>No hugs yet</h4>
-          <p>When someone sends you a hug, it will appear here. Why not send a hug to a friend first?</p>
-        </EmptyState>
-      </WidgetContainer>
-    );
-  }
-
-  return (
-    <WidgetContainer>
-      <WidgetHeader>
-        <Title>
-          <Icon type="hugIcon" size={24} />
-          Received Hugs
-          {unreadCount > 0 && <HugCountBadge>{unreadCount} new</HugCountBadge>}
-        </Title>
-      </WidgetHeader>
-      
-      <HugCardsContainer>
-        <AnimatePresence>
-          {hugs.map((hug, index) => (
-            <HugCard 
-              key={hug.id} 
-              hug={hug} 
-              index={index} 
-              isNew={!hug.isRead} 
-            />
-          ))}
-        </AnimatePresence>
-      </HugCardsContainer>
-    </WidgetContainer>
-  );
-};
-
-// Styled components for the hug card
-const CardContainer = styled(motion.div)`
-  background: white;
+const HugCard = styled(motion.div)`
+  display: flex;
+  padding: 12px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 16px;
+  background: #f8f9fa;
+  gap: 12px;
   position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid #f0f0f0;
-  
+  transition: transform 0.2s, box-shadow 0.2s;
+
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   }
   
-  ${props => props.isNew && `
-    border-left: 3px solid var(--primary-color);
-    background-color: var(--primary-lightest);
+  ${props => !props.isRead && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      left: 0;
+      width: 4px;
+      height: 30px;
+      background: #6c5ce7;
+      border-radius: 0 4px 4px 0;
+    }
   `}
 `;
 
-const NewLabel = styled.div`
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: var(--primary-color);
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 3px 8px;
+const HugIconWrapper = styled.div`
+  width: 50px;
+  height: 50px;
   border-radius: 12px;
-  z-index: 2;
-`;
-
-const CardContent = styled.div`
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-`;
-
-const HugIconContainer = styled.div`
-  margin-bottom: 12px;
+  justify-content: center;
+  background: ${props => props.bgColor || 'rgba(108, 92, 231, 0.1)'};
+  flex-shrink: 0;
+  padding: 8px;
   position: relative;
   
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 4px;
-    background: ${props => props.color || 'var(--primary-color)'};
-    border-radius: 2px;
-    opacity: 0.5;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 `;
 
-const SenderInfo = styled.div`
-  margin-top: 16px;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--gray-700);
-`;
-
-const TimestampText = styled.div`
-  font-size: 0.8rem;
-  color: var(--gray-500);
-  margin-bottom: 12px;
-`;
-
-const MessagePreview = styled.div`
-  background-color: ${props => `${props.color}10` || 'rgba(0,0,0,0.03)'};
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-style: italic;
-  color: var(--gray-600);
-  font-size: 0.9rem;
-  margin-top: 8px;
-  max-width: 100%;
+const SenderAvatar = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${props => props.bgColor || '#6c5ce7'};
+  color: white;
+  font-weight: 600;
+  flex-shrink: 0;
+  position: absolute;
+  bottom: -5px;
+  left: -5px;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 0.7rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const HugContent = styled.div`
+  flex: 1;
+`;
+
+const HugHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+`;
+
+const SenderName = styled.span`
+  font-weight: 600;
+  color: #333;
+`;
+
+const HugType = styled.span`
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  background: ${props => {
+    switch (props.type) {
+      case 'ComfortingHug': return 'rgba(255, 152, 0, 0.15)';
+      case 'GroupHug': return 'rgba(76, 175, 80, 0.15)';
+      case 'EnthusiasticHug': return 'rgba(233, 30, 99, 0.15)';
+      case 'FriendlyHug': return 'rgba(33, 150, 243, 0.15)';
+      case 'FamilyHug': return 'rgba(156, 39, 176, 0.15)';
+      case 'StandardHug': 
+      default: return 'rgba(108, 92, 231, 0.15)';
+    }
+  }};
+  color: ${props => {
+    switch (props.type) {
+      case 'ComfortingHug': return '#f57c00';
+      case 'GroupHug': return '#388e3c';
+      case 'EnthusiasticHug': return '#c2185b';
+      case 'FriendlyHug': return '#1976d2';
+      case 'FamilyHug': return '#7b1fa2';
+      case 'StandardHug':
+      default: return '#5c4ccc';
+    }
+  }};
+`;
+
+const HugMessage = styled.p`
+  margin: 0;
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
-const ActionButton = styled(motion.button)`
-  padding: 8px 14px;
-  background: ${props => props.primary ? 'var(--primary-color)' : props.color || 'white'};
-  color: ${props => props.primary ? 'white' : props.color || 'var(--gray-700)'};
-  border: 1px solid ${props => props.primary ? 'var(--primary-color)' : props.color || '#e0e0e0'};
-  border-radius: 20px;
+const HugFooter = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #888;
   font-size: 0.8rem;
-  font-weight: 500;
+`;
+
+const TimeStamp = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+`;
+
+const ReadButton = styled.button`
+  background: none;
+  border: none;
+  color: #6c5ce7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(108, 92, 231, 0.1);
+  }
+`;
+
+const ReplyButton = styled.button`
+  background: none;
+  border: none;
+  color: #6c5ce7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(108, 92, 231, 0.1);
+  }
+`;
+
+const LoadingState = styled.div`
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #888;
+`;
+
+const UnreadCountBadge = styled.span`
+  background-color: #ff3b30;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 6px;
+`;
+
+const HugSentToast = styled(motion.div)`
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4cd964;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+`;
+
+const ReplyDialog = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  margin: 0 4px;
-  transition: all 0.2s ease;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+`;
+
+const ReplyDialogContent = styled(motion.div)`
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
   }
 `;
 
-const ActionButtonsContainer = styled.div`
+const HugTypeSelector = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 1rem;
+`;
+
+const HugTypeOption = styled.button`
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  margin-top: 14px;
+  padding: 12px;
+  background: ${props => props.selected ? 'rgba(108, 92, 231, 0.1)' : '#f8f9fa'};
+  border: 1px solid ${props => props.selected ? '#6c5ce7' : '#eee'};
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(108, 92, 231, 0.05);
+  }
+  
+  .icon-wrapper {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+  
+  span {
+    font-size: 0.8rem;
+    color: #333;
+    text-align: center;
+  }
+`;
+
+const TextField = styled.textarea`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  resize: none;
+  height: 100px;
+  
+  &:focus {
+    outline: none;
+    border-color: #6c5ce7;
+  }
+`;
+
+const DialogActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
   gap: 8px;
 `;
 
-const ReplyForm = styled(motion.div)`
-  margin-top: 16px;
-  border-top: 1px dashed ${props => props.color ? `${props.color}40` : '#e0e0e0'};
-  padding-top: 16px;
-`;
-
-const ReplyInput = styled.textarea`
-  width: 100%;
-  padding: 12px;
+const CancelButton = styled.button`
+  padding: 8px 16px;
+  background: #f8f9fa;
+  color: #666;
+  border: none;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-  resize: none;
-  height: 80px;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-`;
-
-const ExternalFormContainer = styled(motion.div)`
-  margin-top: 12px;
-`;
-
-const InputField = styled.input`
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-`;
-
-const TabContainer = styled.div`
-  display: flex;
-  margin-bottom: 12px;
-`;
-
-const Tab = styled.button`
-  padding: 6px 12px;
-  background: ${props => props.active ? props.color || 'var(--primary-color)' : 'transparent'};
-  color: ${props => props.active ? 'white' : props.color || 'var(--gray-600)'};
-  border: 1px solid ${props => props.color || '#e0e0e0'};
-  border-radius: ${props => props.position === 'left' ? '8px 0 0 8px' : props.position === 'right' ? '0 8px 8px 0' : '0'};
-  font-size: 0.8rem;
   cursor: pointer;
-  flex: 1;
+  font-weight: 500;
+  transition: background 0.2s;
   
   &:hover {
-    background: ${props => props.active ? props.color || 'var(--primary-color)' : `${props.color}10` || '#f5f5f5'};
+    background: #eee;
   }
 `;
 
-const SuccessMessage = styled.div`
-  padding: 10px;
-  background-color: #e8f5e9;
-  color: #2e7d32;
+const SendButton = styled.button`
+  padding: 8px 16px;
+  background: #6c5ce7;
+  color: white;
+  border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
-  text-align: center;
-  margin-top: 8px;
-`;
-
-const BackgroundDecoration = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  opacity: 0.04;
-  z-index: 0;
-  pointer-events: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
   
-  svg {
-    width: 100%;
-    height: 100%;
+  &:hover {
+    background: #5b4cc8;
+  }
+  
+  &:disabled {
+    background: #a8a3e1;
+    cursor: not-allowed;
   }
 `;
 
-/**
- * HugCard component - a beautiful card showing a received hug with PNG icon
- * Now with reply and external sharing functionality
- */
-const HugCard = ({ hug, index, isNew }) => {
-  // State variables for the UI
-  const [isReplying, setIsReplying] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
+// Component
+const ReceivedHugsWidget = () => {
+  const { loading, error, data, refetch } = useQuery(GET_RECEIVED_HUGS, {
+    variables: { limit: 10 },
+    fetchPolicy: 'network-only',
+  });
+  
+  const [markAsRead] = useMutation(MARK_HUG_AS_READ);
+  const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG);
+  
+  const [replyingToHug, setReplyingToHug] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
-  const [externalEmail, setExternalEmail] = useState('');
-  const [externalTelegram, setExternalTelegram] = useState('');
-  const [activeTab, setActiveTab] = useState('email');
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [replyHugType, setReplyHugType] = useState('StandardHug');
+  const [showReplyDialog, setShowReplyDialog] = useState(false);
+  const [showHugSentToast, setShowHugSentToast] = useState(false);
+  const [hugSentToUser, setHugSentToUser] = useState(null);
   
-  // Send hug mutation
-  const [sendHug, { loading: sending }] = useMutation(SEND_HUG);
+  // Calculate unread hugs
+  const unreadHugs = data?.receivedHugs?.filter(hug => !hug.isRead) || [];
+  const hasUnreadHugs = unreadHugs.length > 0;
   
-  // Map to return specific colors and descriptions based on hug type
-  const getHugColor = (type) => {
-    const colors = {
-      'ComfortingHug': '#9D65C9',
-      'EnthusiasticHug': '#FF7043',
-      'GroupHug': '#4CAF50',
-      'StandardHug': '#FFC107',
-      'SupportiveHug': '#5C6BC0',
-      'VirtualHug': '#7E57C2',
-      'RelaxingHug': '#26A69A',
-      'WelcomeHug': '#42A5F5',
-      'FriendlyHug': '#66BB6A',
-      'GentleHug': '#AB47BC',
-      'FamilyHug': '#EF5350',
-      'SmilingHug': '#FFA726'
-    };
-    return colors[type] || '#4A90E2';
+  // Auto dismiss toast
+  useEffect(() => {
+    if (showHugSentToast) {
+      const timer = setTimeout(() => {
+        setShowHugSentToast(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showHugSentToast]);
+  
+  // Helper functions
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const getRandomColor = (userId) => {
+    const colors = ['#6c5ce7', '#00cec9', '#fdcb6e', '#e17055', '#74b9ff', '#55efc4'];
+    const index = userId ? userId.charCodeAt(0) % colors.length : 0;
+    return colors[index];
   };
   
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const handleMarkAsRead = async (event, hugId) => {
+    event.stopPropagation();
     
-    if (diffDays === 0) {
-      // Today - show time
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString();
+    try {
+      await markAsRead({
+        variables: { id: hugId }
+      });
+      
+      // Refetch to update UI
+      refetch();
+    } catch (err) {
+      console.error('Error marking hug as read:', err);
+    }
+  };
+  
+  const openReplyDialog = (event, hug) => {
+    event.stopPropagation();
+    
+    setReplyingToHug(hug);
+    setReplyMessage(`Thanks for the ${hug.type.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}!`);
+    setReplyHugType('StandardHug');
+    setShowReplyDialog(true);
+  };
+  
+  const closeReplyDialog = () => {
+    setShowReplyDialog(false);
+    setReplyingToHug(null);
+    setReplyMessage('');
+  };
+  
+  const handleReplySubmit = async () => {
+    if (!replyingToHug || !replyMessage.trim()) return;
+    
+    try {
+      const response = await sendHug({
+        variables: {
+          input: {
+            receiverId: replyingToHug.sender.id,
+            type: replyHugType,
+            message: replyMessage.trim(),
+          }
+        }
+      });
+      
+      if (response.data?.sendHug) {
+        setHugSentToUser(replyingToHug.sender.name || replyingToHug.sender.username);
+        setShowHugSentToast(true);
+        closeReplyDialog();
+        
+        // Refetch after a short delay
+        setTimeout(() => {
+          refetch();
+        }, 1000);
+      }
+    } catch (err) {
+      console.error('Error sending reply hug:', err);
+    }
+  };
+  
+  // Get background color based on hug type
+  const getHugBackgroundColor = (type) => {
+    switch (type) {
+      case 'ComfortingHug': return 'rgba(255, 152, 0, 0.1)';
+      case 'GroupHug': return 'rgba(76, 175, 80, 0.1)';
+      case 'EnthusiasticHug': return 'rgba(233, 30, 99, 0.1)';
+      case 'FriendlyHug': return 'rgba(33, 150, 243, 0.1)';
+      case 'FamilyHug': return 'rgba(156, 39, 176, 0.1)';
+      case 'StandardHug':
+      default: return 'rgba(108, 92, 231, 0.1)';
     }
   };
 
-  const type = hug.type || 'StandardHug';
-  const hugColor = getHugColor(type);
-  const senderName = hug.sender?.name || hug.sender?.username || 'Anonymous';
-  
-  // Handle opening the reply form
-  const handleReplyClick = () => {
-    setIsReplying(true);
-    setIsSharing(false);
-  };
-  
-  // Handle opening the external share form
-  const handleShareClick = () => {
-    setIsSharing(true);
-    setIsReplying(false);
-  };
-  
-  // Handle sending a reply hug
-  const handleSendReply = async () => {
-    if (!hug.sender?.id || !replyMessage.trim()) return;
-    
-    try {
-      await sendHug({
-        variables: {
-          input: {
-            recipientId: hug.sender.id,
-            type: type, // Use the same type of hug they sent you
-            message: replyMessage.trim()
-          }
-        }
-      });
-      
-      // Show success and reset form
-      setSuccessMessage('Reply sent successfully!');
-      setShowSuccess(true);
-      setReplyMessage('');
-      setIsReplying(false);
-      
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
-    } catch (error) {
-      console.error('Error sending reply hug:', error);
+  // Render functions
+  const renderHugs = () => {
+    if (loading) return <LoadingState>Loading received hugs...</LoadingState>;
+    if (error) return <EmptyState>Couldn't load hugs. Please try again.</EmptyState>;
+    if (!data || !data.receivedHugs || data.receivedHugs.length === 0) {
+      return <EmptyState>No hugs received yet. Send some to get the ball rolling!</EmptyState>;
     }
+
+    return (
+      <HugsList>
+        {data.receivedHugs.map(hug => (
+          <HugCard 
+            key={hug.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            isRead={hug.isRead}
+          >
+            <HugIconWrapper bgColor={getHugBackgroundColor(hug.type)}>
+              <Icon type={hug.type} size={30} />
+              <SenderAvatar bgColor={getRandomColor(hug.sender.id)}>
+                {getInitials(hug.sender.name || hug.sender.username)}
+              </SenderAvatar>
+            </HugIconWrapper>
+            <HugContent>
+              <HugHeader>
+                <SenderName>{hug.sender.name || hug.sender.username}</SenderName>
+                <HugType type={hug.type}>
+                  {hug.type.replace(/([A-Z])/g, ' $1').trim()}
+                </HugType>
+              </HugHeader>
+              <HugMessage>
+                {hug.message || "Sent you a hug!"}
+              </HugMessage>
+              <HugFooter>
+                <TimeStamp>
+                  <FiClock size={12} />
+                  {formatDistanceToNow(new Date(hug.createdAt), { addSuffix: true })}
+                </TimeStamp>
+                
+                {!hug.isRead && (
+                  <ReadButton onClick={(e) => handleMarkAsRead(e, hug.id)}>
+                    <FiCheck size={12} />
+                    Mark Read
+                  </ReadButton>
+                )}
+                
+                <ReplyButton onClick={(e) => openReplyDialog(e, hug)}>
+                  <FiCornerUpRight size={12} />
+                  Reply
+                </ReplyButton>
+              </HugFooter>
+            </HugContent>
+          </HugCard>
+        ))}
+      </HugsList>
+    );
   };
-  
-  // Handle sending to external contact
-  const handleSendExternal = async () => {
-    const contactInfo = activeTab === 'email' ? externalEmail : externalTelegram;
-    
-    if (!contactInfo.trim()) return;
-    
-    try {
-      await sendHug({
-        variables: {
-          input: {
-            externalRecipient: {
-              type: activeTab,
-              contact: contactInfo.trim()
-            },
-            type: type,
-            message: `I'm sharing this ${type.replace(/([A-Z])/g, ' $1').trim().toLowerCase()} with you!`
-          }
-        }
-      });
-      
-      // Show success and reset form
-      setSuccessMessage(`Hug sent to ${activeTab === 'email' ? 'email' : 'Telegram'} successfully!`);
-      setShowSuccess(true);
-      setExternalEmail('');
-      setExternalTelegram('');
-      setIsSharing(false);
-      
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
-    } catch (error) {
-      console.error('Error sending external hug:', error);
-    }
-  };
-  
-  // Handle canceling forms
-  const handleCancel = () => {
-    setIsReplying(false);
-    setIsSharing(false);
-    setReplyMessage('');
-    setExternalEmail('');
-    setExternalTelegram('');
-  };
-  
+
   return (
-    <CardContainer 
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      custom={index}
-      exit="hidden"
-      isNew={isNew}
+    <WidgetContainer
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      {isNew && <NewLabel>New</NewLabel>}
+      <WidgetHeader>
+        <Title>
+          <FiHeart size={16} />
+          Received Hugs
+          {hasUnreadHugs && (
+            <UnreadCountBadge>{unreadHugs.length}</UnreadCountBadge>
+          )}
+        </Title>
+        <ViewAllButton>
+          View All
+        </ViewAllButton>
+      </WidgetHeader>
       
-      <BackgroundDecoration>
-        <svg viewBox="0 0 200 200" fill="none">
-          <circle cx="180" cy="20" r="60" fill={hugColor} />
-          <circle cx="20" cy="180" r="40" fill={hugColor} />
-        </svg>
-      </BackgroundDecoration>
+      {renderHugs()}
       
-      <CardContent>
-        <HugIconContainer color={hugColor}>
-          <Icon 
-            type={type} 
-            size={64} 
-            animate={true} 
-          />
-        </HugIconContainer>
-        
-        <h4 style={{ margin: '12px 0 4px', color: hugColor }}>
-          {type.replace(/([A-Z])/g, ' $1').trim()}
-        </h4>
-        
-        <SenderInfo>From: {senderName}</SenderInfo>
-        <TimestampText>{formatDate(hug.createdAt || new Date())}</TimestampText>
-        
-        {hug.message && (
-          <MessagePreview color={hugColor}>
-            "{hug.message}"
-          </MessagePreview>
-        )}
-        
-        {/* Action buttons */}
-        {!isReplying && !isSharing && !showSuccess && (
-          <ActionButtonsContainer>
-            <ActionButton 
-              color={hugColor}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleReplyClick}
+      {/* Reply Dialog */}
+      <AnimatePresence>
+        {showReplyDialog && replyingToHug && (
+          <ReplyDialog
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <ReplyDialogContent
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
             >
-              <Icon type="StandardHug" size={16} animate={false} /> Reply
-            </ActionButton>
-            
-            <ActionButton
-              color={hugColor}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleShareClick}
-            >
-              <Icon type={type} size={16} animate={false} /> Share
-            </ActionButton>
-          </ActionButtonsContainer>
-        )}
-        
-        {/* Reply form */}
-        <AnimatePresence>
-          {isReplying && (
-            <ReplyForm 
-              color={hugColor}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <ReplyInput
-                placeholder={`Reply to ${senderName} with a message...`}
+              <h4>
+                <FiCornerUpRight size={18} />
+                Reply to {replyingToHug.sender.name || replyingToHug.sender.username}
+              </h4>
+              
+              <HugTypeSelector>
+                <HugTypeOption 
+                  selected={replyHugType === 'StandardHug'} 
+                  onClick={() => setReplyHugType('StandardHug')}
+                >
+                  <div className="icon-wrapper">
+                    <Icon type="StandardHug" size={30} />
+                  </div>
+                  <span>Standard</span>
+                </HugTypeOption>
+                <HugTypeOption 
+                  selected={replyHugType === 'FriendlyHug'} 
+                  onClick={() => setReplyHugType('FriendlyHug')}
+                >
+                  <div className="icon-wrapper">
+                    <Icon type="FriendlyHug" size={30} />
+                  </div>
+                  <span>Friendly</span>
+                </HugTypeOption>
+                <HugTypeOption 
+                  selected={replyHugType === 'EnthusiasticHug'} 
+                  onClick={() => setReplyHugType('EnthusiasticHug')}
+                >
+                  <div className="icon-wrapper">
+                    <Icon type="EnthusiasticHug" size={30} />
+                  </div>
+                  <span>Enthusiastic</span>
+                </HugTypeOption>
+                <HugTypeOption 
+                  selected={replyHugType === 'ComfortingHug'} 
+                  onClick={() => setReplyHugType('ComfortingHug')}
+                >
+                  <div className="icon-wrapper">
+                    <Icon type="ComfortingHug" size={30} />
+                  </div>
+                  <span>Comforting</span>
+                </HugTypeOption>
+              </HugTypeSelector>
+              
+              <TextField
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
-                autoFocus
+                placeholder="Write your reply message..."
               />
               
-              <ActionButtonsContainer>
-                <ActionButton
-                  color="#9e9e9e"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleCancel}
-                >
+              <DialogActions>
+                <CancelButton onClick={closeReplyDialog}>
                   Cancel
-                </ActionButton>
-                
-                <ActionButton
-                  primary
-                  disabled={!replyMessage.trim() || sending}
-                  whileHover={{ scale: !sending ? 1.05 : 1 }}
-                  whileTap={{ scale: !sending ? 0.95 : 1 }}
-                  onClick={handleSendReply}
+                </CancelButton>
+                <SendButton 
+                  onClick={handleReplySubmit}
+                  disabled={!replyMessage.trim() || sendingHug}
                 >
-                  {sending ? 'Sending...' : 'Send Reply'}
-                </ActionButton>
-              </ActionButtonsContainer>
-            </ReplyForm>
-          )}
-          
-          {/* External sharing form */}
-          {isSharing && (
-            <ExternalFormContainer
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <TabContainer>
-                <Tab
-                  active={activeTab === 'email'}
-                  position="left"
-                  color={hugColor}
-                  onClick={() => setActiveTab('email')}
-                >
-                  Email
-                </Tab>
-                <Tab
-                  active={activeTab === 'telegram'}
-                  position="right"
-                  color={hugColor}
-                  onClick={() => setActiveTab('telegram')}
-                >
-                  Telegram
-                </Tab>
-              </TabContainer>
-              
-              {activeTab === 'email' ? (
-                <InputField
-                  type="email"
-                  placeholder="Enter recipient's email address"
-                  value={externalEmail}
-                  onChange={(e) => setExternalEmail(e.target.value)}
-                  autoFocus
-                />
-              ) : (
-                <InputField
-                  type="text"
-                  placeholder="Enter recipient's Telegram username"
-                  value={externalTelegram}
-                  onChange={(e) => setExternalTelegram(e.target.value)}
-                  autoFocus
-                />
-              )}
-              
-              <ActionButtonsContainer>
-                <ActionButton
-                  color="#9e9e9e"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </ActionButton>
-                
-                <ActionButton
-                  primary
-                  disabled={!(activeTab === 'email' ? externalEmail.trim() : externalTelegram.trim()) || sending}
-                  whileHover={{ scale: !sending ? 1.05 : 1 }}
-                  whileTap={{ scale: !sending ? 0.95 : 1 }}
-                  onClick={handleSendExternal}
-                >
-                  {sending ? 'Sending...' : `Send to ${activeTab === 'email' ? 'Email' : 'Telegram'}`}
-                </ActionButton>
-              </ActionButtonsContainer>
-            </ExternalFormContainer>
-          )}
-          
-          {/* Success message */}
-          {showSuccess && (
-            <SuccessMessage>
-              {successMessage}
-            </SuccessMessage>
-          )}
-        </AnimatePresence>
-      </CardContent>
-    </CardContainer>
+                  {sendingHug ? 'Sending...' : 'Send Reply'}
+                </SendButton>
+              </DialogActions>
+            </ReplyDialogContent>
+          </ReplyDialog>
+        )}
+      </AnimatePresence>
+      
+      {/* Toast notification when hug is sent */}
+      <AnimatePresence>
+        {showHugSentToast && (
+          <HugSentToast
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+          >
+            <FiHeart size={16} />
+            Hug sent to {hugSentToUser}!
+          </HugSentToast>
+        )}
+      </AnimatePresence>
+    </WidgetContainer>
   );
 };
 
