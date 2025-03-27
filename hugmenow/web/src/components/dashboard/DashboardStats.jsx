@@ -3,34 +3,46 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useQuery } from '@apollo/client';
 import { Icon } from '../ui/IconComponent';
-import ReceivedHugsWidget from './ReceivedHugsWidget';
-import QuickSendHugWidget from './QuickSendHugWidget';
-import { GET_USER_STATS, GET_RECEIVED_HUGS } from '../../graphql/queries';
+import { GET_USER_STATS } from '../../graphql/queries';
 
 // Styled components
 const StatsContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
   margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const StatCard = styled(motion.div)`
   background: white;
   border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   position: relative;
   overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const StatValue = styled.div`
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  margin: 12px 0;
+  margin: 10px 0 5px;
   color: var(--primary-color);
   position: relative;
   z-index: 1;
@@ -39,6 +51,7 @@ const StatValue = styled.div`
 const StatLabel = styled.div`
   font-size: 1rem;
   color: var(--gray-600);
+  font-weight: 500;
   position: relative;
   z-index: 1;
 `;
@@ -54,6 +67,7 @@ const IconContainer = styled.div`
   color: ${props => props.iconColor || 'var(--primary-color)'};
   position: relative;
   z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 `;
 
 const BackgroundDecoration = styled.div`
@@ -62,7 +76,7 @@ const BackgroundDecoration = styled.div`
   right: 0;
   width: 120px;
   height: 120px;
-  opacity: 0.04;
+  opacity: 0.05;
   z-index: 0;
   
   svg {
@@ -101,7 +115,6 @@ const cardVariants = {
  */
 const DashboardStats = () => {
   const { data: statsData, loading: statsLoading } = useQuery(GET_USER_STATS);
-  const { data: hugsData, loading: hugsLoading } = useQuery(GET_RECEIVED_HUGS);
   
   const stats = statsData?.userStats || {
     moodStreak: 0,
@@ -110,16 +123,14 @@ const DashboardStats = () => {
     hugsReceived: 0
   };
   
-  const receivedHugs = hugsData?.receivedHugs || [];
-  
-  // Define stats cards data
+  // Define stats cards data with updated styling
   const statsCards = [
     {
       label: 'Day Streak',
       value: stats.moodStreak,
       icon: 'fire',
       color: '#FF9800',
-      bgColor: '#FFF3E0',
+      bgColor: 'rgba(255, 152, 0, 0.1)',
       decoration: (
         <svg viewBox="0 0 120 120" fill="none">
           <circle cx="100" cy="20" r="80" fill="#FF9800" />
@@ -131,7 +142,7 @@ const DashboardStats = () => {
       value: stats.totalMoodEntries,
       icon: 'moodTracker',
       color: '#4CAF50',
-      bgColor: '#E8F5E9',
+      bgColor: 'rgba(76, 175, 80, 0.1)',
       decoration: (
         <svg viewBox="0 0 120 120" fill="none">
           <circle cx="100" cy="20" r="80" fill="#4CAF50" />
@@ -142,11 +153,11 @@ const DashboardStats = () => {
       label: 'Hugs Sent',
       value: stats.hugsSent,
       icon: 'StandardHug',
-      color: '#5C6BC0',
-      bgColor: '#E8EAF6',
+      color: '#6c5ce7',
+      bgColor: 'rgba(108, 92, 231, 0.1)',
       decoration: (
         <svg viewBox="0 0 120 120" fill="none">
-          <circle cx="100" cy="20" r="80" fill="#5C6BC0" />
+          <circle cx="100" cy="20" r="80" fill="#6c5ce7" />
         </svg>
       )
     },
@@ -155,7 +166,7 @@ const DashboardStats = () => {
       value: stats.hugsReceived,
       icon: 'ComfortingHug',
       color: '#9D65C9',
-      bgColor: '#F3E5F5',
+      bgColor: 'rgba(157, 101, 201, 0.1)',
       decoration: (
         <svg viewBox="0 0 120 120" fill="none">
           <circle cx="100" cy="20" r="80" fill="#9D65C9" />
@@ -164,35 +175,37 @@ const DashboardStats = () => {
     }
   ];
   
-  if (statsLoading || hugsLoading) {
-    return <div>Loading dashboard stats...</div>;
-  }
-
-  return (
-    <div>
-      <StatsContainer as={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-        {statsCards.map((stat, index) => (
-          <StatCard key={index} variants={cardVariants}>
-            <IconContainer bgColor={stat.bgColor} iconColor={stat.color}>
-              <Icon type={stat.icon} size={28} />
-            </IconContainer>
-            
-            <StatValue style={{ color: stat.color }}>{stat.value}</StatValue>
-            <StatLabel>{stat.label}</StatLabel>
-            
-            <BackgroundDecoration>
-              {stat.decoration}
-            </BackgroundDecoration>
+  if (statsLoading) {
+    return (
+      <StatsContainer>
+        {[1, 2, 3, 4].map((_, index) => (
+          <StatCard key={index} style={{ opacity: 0.5 }}>
+            <IconContainer style={{ background: '#f0f0f0' }} />
+            <StatValue style={{ background: '#f0f0f0', width: '60px', height: '40px' }}></StatValue>
+            <StatLabel style={{ background: '#f0f0f0', width: '80px', height: '20px' }}></StatLabel>
           </StatCard>
         ))}
       </StatsContainer>
-      
-      {/* Add Quick Send Hug widget above Received Hugs */}
-      <QuickSendHugWidget />
-      
-      {/* Received Hugs widget */}
-      <ReceivedHugsWidget hugs={receivedHugs} />
-    </div>
+    );
+  }
+
+  return (
+    <StatsContainer as={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+      {statsCards.map((stat, index) => (
+        <StatCard key={index} variants={cardVariants}>
+          <IconContainer bgColor={stat.bgColor} iconColor={stat.color}>
+            <Icon type={stat.icon} size={28} />
+          </IconContainer>
+          
+          <StatValue style={{ color: stat.color }}>{stat.value}</StatValue>
+          <StatLabel>{stat.label}</StatLabel>
+          
+          <BackgroundDecoration>
+            {stat.decoration}
+          </BackgroundDecoration>
+        </StatCard>
+      ))}
+    </StatsContainer>
   );
 };
 

@@ -111,27 +111,35 @@ const HugTypeOption = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px;
+  padding: 12px 8px;
   background: ${props => props.selected ? 'rgba(108, 92, 231, 0.1)' : 'transparent'};
   border: 1px solid ${props => props.selected ? '#6c5ce7' : '#eee'};
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
-  min-width: 70px;
+  transition: all 0.3s ease;
+  min-width: 80px;
   flex-shrink: 0;
+  box-shadow: ${props => props.selected ? '0 4px 8px rgba(108, 92, 231, 0.15)' : 'none'};
+  transform: ${props => props.selected ? 'translateY(-2px)' : 'none'};
   
   &:hover {
     background: rgba(108, 92, 231, 0.05);
+    box-shadow: 0 4px 8px rgba(108, 92, 231, 0.08);
+    transform: translateY(-2px);
   }
   
   .icon-wrapper {
-    width: 30px;
-    height: 30px;
-    margin-bottom: 6px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   span {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
+    font-weight: ${props => props.selected ? '600' : '500'};
     color: ${props => props.selected ? '#6c5ce7' : '#666'};
   }
 `;
@@ -679,7 +687,7 @@ const QuickSendHugWidget = () => {
           onClick={() => setSelectedHugType('StandardHug')}
         >
           <div className="icon-wrapper">
-            <Icon type="StandardHug" size={24} />
+            <Icon type="StandardHug" size={36} animate={true} />
           </div>
           <span>Standard</span>
         </HugTypeOption>
@@ -688,7 +696,7 @@ const QuickSendHugWidget = () => {
           onClick={() => setSelectedHugType('FriendlyHug')}
         >
           <div className="icon-wrapper">
-            <Icon type="FriendlyHug" size={24} />
+            <Icon type="FriendlyHug" size={36} animate={true} />
           </div>
           <span>Friendly</span>
         </HugTypeOption>
@@ -697,7 +705,7 @@ const QuickSendHugWidget = () => {
           onClick={() => setSelectedHugType('ComfortingHug')}
         >
           <div className="icon-wrapper">
-            <Icon type="ComfortingHug" size={24} />
+            <Icon type="ComfortingHug" size={36} animate={true} />
           </div>
           <span>Comforting</span>
         </HugTypeOption>
@@ -706,7 +714,7 @@ const QuickSendHugWidget = () => {
           onClick={() => setSelectedHugType('EnthusiasticHug')}
         >
           <div className="icon-wrapper">
-            <Icon type="EnthusiasticHug" size={24} />
+            <Icon type="EnthusiasticHug" size={36} animate={true} />
           </div>
           <span>Enthusiastic</span>
         </HugTypeOption>
@@ -715,7 +723,7 @@ const QuickSendHugWidget = () => {
           onClick={() => setSelectedHugType('FamilyHug')}
         >
           <div className="icon-wrapper">
-            <Icon type="FamilyHug" size={24} />
+            <Icon type="FamilyHug" size={36} animate={true} />
           </div>
           <span>Family</span>
         </HugTypeOption>
@@ -724,7 +732,7 @@ const QuickSendHugWidget = () => {
           onClick={() => setSelectedHugType('GroupHug')}
         >
           <div className="icon-wrapper">
-            <Icon type="GroupHug" size={24} />
+            <Icon type="GroupHug" size={36} animate={true} />
           </div>
           <span>Group</span>
         </HugTypeOption>

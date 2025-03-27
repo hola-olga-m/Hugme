@@ -88,44 +88,54 @@ const HugsList = styled.div`
 
 const HugCard = styled(motion.div)`
   display: flex;
-  padding: 12px;
-  border-radius: 12px;
-  background: #f8f9fa;
-  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: ${props => props.isRead ? '#f8f9fa' : 'linear-gradient(to right, rgba(108, 92, 231, 0.05), #f8f9fa)'};
+  gap: 16px;
   position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  border: 1px solid ${props => props.isRead ? 'transparent' : 'rgba(108, 92, 231, 0.1)'};
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    background: ${props => props.isRead ? '#f0f0f5' : 'linear-gradient(to right, rgba(108, 92, 231, 0.08), #f0f0f5)'};
   }
   
   ${props => !props.isRead && `
     &::before {
       content: '';
       position: absolute;
-      top: 12px;
+      top: 0;
       left: 0;
       width: 4px;
-      height: 30px;
+      height: 100%;
       background: #6c5ce7;
       border-radius: 0 4px 4px 0;
+      box-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
     }
   `}
 `;
 
 const HugIconWrapper = styled.div`
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: ${props => props.bgColor || 'rgba(108, 92, 231, 0.1)'};
   flex-shrink: 0;
-  padding: 8px;
+  padding: 6px;
   position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  }
   
   img {
     width: 100%;
@@ -339,8 +349,26 @@ const ReplyDialogContent = styled(motion.div)`
 const HugTypeSelector = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 1rem;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+  padding: 5px;
+  max-height: 225px;
+  overflow-y: auto;
+  
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(108, 92, 231, 0.2);
+    border-radius: 10px;
+  }
 `;
 
 const HugTypeOption = styled.button`
@@ -348,26 +376,33 @@ const HugTypeOption = styled.button`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: 14px;
   background: ${props => props.selected ? 'rgba(108, 92, 231, 0.1)' : '#f8f9fa'};
   border: 1px solid ${props => props.selected ? '#6c5ce7' : '#eee'};
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: ${props => props.selected ? '0 2px 8px rgba(108, 92, 231, 0.15)' : 'none'};
   
   &:hover {
     background: rgba(108, 92, 231, 0.05);
+    border-color: #d0ccfa;
+    transform: translateY(-2px);
   }
   
   .icon-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   span {
-    font-size: 0.8rem;
-    color: #333;
+    font-size: 0.85rem;
+    font-weight: ${props => props.selected ? '500' : 'normal'};
+    color: ${props => props.selected ? '#6c5ce7' : '#444'};
     text-align: center;
   }
 `;
@@ -569,7 +604,7 @@ const ReceivedHugsWidget = () => {
             isRead={hug.isRead}
           >
             <HugIconWrapper bgColor={getHugBackgroundColor(hug.type)}>
-              <Icon type={hug.type} size={30} />
+              <Icon type={hug.type} size={48} animate={true} />
               <SenderAvatar bgColor={getRandomColor(hug.sender.id)}>
                 {getInitials(hug.sender.name || hug.sender.username)}
               </SenderAvatar>
@@ -654,7 +689,7 @@ const ReceivedHugsWidget = () => {
                   onClick={() => setReplyHugType('StandardHug')}
                 >
                   <div className="icon-wrapper">
-                    <Icon type="StandardHug" size={30} />
+                    <Icon type="StandardHug" size={42} animate={true} />
                   </div>
                   <span>Standard</span>
                 </HugTypeOption>
@@ -663,7 +698,7 @@ const ReceivedHugsWidget = () => {
                   onClick={() => setReplyHugType('FriendlyHug')}
                 >
                   <div className="icon-wrapper">
-                    <Icon type="FriendlyHug" size={30} />
+                    <Icon type="FriendlyHug" size={42} animate={true} />
                   </div>
                   <span>Friendly</span>
                 </HugTypeOption>
@@ -672,7 +707,7 @@ const ReceivedHugsWidget = () => {
                   onClick={() => setReplyHugType('EnthusiasticHug')}
                 >
                   <div className="icon-wrapper">
-                    <Icon type="EnthusiasticHug" size={30} />
+                    <Icon type="EnthusiasticHug" size={42} animate={true} />
                   </div>
                   <span>Enthusiastic</span>
                 </HugTypeOption>
@@ -681,7 +716,7 @@ const ReceivedHugsWidget = () => {
                   onClick={() => setReplyHugType('ComfortingHug')}
                 >
                   <div className="icon-wrapper">
-                    <Icon type="ComfortingHug" size={30} />
+                    <Icon type="ComfortingHug" size={42} animate={true} />
                   </div>
                   <span>Comforting</span>
                 </HugTypeOption>
