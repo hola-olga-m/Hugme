@@ -70,17 +70,17 @@ const HugsList = styled.div`
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.03);
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba(108, 92, 231, 0.2);
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: rgba(108, 92, 231, 0.4);
   }
@@ -101,7 +101,7 @@ const HugCard = styled(motion.div)`
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
     background: ${props => props.isRead ? '#f0f0f5' : 'linear-gradient(to right, rgba(108, 92, 231, 0.08), #f0f0f5)'};
   }
-  
+
   ${props => !props.isRead && `
     &::before {
       content: '';
@@ -131,12 +131,12 @@ const HugIconWrapper = styled.div`
   position: relative;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s, box-shadow 0.2s;
-  
+
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
   }
-  
+
   img {
     width: 100%;
     height: 100%;
@@ -335,7 +335,7 @@ const ReplyDialogContent = styled(motion.div)`
   width: 90%;
   max-width: 400px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  
+
   h4 {
     margin-top: 0;
     margin-bottom: 1rem;
@@ -354,17 +354,17 @@ const HugTypeSelector = styled.div`
   padding: 5px;
   max-height: 225px;
   overflow-y: auto;
-  
+
   /* Custom scrollbar */
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.03);
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba(108, 92, 231, 0.2);
     border-radius: 10px;
@@ -383,13 +383,13 @@ const HugTypeOption = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: ${props => props.selected ? '0 2px 8px rgba(108, 92, 231, 0.15)' : 'none'};
-  
+
   &:hover {
     background: rgba(108, 92, 231, 0.05);
     border-color: #d0ccfa;
     transform: translateY(-2px);
   }
-  
+
   .icon-wrapper {
     width: 48px;
     height: 48px;
@@ -398,7 +398,7 @@ const HugTypeOption = styled.button`
     align-items: center;
     justify-content: center;
   }
-  
+
   span {
     font-size: 0.85rem;
     font-weight: ${props => props.selected ? '500' : 'normal'};
@@ -416,7 +416,7 @@ const TextField = styled.textarea`
   margin-bottom: 1rem;
   resize: none;
   height: 100px;
-  
+
   &:focus {
     outline: none;
     border-color: #6c5ce7;
@@ -438,7 +438,7 @@ const CancelButton = styled.button`
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s;
-  
+
   &:hover {
     background: #eee;
   }
@@ -453,11 +453,11 @@ const SendButton = styled.button`
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s;
-  
+
   &:hover {
     background: #5b4cc8;
   }
-  
+
   &:disabled {
     background: #a8a3e1;
     cursor: not-allowed;
@@ -467,35 +467,34 @@ const SendButton = styled.button`
 // Component
 const ReceivedHugsWidget = () => {
   const { loading, error, data, refetch } = useQuery(GET_RECEIVED_HUGS, {
-    variables: { limit: 10 },
     fetchPolicy: 'network-only',
   });
-  
+
   const [markAsRead] = useMutation(MARK_HUG_AS_READ);
   const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG);
-  
+
   const [replyingToHug, setReplyingToHug] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [replyHugType, setReplyHugType] = useState('StandardHug');
   const [showReplyDialog, setShowReplyDialog] = useState(false);
   const [showHugSentToast, setShowHugSentToast] = useState(false);
   const [hugSentToUser, setHugSentToUser] = useState(null);
-  
+
   // Calculate unread hugs
   const unreadHugs = data?.receivedHugs?.filter(hug => !hug.isRead) || [];
   const hasUnreadHugs = unreadHugs.length > 0;
-  
+
   // Auto dismiss toast
   useEffect(() => {
     if (showHugSentToast) {
       const timer = setTimeout(() => {
         setShowHugSentToast(false);
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [showHugSentToast]);
-  
+
   // Helper functions
   const getInitials = (name) => {
     if (!name) return '?';
@@ -512,40 +511,40 @@ const ReceivedHugsWidget = () => {
     const index = userId ? userId.charCodeAt(0) % colors.length : 0;
     return colors[index];
   };
-  
+
   const handleMarkAsRead = async (event, hugId) => {
     event.stopPropagation();
-    
+
     try {
       await markAsRead({
         variables: { id: hugId }
       });
-      
+
       // Refetch to update UI
       refetch();
     } catch (err) {
       console.error('Error marking hug as read:', err);
     }
   };
-  
+
   const openReplyDialog = (event, hug) => {
     event.stopPropagation();
-    
+
     setReplyingToHug(hug);
     setReplyMessage(`Thanks for the ${hug.type.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}!`);
     setReplyHugType('StandardHug');
     setShowReplyDialog(true);
   };
-  
+
   const closeReplyDialog = () => {
     setShowReplyDialog(false);
     setReplyingToHug(null);
     setReplyMessage('');
   };
-  
+
   const handleReplySubmit = async () => {
     if (!replyingToHug || !replyMessage.trim()) return;
-    
+
     try {
       const response = await sendHug({
         variables: {
@@ -556,12 +555,12 @@ const ReceivedHugsWidget = () => {
           }
         }
       });
-      
+
       if (response.data?.sendHug) {
         setHugSentToUser(replyingToHug.sender.name || replyingToHug.sender.username);
         setShowHugSentToast(true);
         closeReplyDialog();
-        
+
         // Refetch after a short delay
         setTimeout(() => {
           refetch();
@@ -571,7 +570,7 @@ const ReceivedHugsWidget = () => {
       console.error('Error sending reply hug:', err);
     }
   };
-  
+
   // Get background color based on hug type
   const getHugBackgroundColor = (type) => {
     switch (type) {
@@ -624,14 +623,14 @@ const ReceivedHugsWidget = () => {
                   <FiClock size={12} />
                   {formatDistanceToNow(new Date(hug.createdAt), { addSuffix: true })}
                 </TimeStamp>
-                
+
                 {!hug.isRead && (
                   <ReadButton onClick={(e) => handleMarkAsRead(e, hug.id)}>
                     <FiCheck size={12} />
                     Mark Read
                   </ReadButton>
                 )}
-                
+
                 <ReplyButton onClick={(e) => openReplyDialog(e, hug)}>
                   <FiCornerUpRight size={12} />
                   Reply
@@ -662,9 +661,9 @@ const ReceivedHugsWidget = () => {
           View All
         </ViewAllButton>
       </WidgetHeader>
-      
+
       {renderHugs()}
-      
+
       {/* Reply Dialog */}
       <AnimatePresence>
         {showReplyDialog && replyingToHug && (
@@ -682,7 +681,7 @@ const ReceivedHugsWidget = () => {
                 <FiCornerUpRight size={18} />
                 Reply to {replyingToHug.sender.name || replyingToHug.sender.username}
               </h4>
-              
+
               <HugTypeSelector>
                 <HugTypeOption 
                   selected={replyHugType === 'StandardHug'} 
@@ -721,13 +720,13 @@ const ReceivedHugsWidget = () => {
                   <span>Comforting</span>
                 </HugTypeOption>
               </HugTypeSelector>
-              
+
               <TextField
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
                 placeholder="Write your reply message..."
               />
-              
+
               <DialogActions>
                 <CancelButton onClick={closeReplyDialog}>
                   Cancel
@@ -743,7 +742,7 @@ const ReceivedHugsWidget = () => {
           </ReplyDialog>
         )}
       </AnimatePresence>
-      
+
       {/* Toast notification when hug is sent */}
       <AnimatePresence>
         {showHugSentToast && (

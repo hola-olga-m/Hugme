@@ -60,12 +60,22 @@ export const createApolloClient = () => {
                 return [...incoming];
               }
             },
+            friendsMoods: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            },
             sentHugs: {
               merge(existing = [], incoming) {
                 return [...incoming];
               }
             },
             receivedHugs: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            },
+            users: {
               merge(existing = [], incoming) {
                 return [...incoming];
               }

@@ -69,17 +69,17 @@ const MoodsList = styled.div`
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.03);
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba(108, 92, 231, 0.2);
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: rgba(108, 92, 231, 0.4);
   }
@@ -221,7 +221,7 @@ const SendHugButton = styled.button`
   ${props => props.needsSupport && `
     color: #ff3b30;
     font-weight: 600;
-    
+
     &:hover {
       background: rgba(255, 59, 48, 0.1);
     }
@@ -243,7 +243,7 @@ const AlertBanner = styled(motion.div)`
   display: flex;
   align-items: center;
   gap: 10px;
-  
+
   p {
     margin: 0;
     font-size: 0.9rem;
@@ -285,7 +285,7 @@ const FilterButton = styled.button`
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   &:hover {
     background: rgba(108, 92, 231, 0.1);
     border-color: rgba(108, 92, 231, 0.3);
@@ -298,27 +298,27 @@ const FriendMoodsWidget = () => {
     fetchPolicy: 'network-only',
     pollInterval: 60000 // Poll every minute for updates
   });
-  
+
   const [expandedMood, setExpandedMood] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'needSupport', 'recent'
   const [showHugSentToast, setShowHugSentToast] = useState(false);
   const [hugSentToUser, setHugSentToUser] = useState(null);
   const [sendingHugTo, setSendingHugTo] = useState(null);
-  
+
   // GraphQL mutation for sending hugs
   const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG);
-  
+
   // Check for friends with bad moods (score <= 4)
   const friendsNeedingSupport = data?.friendsMoods?.filter(mood => mood.score <= 4) || [];
   const hasFriendsNeedingSupport = friendsNeedingSupport.length > 0;
-  
+
   // Effect to auto-dismiss hug sent toast
   useEffect(() => {
     if (showHugSentToast) {
       const timer = setTimeout(() => {
         setShowHugSentToast(false);
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [showHugSentToast]);
@@ -339,15 +339,15 @@ const FriendMoodsWidget = () => {
     const index = userId ? userId.charCodeAt(0) % colors.length : 0;
     return colors[index];
   };
-  
+
   // Handle sending a hug to a friend
   const handleSendHug = async (event, mood) => {
     event.stopPropagation(); // Prevent card expansion
-    
+
     if (sendingHug) return; // Prevent multiple clicks
-    
+
     setSendingHugTo(mood.user.id);
-    
+
     try {
       const response = await sendHug({
         variables: {
@@ -360,11 +360,11 @@ const FriendMoodsWidget = () => {
           }
         }
       });
-      
+
       if (response.data?.sendHug) {
         setHugSentToUser(mood.user.name || mood.user.username);
         setShowHugSentToast(true);
-        
+
         // Refetch moods after a short delay to show updated state
         setTimeout(() => {
           refetch();
@@ -376,19 +376,19 @@ const FriendMoodsWidget = () => {
       setSendingHugTo(null);
     }
   };
-  
+
   // Filter moods based on selected filter
   const getFilteredMoods = () => {
     if (!data?.friendsMoods) return [];
-    
+
     let moods = [...data.friendsMoods];
-    
+
     if (filter === 'needSupport') {
       return moods.filter(mood => mood.score <= 4);
     } else if (filter === 'recent') {
       return moods.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
-    
+
     return moods;
   };
 
@@ -399,9 +399,9 @@ const FriendMoodsWidget = () => {
     if (!data || !data.friendsMoods || data.friendsMoods.length === 0) {
       return <EmptyState>No friend moods yet. Add friends to see their moods here!</EmptyState>;
     }
-    
+
     const filteredMoods = getFilteredMoods();
-    
+
     if (filteredMoods.length === 0) {
       return <EmptyState>No moods match the current filter.</EmptyState>;
     }
@@ -410,7 +410,7 @@ const FriendMoodsWidget = () => {
       <MoodsList>
         {filteredMoods.map(mood => {
           const needsSupport = mood.score <= 4;
-          
+
           return (
             <MoodCard 
               key={mood.id}
@@ -421,7 +421,7 @@ const FriendMoodsWidget = () => {
               needsSupport={needsSupport}
             >
               {needsSupport && <NeedsSupportBadge><FiAlertCircle size={12} /></NeedsSupportBadge>}
-              
+
               <UserAvatar bgColor={getRandomColor(mood.user.id)}>
                 {mood.user.avatarUrl ? (
                   <img src={mood.user.avatarUrl} alt={mood.user.name} />
@@ -501,7 +501,7 @@ const FriendMoodsWidget = () => {
           View All
         </ViewAllButton>
       </WidgetHeader>
-      
+
       {/* Alert banner for friends needing support */}
       <AnimatePresence>
         {hasFriendsNeedingSupport && (
@@ -520,7 +520,7 @@ const FriendMoodsWidget = () => {
           </AlertBanner>
         )}
       </AnimatePresence>
-      
+
       {/* Filter controls */}
       <FilterControls>
         <FilterButton 
@@ -542,9 +542,9 @@ const FriendMoodsWidget = () => {
           Recent
         </FilterButton>
       </FilterControls>
-      
+
       {renderMoods()}
-      
+
       {/* Toast notification when hug is sent */}
       <AnimatePresence>
         {showHugSentToast && (

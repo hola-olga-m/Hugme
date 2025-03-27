@@ -18,7 +18,7 @@ const FeedTitle = styled.h3`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
+
   .title-icon {
     color: var(--primary-color);
   }
@@ -28,13 +28,13 @@ const EmptyFeed = styled.div`
   padding: 2rem;
   text-align: center;
   color: var(--gray-500);
-  
+
   .empty-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.6;
   }
-  
+
   .empty-text {
     font-style: italic;
   }
@@ -52,7 +52,7 @@ const MoodCard = styled.div`
   background-color: var(--gray-50);
   box-shadow: var(--shadow-xs);
   transition: var(--transition-base);
-  
+
   &:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
@@ -84,7 +84,7 @@ const Avatar = styled.div`
   font-weight: 500;
   font-size: 1rem;
   overflow: hidden;
-  
+
   img {
     width: 100%;
     height: 100%;
@@ -116,7 +116,7 @@ const MoodContent = styled.div`
   color: var(--gray-700);
   font-size: 0.95rem;
   line-height: 1.5;
-  
+
   .quote {
     margin: 0.5rem 0;
     padding-left: 1rem;
@@ -146,12 +146,12 @@ const ActionButton = styled.button`
   padding: 0.5rem 0.75rem;
   border-radius: var(--border-radius-sm);
   transition: var(--transition-base);
-  
+
   &:hover {
     background-color: var(--gray-100);
     color: var(--primary-color);
   }
-  
+
   .button-icon {
     font-size: 1.2rem;
   }
@@ -159,7 +159,7 @@ const ActionButton = styled.button`
 
 const FriendMoodFeed = ({ friendsOnly = true }) => {
   const { loading, error, data } = useQuery(GET_PUBLIC_MOODS);
-  
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -169,7 +169,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       minute: '2-digit'
     });
   };
-  
+
   const getInitials = (name) => {
     if (!name) return '?';
     return name
@@ -179,7 +179,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       .toUpperCase()
       .substring(0, 2);
   };
-  
+
   const getEmojiForScore = (score) => {
     switch (score) {
       case 5: return '😄';
@@ -190,14 +190,14 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       default: return '❓';
     }
   };
-  
+
   const filterMoods = (moods) => {
     if (!friendsOnly) return moods;
     // In a real implementation, this would filter by friend connections
     // For now, we're showing all public moods
     return moods;
   };
-  
+
   if (loading) {
     return (
       <FeedContainer>
@@ -211,7 +211,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       </FeedContainer>
     );
   }
-  
+
   if (error) {
     return (
       <FeedContainer>
@@ -226,17 +226,17 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       </FeedContainer>
     );
   }
-  
+
   const moods = data?.publicMoods || [];
   const filteredMoods = filterMoods(moods);
-  
+
   return (
     <FeedContainer>
       <FeedTitle>
         <span className="title-icon">🧠</span>
         {friendsOnly ? 'Friends\' Mood Feed' : 'Community Mood Feed'}
       </FeedTitle>
-      
+
       {filteredMoods.length === 0 ? (
         <EmptyFeed>
           <div className="empty-icon">🌱</div>
@@ -262,13 +262,13 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
                 </UserInfo>
                 <MoodScore>{getEmojiForScore(mood.score)}</MoodScore>
               </MoodHeader>
-              
+
               {mood.note && (
                 <MoodContent>
                   <div className="quote">{mood.note}</div>
                 </MoodContent>
               )}
-              
+
               <MoodActions>
                 <ActionButton>
                   <span className="button-icon">🤗</span>
