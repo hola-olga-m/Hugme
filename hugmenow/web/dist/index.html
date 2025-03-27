@@ -1,164 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HugMeNow</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-    }
-    
-    .auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 1rem;
-    }
-    
-    .auth-card {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      width: 100%;
-      max-width: 400px;
-    }
-    
-    .auth-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    .auth-header h1 {
-      margin: 0;
-      color: #4F46E5;
-      font-size: 1.5rem;
-    }
-    
-    .app-name {
-      color: #4F46E5;
-      font-weight: bold;
-    }
-    
-    .auth-form {
-      margin-bottom: 1.5rem;
-    }
-    
-    .form-group {
-      margin-bottom: 1rem;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-    
-    input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    
-    button {
-      background-color: #4F46E5;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      width: 100%;
-    }
-    
-    button:hover {
-      background-color: #4338CA;
-    }
-    
-    .auth-footer {
-      text-align: center;
-      margin-top: 1.5rem;
-      color: #6B7280;
-    }
-    
-    a {
-      color: #4F46E5;
-      text-decoration: none;
-    }
-    
-    .error-message {
-      background-color: #FEE2E2;
-      color: #DC2626;
-      padding: 0.75rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HugMeNow - Emotional Wellness Platform</title>
+  <meta name="description" content="A mobile-first emotional wellness platform that provides intuitive mental health tracking through adaptive technologies, focusing on user-friendly, context-aware mental health support." />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <!-- Preconnect to API domains for performance -->
+  <link rel="preconnect" href="http://localhost:3000" />
+  <!-- Ensure proper mobile viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- Prevent iOS detection of phone numbers, etc. -->
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+  <!-- Apple specific meta tags for PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <!-- Add to home screen for Safari on iOS -->
+  <meta name="apple-mobile-web-app-title" content="HugMeNow" />
+  <!-- Theme color for browser chrome -->
+  <meta name="theme-color" content="#0066ff" />
+  <script type="module" crossorigin src="/assets/main-cf2c803f.js"></script>
+  <link rel="stylesheet" href="/assets/index-adce3ac3.css">
 </head>
 <body>
-  <div id="root">
-    <!-- React will render here -->
-    <!-- Fallback login form -->
-    <div class="auth-container">
-      <div class="auth-card">
-        <div class="auth-header">
-          <h1>HugMeNow</h1>
-          <p>Your emotional wellness companion</p>
-        </div>
-        
-        <form class="auth-form">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" required>
-          </div>
-          
-          <button type="submit">Login</button>
-        </form>
-        
-        <div class="auth-footer">
-          <p>Don't have an account? <a href="/register">Register</a></p>
-        </div>
-      </div>
+  <div id="root"></div>
+  <noscript>
+    <div style="padding: 2rem; text-align: center;">
+      <h1>JavaScript Required</h1>
+      <p>HugMeNow requires JavaScript to be enabled in your browser.</p>
+      <p>Please enable JavaScript to continue.</p>
     </div>
-  </div>
-  <!-- 
-    In production, Vite will inject the proper bundled scripts here.
-    When running in development with the Express server, this file is served as a fallback
-    and we should load the Vite development scripts instead.
-  -->
-  <script type="module">
-    // Check if we're in development mode served by Express
-    if (window.location.port === '5000') {
-      // This is a development environment running through Express
-      // Load the Vite client for HMR
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'http://localhost:5173/@vite/client';
-      document.head.appendChild(script);
-      
-      // Load the entry point from Vite dev server
-      const mainScript = document.createElement('script');
-      mainScript.type = 'module';
-      mainScript.src = 'http://localhost:5173/src/index.js';
-      document.body.appendChild(mainScript);
-      
-      console.log('HugMeNow initializing in development mode with Vite');
-    } else {
-      console.log('HugMeNow initializing in production mode');
-    }
-  </script>
+  </noscript>
+  
 </body>
 </html>

@@ -46,7 +46,7 @@ app.get('/status', (req, res) => {
 
 // Proxy API requests to the NestJS server
 app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:3000',
+  target: 'http://localhost:3001',
   changeOrigin: true,
   pathRewrite: {
     '^/api': '/' // rewrite path
@@ -55,7 +55,7 @@ app.use('/api', createProxyMiddleware({
 
 // Proxy GraphQL requests to the NestJS server
 app.use('/graphql', createProxyMiddleware({
-  target: 'http://localhost:3000',
+  target: 'http://localhost:3001',
   changeOrigin: true,
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {
@@ -104,8 +104,14 @@ if (isDevelopment) {
     etag: true,
     lastModified: true,
     setHeaders: (res, path) => {
+      // For PNG files in icons directory
+      if (path.includes('icons/png') && path.endsWith('.png')) {
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'image/png');
+        console.log(`[ASSET] Served PNG icon: ${path}`);
+      }
       // For JS, CSS assets (contains hash in filename)
-      if (path.endsWith('.js') || path.endsWith('.css')) {
+      else if (path.endsWith('.js') || path.endsWith('.css')) {
         res.setHeader('Cache-Control', 'max-age=31536000, immutable');
       } else {
         // For non-hashed assets
@@ -113,6 +119,20 @@ if (isDevelopment) {
       }
     }
   }));
+  
+  // Special route for PNG icons to ensure they're found
+  app.get('/assets/icons/png/:filename', (req, res) => {
+    const iconPath = path.join(distPath, 'assets', 'icons', 'png', req.params.filename);
+    
+    if (fs.existsSync(iconPath)) {
+      console.log(`[EXPRESS] Serving PNG icon: ${req.params.filename}`);
+      res.setHeader('Content-Type', 'image/png');
+      res.sendFile(iconPath);
+    } else {
+      console.error(`[EXPRESS] PNG icon not found: ${req.params.filename}`);
+      res.status(404).send('Icon not found');
+    }
+  });
   
   // For all routes not handled by static files or proxies, serve index.html
   app.get('*', (req, res) => {
@@ -161,5 +181,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Express server running on port ${PORT}`);
   console.log(`- Serving static files from: ${path.join(__dirname, 'public')}`);
-  console.log(`- API proxy to: http://localhost:3000`);
+  console.log(`- API proxy to: http://localhost:3001`);
 });

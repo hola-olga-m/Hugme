@@ -70,7 +70,36 @@ app.use('/graphql', createProxyMiddleware({
 
 // Serve static files from dist directory
 const distPath = path.join(__dirname, 'dist');
-app.use(express.static(distPath));
+app.use(express.static(distPath, {
+  setHeaders: (res, path) => {
+    // For PNG files in icons directory
+    if (path.includes('icons/png') && path.endsWith('.png')) {
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Content-Type', 'image/png');
+    }
+    // For JS, CSS assets (contains hash in filename)
+    else if (path.endsWith('.js') || path.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'max-age=31536000, immutable');
+    } else {
+      // For non-hashed assets
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
+
+// Special route for PNG icons to ensure they're found
+app.get('/assets/icons/png/:filename', (req, res) => {
+  const iconPath = path.join(distPath, 'assets', 'icons', 'png', req.params.filename);
+  
+  if (fs.existsSync(iconPath)) {
+    console.log(`Serving PNG icon: ${req.params.filename}`);
+    res.setHeader('Content-Type', 'image/png');
+    res.sendFile(iconPath);
+  } else {
+    console.error(`PNG icon not found: ${req.params.filename}`);
+    res.status(404).send('Icon not found');
+  }
+});
 
 // Serve index.html for all routes (SPA)
 app.get('*', (req, res) => {
@@ -78,6 +107,7 @@ app.get('*', (req, res) => {
   
   // Check if index.html exists
   if (fs.existsSync(indexPath)) {
+    console.log(`Serving index.html for route: ${req.path}`);
     res.sendFile(indexPath);
   } else {
     res.status(404).send('Not found - Build the application first with npm run build');

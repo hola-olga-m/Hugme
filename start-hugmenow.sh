@@ -3,25 +3,30 @@
 # Startup script for HugMeNow application
 echo "Starting HugMeNow application services..."
 
-# This script is designed to simply launch the individual workflows
-# It doesn't actually start the servers - the workflows do that
-echo "Setting up workflows..."
+# Start the API server in the background
+echo "Starting API server on port 3001..."
+cd hugmenow/api && node dist/main.js &
+API_PID=$!
+
+# Give the API server a moment to start up
+sleep 3
+
+# Start the frontend server
+echo "Starting frontend server on port 5000..."
+cd hugmenow/web && node simple-server.js &
+FRONTEND_PID=$!
 
 # Display useful information
-echo "HugMeNow is now configured with:"
-echo "- API Server running on port 3001"
-echo "- Frontend Server running on port 5000"
 echo ""
-echo "Use the following workflows to manage services:"
-echo "- 'HugMeNow API Server': Manages the API and GraphQL server"
-echo "- 'HugMeNow Frontend': Manages the frontend web server"
-echo ""
-echo "To restart individual services, use the workflow restart buttons"
-echo "in the Replit interface."
+echo "HugMeNow is now running with:"
+echo "- API Server running on port 3001 (PID: $API_PID)"
+echo "- Frontend Server running on port 5000 (PID: $FRONTEND_PID)"
 echo ""
 echo "The frontend is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co"
 echo "The API is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/api"
 echo "The GraphQL endpoint is at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/graphql"
+echo ""
+echo "Press Ctrl+C to stop all services"
 
-# Script completed - the actual servers are managed by the workflows
-exit 0
+# Wait for all background processes to complete (or until this script is killed)
+wait
