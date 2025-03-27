@@ -11,13 +11,13 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
   
-  // Enhanced CORS configuration - Allow ALL origins for debugging
+  // Enhanced CORS configuration
   app.enableCors({
-    origin: '*', // Allow all origins
+    origin: ['http://localhost:3001', 'http://localhost:5000', process.env.FRONTEND_URL || '*'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
-    allowedHeaders: 'Content-Type, Accept, Authorization, Accept-Protocol, Connection, X-Protocol-Hint, X-Client-Version, X-Retry-Attempt, Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers, apollo-require-preflight, x-apollo-operation-name',
-    exposedHeaders: 'Authorization, Accept-Protocol, X-Protocol-Used, Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers',
+    allowedHeaders: 'Content-Type, Accept, Authorization, Accept-Protocol, Connection, X-Protocol-Hint, X-Client-Version, X-Retry-Attempt',
+    exposedHeaders: 'Authorization, Accept-Protocol, X-Protocol-Used',
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });

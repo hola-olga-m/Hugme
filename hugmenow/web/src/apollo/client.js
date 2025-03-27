@@ -1,53 +1,31 @@
 import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
-import { RetryLink } from '@apollo/client/link/retry';
-import { API_BASE_URL, GRAPHQL_URL } from '../utils/apiConfig';
-import { logDetailedError } from '../utils/httpErrorHandler';
+import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
+
+// Base URLs
+export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy
+export const GRAPHQL_URL = '/graphql';
 
 // Create an error link for handling GraphQL errors
-const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message, locations, path }) => {
       console.error(
         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-      );
-      
-      // Log detailed error information for easier debugging
-      logDetailedError(
-        new Error(`GraphQL Error: ${message}`), 
-        `Operation: ${operation.operationName || 'unnamed'}, Path: ${path}`
       );
     });
   }
   
   if (networkError) {
     console.error(`[Network error]: ${networkError}`);
-    
-    // Log detailed network error information
-    logDetailedError(
-      networkError, 
-      `Operation: ${operation.operationName || 'unnamed'}, Endpoint: ${operation.getContext().uri}`
-    );
   }
 });
 
-// Create an HTTP link for the GraphQL endpoint with better fallback options
+// Create an HTTP link for the GraphQL endpoint
 const httpLink = createHttpLink({
   uri: `${API_BASE_URL}${GRAPHQL_URL}`,
-  credentials: 'include',  // Include cookies for auth
-  fetchOptions: {
-    mode: 'cors',  // Ensure CORS mode is explicitly set
-    cache: 'no-store',
-    credentials: 'include'
-  },
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    // Add Apollo specific headers to prevent CSRF issues
-    'apollo-require-preflight': 'true',
-  }
+  credentials: 'include'  // Include cookies for auth
 });
 
 // Create an auth link to add the token to each request
@@ -59,47 +37,15 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-      // Add additional headers to help identify retry attempts
-      'X-Client-Version': '1.0.0',
-      'X-Protocol-Hint': 'HTTP/1.1'
+      authorization: token ? `Bearer ${token}` : ''
     }
   };
-});
-
-// Create a retry link to automatically retry failed requests
-const retryLink = new RetryLink({
-  delay: {
-    initial: 300, // 300ms
-    max: 5000,    // 5 seconds
-    jitter: true  // Add randomness to the delay
-  },
-  attempts: {
-    max: 3,
-    retryIf: (error, operation) => {
-      // Only retry on network errors or specific server errors
-      if (error.networkError) {
-        console.log(`Retrying operation ${operation.operationName} due to network error`);
-        return true;
-      }
-      
-      // Retry on 429 (too many requests) or 5xx server errors
-      const statusCode = error.statusCode || (error.networkError && error.networkError.statusCode);
-      if (statusCode && (statusCode === 429 || (statusCode >= 500 && statusCode < 600))) {
-        console.log(`Retrying operation ${operation.operationName} due to server error ${statusCode}`);
-        return true;
-      }
-      
-      return false;
-    }
-  }
 });
 
 // Create the Apollo client
 export const createApolloClient = () => {
   const baseConfig = {
-    // Add the retry link to our link chain
-    link: from([errorLink, retryLink, authLink, httpLink]),
+    link: from([errorLink, authLink, httpLink]),
     cache: new InMemoryCache({
       typePolicies: {
         Query: {
@@ -130,20 +76,15 @@ export const createApolloClient = () => {
     }),
     defaultOptions: {
       watchQuery: {
-        fetchPolicy: 'cache-and-network',
-        errorPolicy: 'all'
-      },
-      query: {
-        fetchPolicy: 'network-only',
-        errorPolicy: 'all'
-      },
-      mutate: {
-        errorPolicy: 'all'
+        fetchPolicy: 'cache-and-network'
       }
     }
   };
   
-  return new ApolloClient(baseConfig);
+  // Apply any necessary protocol workarounds for browser compatibility
+  const finalConfig = applyProtocolWorkarounds(baseConfig);
+  
+  return new ApolloClient(finalConfig);
 };
 
 // Export the client instance

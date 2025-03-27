@@ -86,14 +86,6 @@ function MainLayout({ children }) {
                 </li>
                 <li className="nav-item">
                   <Link 
-                    to="/hug-gallery" 
-                    className={location.pathname === '/hug-gallery' ? 'active' : ''}
-                  >
-                    {t('nav.hugGallery')}
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link 
                     to="/mood-history" 
                     className={location.pathname === '/mood-history' ? 'active' : ''}
                   >
@@ -184,7 +176,6 @@ function MainLayout({ children }) {
                   <li><Link to="/dashboard">{t('navigation.dashboard')}</Link></li>
                   <li><Link to="/mood-tracker">{t('navigation.moodTracker')}</Link></li>
                   <li><Link to="/hug-center">{t('navigation.hugCenter')}</Link></li>
-                  <li><Link to="/hug-gallery">{t('nav.hugGallery')}</Link></li>
                 </ul>
               </div>
               <div className="footer-links-column">

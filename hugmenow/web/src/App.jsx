@@ -8,8 +8,6 @@ import LoadingScreen from './components/common/LoadingScreen';
 import DebugPanel from './components/common/DebugPanel';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicRoute from './components/routing/PublicRoute';
-import StaticRoute from './components/routing/StaticRoute';
-import PurpleHugGallery from './pages/PurpleHugGallery/PurpleHugGallery'; // Import directly our new component
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -19,7 +17,6 @@ const MoodTracker = lazy(() => import('./pages/MoodTracker'));
 const HugCenter = lazy(() => import('./pages/HugCenter'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
-// Only keeping the latest gallery - PurpleHugGallery
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -134,16 +131,6 @@ const App = () => {
                     <ThemeSettings />
                   </ProtectedRoute>
                 } />
-                {/* Static demo routes - always accessible */}
-                <Route path="/purple-hug-gallery" element={
-                  <StaticRoute>
-                    <PurpleHugGallery />
-                  </StaticRoute>
-                } />
-                {/* Redirect old gallery URLs to the new purple gallery */}
-                <Route path="/hug-gallery" element={<Navigate to="/purple-hug-gallery" replace />} />
-                <Route path="/animal-hug-gallery" element={<Navigate to="/purple-hug-gallery" replace />} />
-                <Route path="/human-hug-gallery" element={<Navigate to="/purple-hug-gallery" replace />} />
                 
                 {/* Not found route */}
                 <Route path="*" element={<NotFound />} />

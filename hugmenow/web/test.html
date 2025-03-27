@@ -1,82 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>API Connection Test</title>
+  <title>HugMeNow Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1 { color: #5E35B1; }
+  </style>
 </head>
 <body>
-    <h1>API Connection Test</h1>
-    <button id="testApi">Test API Connection</button>
-    <div id="result"></div>
-
-    <script>
-        document.getElementById('testApi').addEventListener('click', async () => {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Testing connection...';
-            
-            try {
-                // Test direct connection
-                const response = await fetch('/graphql', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query: `
-                            query {
-                                __schema {
-                                    types {
-                                        name
-                                    }
-                                }
-                            }
-                        `
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.errors) {
-                    resultDiv.innerHTML = `GraphQL Error: ${JSON.stringify(data.errors)}`;
-                } else {
-                    resultDiv.innerHTML = `Connection successful! GraphQL schema has ${data.data.__schema.types.length} types.`;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `Connection error: ${error.message}`;
-                
-                // Try a fallback to the specific API URL
-                try {
-                    resultDiv.innerHTML += '<br>Trying fallback connection...';
-                    
-                    const response = await fetch('http://localhost:3000/graphql', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            query: `
-                                query {
-                                    __schema {
-                                        types {
-                                            name
-                                        }
-                                    }
-                                }
-                            `
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.errors) {
-                        resultDiv.innerHTML += `<br>Fallback Error: ${JSON.stringify(data.errors)}`;
-                    } else {
-                        resultDiv.innerHTML += `<br>Fallback connection successful! GraphQL schema has ${data.data.__schema.types.length} types.`;
-                    }
-                } catch (fallbackError) {
-                    resultDiv.innerHTML += `<br>Fallback connection error: ${fallbackError.message}`;
-                }
-            }
-        });
-    </script>
+  <h1>HugMeNow Test Page</h1>
+  <p>This is a static test page to verify browser access.</p>
+  <p>If you can see this page, the web server is accessible!</p>
 </body>
 </html>

@@ -45,7 +45,6 @@ export default {
     dashboard: 'Dashboard',
     moodTracker: 'Mood Tracker',
     hugCenter: 'Hug Center',
-    hugGallery: 'Hug Gallery',
     profile: 'Profile',
     openMenu: 'Open Menu',
     closeMenu: 'Close Menu'

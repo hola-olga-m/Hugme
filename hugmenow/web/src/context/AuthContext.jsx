@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useMutation } from '@apollo/client';
 import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
 import { authApi } from '../services/api';
-import { login as directLogin, register as directRegister, anonymousLogin as directAnonymousLogin } from '../utils/graphqlProxy';
 
 // Create an authentication context
 export const AuthContext = createContext();
@@ -157,9 +156,9 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Try GraphQL mutation via Apollo client first
+      // Try GraphQL mutation first
       try {
-        console.log('Attempting GraphQL login mutation via Apollo');
+        console.log('Attempting GraphQL login mutation');
         const { data } = await loginMutation({
           variables: {
             loginInput: { email, password }
@@ -180,54 +179,30 @@ export const AuthProvider = ({ children }) => {
         // Set redirect flag
         localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
         
-        console.log('Successfully logged in via Apollo GraphQL');
+        console.log('Successfully logged in via GraphQL');
         return authData;
-      } catch (apolloError) {
-        console.error('Apollo GraphQL login failed, trying direct GraphQL:', apolloError);
+      } catch (graphqlError) {
+        console.error('GraphQL login failed, trying REST API:', graphqlError);
         
-        // Try direct GraphQL proxy
-        try {
-          console.log('Attempting direct GraphQL login');
-          const authData = await directLogin({ email, password });
-          
-          const token = authData.accessToken;
-          const user = authData.user;
-          
-          // Use our helper to store auth data with expiration
-          storeAuthData(token, user);
-          
-          // Update state
-          setAuthToken(token);
-          setCurrentUser(user);
-          
-          // Set redirect flag
-          localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
-          
-          console.log('Successfully logged in via direct GraphQL');
-          return authData;
-        } catch (directGraphqlError) {
-          console.error('Direct GraphQL login failed, trying REST API:', directGraphqlError);
-          
-          // Fallback to REST API
-          console.log('Attempting REST API login');
-          const authData = await authApi.login({ email, password });
-          
-          const token = authData.accessToken || authData.token;
-          const user = authData.user;
-          
-          // Use our helper to store auth data with expiration
-          storeAuthData(token, user);
-          
-          // Update state
-          setAuthToken(token);
-          setCurrentUser(user);
-          
-          // Set redirect flag
-          localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
-          
-          console.log('Successfully logged in via REST API');
-          return authData;
-        }
+        // Fallback to REST API
+        console.log('Attempting REST API login');
+        const authData = await authApi.login({ email, password });
+        
+        const token = authData.accessToken || authData.token;
+        const user = authData.user;
+        
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
+        // Update state
+        setAuthToken(token);
+        setCurrentUser(user);
+        
+        // Set redirect flag
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
+        
+        console.log('Successfully logged in via REST API');
+        return authData;
       }
     } catch (err) {
       console.error('Login failed completely:', err);
@@ -250,9 +225,9 @@ export const AuthProvider = ({ children }) => {
     }));
     
     try {
-      // Try GraphQL mutation via Apollo client first
+      // Try GraphQL mutation first
       try {
-        console.log('Attempting GraphQL registration mutation via Apollo');
+        console.log('Attempting GraphQL registration mutation');
         const { data } = await registerMutation({
           variables: {
             registerInput: userData
@@ -275,72 +250,47 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(user);
         
         return authData;
-      } catch (apolloError) {
-        console.error('Apollo GraphQL register failed, trying direct GraphQL:', apolloError);
+      } catch (graphqlError) {
+        console.error('GraphQL register failed, trying REST API:', graphqlError);
         
         // Log more details about the GraphQL error
-        if (apolloError.networkError) {
-          console.error('Network error details:', apolloError.networkError);
-          if (apolloError.networkError.result) {
-            console.error('Server response:', apolloError.networkError.result);
+        if (graphqlError.networkError) {
+          console.error('Network error details:', graphqlError.networkError);
+          if (graphqlError.networkError.result) {
+            console.error('Server response:', graphqlError.networkError.result);
           }
         }
         
-        if (apolloError.graphQLErrors) {
-          console.error('GraphQL error details:', apolloError.graphQLErrors);
+        if (graphqlError.graphQLErrors) {
+          console.error('GraphQL error details:', graphqlError.graphQLErrors);
         }
         
-        // Try direct GraphQL proxy
-        try {
-          console.log('Attempting direct GraphQL registration');
-          const authData = await directRegister(userData);
-          
-          const token = authData.accessToken;
-          const user = authData.user;
-          
-          // Use our helper to store auth data with expiration
-          storeAuthData(token, user);
-          
-          // Set flag for dashboard to know we're coming from registration
-          localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
-          
-          // Update state
-          setAuthToken(token);
-          setCurrentUser(user);
-          
-          console.log('Successfully registered via direct GraphQL');
-          return authData;
-        } catch (directGraphqlError) {
-          console.error('Direct GraphQL register failed, trying REST API:', directGraphqlError);
+        // Fallback to REST API
+        console.log('Attempting REST API registration');
+        const authData = await authApi.register(userData);
         
-          // Fallback to REST API
-          console.log('Attempting REST API registration');
-          const authData = await authApi.register(userData);
-          
-          console.log('REST API registration successful. Response:', JSON.stringify({
-            ...authData,
-            user: authData.user ? {
-              ...authData.user,
-              id: authData.user.id || '[ID]' // Include ID for debugging
-            } : null
-          }));
-          
-          const token = authData.accessToken || authData.token;
-          const user = authData.user;
-          
-          // Use our helper to store auth data with expiration
-          storeAuthData(token, user);
-          
-          // Set flag for dashboard to know we're coming from registration
-          localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
-          
-          // Update state
-          setAuthToken(token);
-          setCurrentUser(user);
-          
-          console.log('Successfully registered via REST API');
-          return authData;
-        }
+        console.log('REST API registration successful. Response:', JSON.stringify({
+          ...authData,
+          user: authData.user ? {
+            ...authData.user,
+            id: authData.user.id || '[ID]' // Include ID for debugging
+          } : null
+        }));
+        
+        const token = authData.accessToken || authData.token;
+        const user = authData.user;
+        
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
+        // Set flag for dashboard to know we're coming from registration
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
+        
+        // Update state
+        setAuthToken(token);
+        setCurrentUser(user);
+        
+        return authData;
       }
     } catch (err) {
       console.error('Registration failed completely:', err);
@@ -360,9 +310,9 @@ export const AuthProvider = ({ children }) => {
     console.log('Attempting anonymous login with nickname:', nickname);
     
     try {
-      // Try GraphQL mutation via Apollo client first
+      // Try GraphQL mutation first
       try {
-        console.log('Attempting GraphQL anonymous login mutation via Apollo');
+        console.log('Attempting GraphQL anonymous login mutation');
         const { data } = await anonymousLoginMutation({
           variables: {
             anonymousLoginInput: { nickname, avatarUrl }
@@ -384,65 +334,52 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(token);
         setCurrentUser(user);
         
-        console.log('Updated auth state after successful anonymous login via Apollo, set redirect flag');
+        console.log('Updated auth state after successful anonymous login, set redirect flag');
         
         return authData;
-      } catch (apolloError) {
-        console.error('Apollo GraphQL anonymous login failed, trying direct GraphQL:', apolloError);
+      } catch (graphqlError) {
+        console.error('GraphQL anonymous login failed, trying REST API:', graphqlError);
         
-        // Try direct GraphQL proxy
-        try {
-          console.log('Attempting direct GraphQL anonymous login');
-          const authData = await directAnonymousLogin({ nickname, avatarUrl });
-          
-          const token = authData.accessToken;
-          const user = authData.user;
-          
-          // Use our helper to store auth data with expiration
-          storeAuthData(token, user);
-          
-          // Set flag for dashboard to know we're coming from login
-          localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
-          
-          // Update state
-          setAuthToken(token);
-          setCurrentUser(user);
-          
-          console.log('Updated auth state after successful anonymous login via direct GraphQL, set redirect flag');
-          
-          return authData;
-        } catch (directGraphqlError) {
-          console.error('Direct GraphQL anonymous login failed, trying REST API:', directGraphqlError);
-          
-          // Fallback to REST API
-          console.log('Attempting REST API anonymous login');
-          const authData = await authApi.anonymousLogin({ nickname, avatarUrl });
-          
-          console.log('REST API anonymous login successful. Response:', JSON.stringify({
-            ...authData,
-            user: authData.user ? {
-              ...authData.user,
-              id: authData.user.id || '[ID]' // Include ID for debugging
-            } : null
-          }));
-          
-          const token = authData.accessToken || authData.token;
-          const user = authData.user;
-          
-          // Use our helper to store auth data with expiration
-          storeAuthData(token, user);
-          
-          // Set flag for dashboard to know we're coming from login
-          localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
-          
-          // Update state
-          setAuthToken(token);
-          setCurrentUser(user);
-          
-          console.log('Updated auth state after successful anonymous login via REST API, set redirect flag');
-          
-          return authData;
+        // Log more details about the GraphQL error
+        if (graphqlError.networkError) {
+          console.error('Network error details:', graphqlError.networkError);
+          if (graphqlError.networkError.result) {
+            console.error('Server response:', graphqlError.networkError.result);
+          }
         }
+        
+        if (graphqlError.graphQLErrors) {
+          console.error('GraphQL error details:', graphqlError.graphQLErrors);
+        }
+        
+        // Fallback to REST API
+        console.log('Attempting REST API anonymous login');
+        const authData = await authApi.anonymousLogin({ nickname, avatarUrl });
+        
+        console.log('REST API anonymous login successful. Response:', JSON.stringify({
+          ...authData,
+          user: authData.user ? {
+            ...authData.user,
+            id: authData.user.id || '[ID]' // Include ID for debugging
+          } : null
+        }));
+        
+        const token = authData.accessToken || authData.token;
+        const user = authData.user;
+        
+        // Use our helper to store auth data with expiration
+        storeAuthData(token, user);
+        
+        // Set flag for dashboard to know we're coming from login
+        localStorage.setItem(REDIRECT_FLAG_KEY, 'true');
+        
+        // Update state
+        setAuthToken(token);
+        setCurrentUser(user);
+        
+        console.log('Updated auth state after successful anonymous login via REST API, set redirect flag');
+        
+        return authData;
       }
     } catch (err) {
       console.error('Anonymous login failed completely:', err);
