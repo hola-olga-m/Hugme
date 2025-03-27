@@ -5,13 +5,19 @@ import hugIcon from '../../assets/icons/hug-icon.svg';
 import moodTracker from '../../assets/icons/mood-tracker.svg';
 import community from '../../assets/icons/community.svg';
 
-// Import hug type SVGs
-import ComfortingHug from '../../assets/icons/ComfortingHug.svg';
-import EnthusiasticHug from '../../assets/icons/EnthusiasticHug.svg';
-import GroupHug from '../../assets/icons/GroupHug.svg';
-import StandardHug from '../../assets/icons/StandardHug.svg';
-import SupportiveHug from '../../assets/icons/SupportiveHug.svg';
-import VirtualHug from '../../assets/icons/VirtualHug.svg';
+// Import hug type PNGs
+import ComfortingHug from '../../assets/icons/png/ComfortingHug.png';
+import EnthusiasticHug from '../../assets/icons/png/EnthusiasticHug.png';
+import GroupHug from '../../assets/icons/png/GroupHug.png';
+import StandardHug from '../../assets/icons/png/StandardHug.png';
+import SupportiveHug from '../../assets/icons/png/SupportiveHug.png';
+import VirtualHug from '../../assets/icons/png/VirtualHug.png';
+import RelaxingHug from '../../assets/icons/png/RelaxingHug.png';
+import WelcomeHug from '../../assets/icons/png/WelcomeHug.png';
+import FriendlyHug from '../../assets/icons/png/FriendlyHug.png';
+import GentleHug from '../../assets/icons/png/GentleHug.png';
+import FamilyHug from '../../assets/icons/png/FamilyHug.png';
+import SmilingHug from '../../assets/icons/png/SmilingHug.png';
 
 // SVG data URIs for mood emojis
 const moodEmojis = {
@@ -133,6 +139,36 @@ export const Icon = ({ type, score, size = 40, animate = true, ...props }) => {
     case 'VirtualHug':
       src = VirtualHug;
       alt = 'Virtual Hug';
+      break;
+    case 'Relaxing':
+    case 'RelaxingHug':
+      src = RelaxingHug;
+      alt = 'Relaxing Hug';
+      break;
+    case 'Welcome':
+    case 'WelcomeHug':
+      src = WelcomeHug;
+      alt = 'Welcome Hug';
+      break;
+    case 'Friendly':
+    case 'FriendlyHug':
+      src = FriendlyHug;
+      alt = 'Friendly Hug';
+      break;
+    case 'Gentle':
+    case 'GentleHug':
+      src = GentleHug;
+      alt = 'Gentle Hug';
+      break;
+    case 'Family':
+    case 'FamilyHug':
+      src = FamilyHug;
+      alt = 'Family Hug';
+      break;
+    case 'Smiling':
+    case 'SmilingHug':
+      src = SmilingHug;
+      alt = 'Smiling Hug';
       break;
     default:
       // For any other hug type, fall back to standard

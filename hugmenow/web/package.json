@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node express-server.js",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node copy-assets.js",
     "preview": "vite preview",
-    "build:start": "vite build && node express-server.js"
+    "build:start": "vite build && node copy-assets.js && node express-server.js"
   },
   "dependencies": {
     "@apollo/client": "^3.8.0",

@@ -6,6 +6,7 @@ import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext';
 import { GET_USER_MOODS, GET_RECEIVED_HUGS, GET_PENDING_HUG_REQUESTS, GET_MOOD_STREAK } from '../graphql/queries';
 import { Icon, UserAvatar } from '../components/ui/IconComponent';
+import HugIconTest from '../components/ui/HugIconTest';
 import '../styles/dashboard.css';
 
 function DashboardPage() {
@@ -77,6 +78,9 @@ function DashboardPage() {
           <p>Here's a summary of your emotional wellness journey.</p>
         </div>
 
+        {/* Icon Test Component */}
+        <HugIconTest />
+        
         <div className="dashboard-grid">
           {/* Current Mood Card */}
           <motion.div 
