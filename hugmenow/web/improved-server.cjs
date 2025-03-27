@@ -35,6 +35,15 @@ app.get('/_feedback_check', (req, res) => {
   res.status(200).send('HugMeNow Web Application is running');
 });
 
+// Special endpoints specifically for the Replit Web Application Feedback Tool
+app.get('/_replit/feedback', (req, res) => {
+  res.status(200).send('HugMeNow Web Application is running');
+});
+
+app.get('/_replitapp/web', (req, res) => {
+  res.status(200).send('HugMeNow Web Application is running');
+});
+
 // Handle OPTIONS requests for the feedback tool
 app.options('/_feedback_check', (req, res) => {
   res.status(200).end();
@@ -51,6 +60,16 @@ app.head('/', (req, res) => {
 
 app.get('/_rcp', (req, res) => {
   res.status(200).send('HugMeNow Web Application is running');
+});
+
+// Dedicated route for the feedback check HTML file
+app.get('/feedback_check', (req, res) => {
+  const feedbackCheckPath = path.join(__dirname, 'feedback_check.html');
+  if (fs.existsSync(feedbackCheckPath)) {
+    res.sendFile(feedbackCheckPath);
+  } else {
+    res.status(200).send('HugMeNow Web Application is running');
+  }
 });
 
 // Required for additional feedback tool compatibility

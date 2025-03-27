@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Header = () => {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, currentUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -41,18 +41,18 @@ const Header = () => {
                   <li>
                     <div className="user-menu">
                       <Link to="/profile" className="user-menu-trigger flex align-center">
-                        {user?.avatarUrl ? (
+                        {currentUser?.avatarUrl ? (
                           <img
-                            src={user.avatarUrl}
-                            alt={user.name}
+                            src={currentUser.avatarUrl}
+                            alt={currentUser.name}
                             className="avatar avatar-small"
                           />
                         ) : (
                           <div className="avatar-placeholder avatar-small">
-                            {user?.name?.charAt(0) || '?'}
+                            {currentUser?.name?.charAt(0) || '?'}
                           </div>
                         )}
-                        <span>{user?.name || 'Profile'}</span>
+                        <span>{currentUser?.name || 'Profile'}</span>
                       </Link>
                     </div>
                   </li>
