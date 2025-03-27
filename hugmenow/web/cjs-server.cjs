@@ -1,12 +1,7 @@
-import express from 'express';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-
-// Get __dirname equivalent in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
