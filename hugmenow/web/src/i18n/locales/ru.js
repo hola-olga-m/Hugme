@@ -69,6 +69,17 @@ export default {
     orContinueWith: 'или продолжить с'
   },
 
+  // Navigation
+  nav: {
+    dashboard: 'Панель управления',
+    moodTracker: 'Отслеживание настроения',
+    hugCenter: 'Центр обнимашек',
+    hugGallery: 'Галерея обнимашек',
+    profile: 'Профиль',
+    openMenu: 'Открыть меню',
+    closeMenu: 'Закрыть меню'
+  },
+
   // Dashboard
   dashboard: {
     welcome: 'Привет, {{name}}!',
