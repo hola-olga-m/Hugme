@@ -16,10 +16,11 @@ externalPort = 3001
 
 [[ports]]
 localPort = 3002
+externalPort = 3002
 
 [[ports]]
 localPort = 3003
-externalPort = 3002
+externalPort = 3003
 
 [[ports]]
 localPort = 4000
@@ -46,30 +47,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "HugMeNow"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "SyncGraphQLSchema"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "PostGraphile"
 
-[[workflows.workflow]]
-name = "HugMeNow"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node index.js"
-waitForPort = 5000
+task = "workflow.run"
+args = "HugMeNow"
 
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
@@ -172,3 +158,18 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node fix-client-pagination.js"
+
+[[workflows.workflow]]
+name = "HugMeNow"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-hugmenow.sh"
+waitForPort = 5000
