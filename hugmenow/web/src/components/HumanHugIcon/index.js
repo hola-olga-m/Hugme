@@ -1,13 +1,28 @@
 /**
  * HumanHugIcon Component
  * 
- * This component displays human-figured hug icons with animations.
- * It supports both static display and animated display modes.
+ * This component displays human-figured hug icons.
+ * Simplified version to avoid circular dependencies.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { HUG_TYPES, HUG_ICONS, getHugAnimationFrames, getAnimationType } from '../../utils/humanHugIcons';
+// Import the reference image directly
+import referenceImage from '../../assets/icons/reference-hugs.png';
+
+// Hug types based on the reference grid image
+export const HUG_TYPES = {
+  BEAR_HUG: 'BearHug',
+  SUPPORTING: 'Supporting',
+  COMFORTING: 'Comforting',
+  LOVING: 'Loving',
+  CELEBRATING: 'Celebrating',
+  FESTIVE: 'Festive',
+  CARING: 'Caring',
+  TEASING: 'Teasing',
+  INVITING: 'Inviting',
+  MOODY: 'Moody'
+};
 
 // Styled components for the HumanHugIcon
 const IconContainer = styled.div`
@@ -50,79 +65,30 @@ const IconCaption = styled.div`
 `;
 
 /**
- * HumanHugIcon Component
+ * HumanHugIcon Component - Simplified version
  * 
  * @param {Object} props - Component props
- * @param {string} props.type - Type of hug (one of HUG_TYPES keys or values)
+ * @param {string} props.type - Type of hug
  * @param {string} props.size - Size of the icon (e.g., '120px', '200px')
  * @param {boolean} props.circular - Whether to display the icon in a circular shape
- * @param {boolean} props.animated - Whether to animate the icon
  * @param {boolean} props.showCaption - Whether to show the caption
  * @param {boolean} props.selected - Whether the icon is selected (affects caption style)
  * @param {Function} props.onClick - Click handler for the icon
  */
 const HumanHugIcon = ({ 
-  type = HUG_TYPES.BEAR_HUG, 
-  variant = 1,
+  type = HUG_TYPES.BEAR_HUG,
   size = '120px', 
   circular = false, 
-  animated = false, 
   showCaption = true, 
   selected = false, 
   onClick = null,
   backgroundColor = 'transparent'
 }) => {
-  // State for tracking animation
-  const [currentFrame, setCurrentFrame] = useState(0);
-  const [animationFrames, setAnimationFrames] = useState([]);
-  const animationRef = useRef(null);
-  
-  // Normalize the type to ensure it's a valid hug type
-  const normalizedType = Object.values(HUG_TYPES).includes(type) ? type : HUG_TYPES.BEAR_HUG;
-  
-  // Ensure variant is between 1 and 4
-  const normalizedVariant = Math.min(Math.max(variant, 1), 4);
-  
-  // Get the specific icon information
-  const iconInfo = HUG_ICONS[normalizedType]?.find(icon => icon.variant === normalizedVariant) || 
-                  HUG_ICONS[HUG_TYPES.BEAR_HUG][0];
-  
   // Format the display name by adding spaces
-  const displayName = normalizedType.replace(/([A-Z])/g, ' $1').trim();
+  const displayName = type.replace(/([A-Z])/g, ' $1').trim();
   
-  // Set up animation frames when animated prop changes
-  useEffect(() => {
-    if (animated) {
-      const frames = getHugAnimationFrames(normalizedType, normalizedVariant);
-      setAnimationFrames(frames);
-      
-      // Start animation loop
-      const runAnimation = () => {
-        setCurrentFrame(prev => (prev + 1) % frames.length);
-        animationRef.current = requestAnimationFrame(runAnimation);
-      };
-      
-      animationRef.current = requestAnimationFrame(runAnimation);
-      
-      // Clean up animation loop when component unmounts or animated changes
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
-    } else {
-      // Stop animation if disabled
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      setAnimationFrames([]);
-    }
-  }, [animated, normalizedType, normalizedVariant]);
-  
-  // Determine the source of the image (static or animated frame)
-  const imageSrc = animated && animationFrames.length > 0 
-    ? animationFrames[currentFrame] 
-    : iconInfo.static;
+  // Use the imported reference image
+  const imageSrc = referenceImage;
   
   return (
     <IconContainer onClick={onClick}>

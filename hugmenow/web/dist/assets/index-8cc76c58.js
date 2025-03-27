@@ -1,4 +1,4 @@
-import{d as t,m as c,a as s,r as d,j as e}from"./animal-hug-gallery-3fae840f.js";import{a as v,w as S,b as H}from"./main-8e66d621.js";import{a as p,g as w,H as x,b as I,c as k,d as T}from"./hug-icons-90039baa.js";const z=t.div`
+import{d as t,m as c,a as s,r as d,j as e}from"./animal-hug-gallery-3fae840f.js";import{a as v,w as S,b as H}from"./main-380cd352.js";import{a as p,g as w,H as x,b as I,c as k,d as T}from"./hug-icons-90039baa.js";const z=t.div`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -117,4 +117,4 @@ import{d as t,m as c,a as s,r as d,j as e}from"./animal-hug-gallery-3fae840f.js"
     transform: translateY(1px);
   }
 `,K={hover:{scale:1.05,boxShadow:"0 5px 15px rgba(0,0,0,0.1)",transition:{type:"spring",stiffness:300,damping:15}},tap:{scale:.98,transition:{type:"spring",stiffness:300,damping:15}}},Z=()=>{v();const[n,l]=d.useState("standard"),r=i=>{l(i)};return e.jsx(S,{children:e.jsxs($,{children:[e.jsxs(R,{children:[e.jsx(U,{children:"Hug Icon Gallery"}),e.jsx(Y,{children:"Explore the different types of hugs available in the HugMeNow app. These icons are used throughout the application to represent different types of virtual hugs that you can send to friends and loved ones."})]}),e.jsxs(u,{children:[e.jsx(f,{children:"Individual Hug Icons"}),e.jsx(_,{children:I().map(i=>e.jsxs(q,{whileHover:"hover",whileTap:"tap",variants:K,isSelected:n===i,color:k(i),onClick:()=>r(i),children:[e.jsx(x,{type:i,size:"md",showBackground:!1}),e.jsx(A,{children:T(i)})]},i))})]}),e.jsxs(u,{children:[e.jsx(f,{children:"Hug Icon Gallery Component"}),e.jsx(y,{title:"Select a Hug Type",description:"Choose the type of hug you want to send",defaultSelectedType:n,onSelectHugType:r})]}),e.jsx(F,{children:e.jsx(H,{to:"/login",children:e.jsx(J,{children:"Sign In to HugMeNow"})})})]})})};export{Z as default};
-//# sourceMappingURL=index-be6deede.js.map
+//# sourceMappingURL=index-8cc76c58.js.map

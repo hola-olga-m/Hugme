@@ -1,4 +1,4 @@
-import{d as r,j as o}from"./animal-hug-gallery-3fae840f.js";import{b as e}from"./main-8e66d621.js";import"./hug-icons-90039baa.js";const t=r.div`
+import{d as r,j as o}from"./animal-hug-gallery-3fae840f.js";import{b as e}from"./main-380cd352.js";import"./hug-icons-90039baa.js";const t=r.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,4 +43,4 @@ import{d as r,j as o}from"./animal-hug-gallery-3fae840f.js";import{b as e}from".
     text-decoration: none;
   }
 `,l=()=>o.jsxs(t,{children:[o.jsx(n,{children:"404"}),o.jsx(i,{children:"Page Not Found"}),o.jsx(a,{children:"The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."}),o.jsx(d,{to:"/",children:"Return to Home"})]});export{l as default};
-//# sourceMappingURL=NotFound-09f93177.js.map
+//# sourceMappingURL=NotFound-c8116041.js.map
