@@ -6,6 +6,9 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Define distPath early so it can be used throughout
+const distPath = path.join(__dirname, 'dist');
+
 // Enable CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -184,7 +187,6 @@ app.use('/graphql', createProxyMiddleware({
 }));
 
 // Serve static files from dist directory
-const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
 
 // Serve index.html for all routes (SPA)

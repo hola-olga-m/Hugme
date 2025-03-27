@@ -39,9 +39,9 @@ if curl -s http://localhost:5000/health-check > /dev/null || curl -s http://loca
   echo "Frontend server is already running on port 5000"
   FRONTEND_RUNNING=true
 else
-  # Start the Frontend server
+  # Start the Frontend server with the improved server implementation
   echo "Starting Frontend server on port 5000..."
-  cd /home/runner/workspace/hugmenow/web && node fixed-server.cjs &
+  cd /home/runner/workspace/hugmenow/web && node improved-server.cjs &
   FRONTEND_PID=$!
   FRONTEND_RUNNING=false
 
