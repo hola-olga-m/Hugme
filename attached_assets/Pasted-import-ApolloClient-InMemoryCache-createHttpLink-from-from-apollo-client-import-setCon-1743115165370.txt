@@ -1,0 +1,100 @@
+import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error';
+import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
+
+// Base URLs
+export const API_BASE_URL = ''; // Empty for relative path, will use Vite proxy
+export const GRAPHQL_URL = '/graphql';
+
+// Create an error link for handling GraphQL errors
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ message, locations, path }) => {
+      // Slightly improved logging for locations
+      const formattedLocations = locations ? JSON.stringify(locations) : 'N/A';
+      console.error(
+        `[GraphQL error]: Message: ${message}, Location: ${formattedLocations}, Path: ${path}`
+      );
+      // TODO: Consider logging to a dedicated error tracking service in production
+    });
+  }
+
+  if (networkError) {
+    console.error(`[Network error]: ${networkError}`);
+    // TODO: Consider logging to a dedicated error tracking service in production
+  }
+});
+
+// Create an HTTP link for the GraphQL endpoint
+const httpLink = createHttpLink({
+  uri: `${API_BASE_URL}${GRAPHQL_URL}`,
+  credentials: 'include' // Include cookies for auth
+});
+
+// Create an auth link to add the token to each request
+const authLink = setContext((_, { headers }) => {
+  // Get the token from localStorage
+  const token = localStorage.getItem('authToken');
+
+  // Return the headers, adding the Authorization header only if the token exists
+  return {
+    headers: {
+      ...headers,
+      ...(token ? { authorization: `Bearer ${token}` } : {}) // Use spread syntax to conditionally add the header
+    }
+  };
+});
+
+// Create the Apollo client
+export const createApolloClient = () => {
+  const baseConfig = {
+    link: from([errorLink, authLink, httpLink]), // Order: Error Handling -> Auth -> HTTP Request
+    cache: new InMemoryCache({
+      typePolicies: {
+        Query: {
+          fields: {
+            // Note: This merge strategy replaces the entire list.
+            // Ensure this is the desired behavior (e.g., for non-paginated lists).
+            userMoods: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            },
+            publicMoods: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            },
+            sentHugs: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            },
+            receivedHugs: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            }
+          }
+        }
+      }
+    }),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'cache-and-network' // Sensible default: Check cache, then network, update cache.
+      }
+      // You might also consider default options for query and mutate if needed
+      // query: { fetchPolicy: 'cache-first' },
+      // mutate: { errorPolicy: 'all' }
+    }
+  };
+
+  // Apply any necessary protocol workarounds for browser compatibility
+  const finalConfig = applyProtocolWorkarounds(baseConfig);
+
+  return new ApolloClient(finalConfig);
+};
+
+// Export a ready-to-use client instance
+export const client = createApolloClient();
