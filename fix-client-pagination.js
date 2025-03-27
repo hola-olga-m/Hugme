@@ -3,9 +3,9 @@
  * Script to remove pagination parameters from client-side GraphQL queries
  */
 
-const fs = require('fs');
-const path = require('path');
-const glob = require('glob');
+import fs from 'fs';
+import path from 'path';
+import { glob } from 'glob';
 
 // Default files identified in fix-queries.js
 const defaultFiles = [
@@ -51,16 +51,13 @@ const fixPatterns = [
 ];
 
 // Find all React component files that might contain GraphQL queries
-function findComponentFiles() {
-  return new Promise((resolve, reject) => {
-    glob('./hugmenow/web/src/**/*.{jsx,js,tsx,ts}', (err, files) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(files);
-      }
-    });
-  });
+async function findComponentFiles() {
+  try {
+    return await glob('./hugmenow/web/src/**/*.{jsx,js,tsx,ts}');
+  } catch (err) {
+    console.error('Error finding component files:', err);
+    return [];
+  }
 }
 
 // Main function to fix all files
@@ -137,7 +134,7 @@ async function fixAllFiles() {
 // Run the fix function
 fixAllFiles();
 
-module.exports = { 
+export { 
   fixPatterns,
   findComponentFiles,
   fixAllFiles

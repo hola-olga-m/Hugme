@@ -176,7 +176,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       .split(' ')
       .map(part => part[0])
       .join('')
-      .toUpperCase()
+      .toUpperCase
       .substring(0, 2);
   };
 

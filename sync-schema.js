@@ -8,9 +8,9 @@
  * and applies them to both the server and client configurations.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
 
 // Configuration
 const SCHEMA_UPDATES_PATH = './schema-updates.graphql';
@@ -216,9 +216,9 @@ function rebuildTypeContent(typeName, fields) {
 }
 
 // Execute when run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const result = syncSchema();
   process.exit(result ? 0 : 1);
 }
 
-module.exports = { syncSchema };
+export { syncSchema };

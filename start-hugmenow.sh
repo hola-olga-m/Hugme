@@ -6,9 +6,9 @@ echo "Starting HugMeNow application services..."
 # Get the API port from environment variable or use default
 API_PORT=${API_PORT:-3002}
 
-# Start the API server in the background
+# Start the API server in the background using the simplified server
 echo "Starting API server on port ${API_PORT}..."
-cd hugmenow/api && PORT=${API_PORT} node dist/main.js &
+cd hugmenow/api && PORT=${API_PORT} node simplified-server.js &
 API_PID=$!
 
 # Give the API server a moment to start up

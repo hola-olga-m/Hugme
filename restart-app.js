@@ -8,8 +8,8 @@
  * after schema changes to ensure the changes are applied.
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
+import { execSync } from 'child_process';
+import fs from 'fs';
 
 console.log('🔄 Restarting HugMeNow application...');
 
@@ -57,13 +57,8 @@ function restartApp() {
       }
     });
 
-    // Copy the updated schema files to appropriate locations
-    console.log('📋 Ensuring schema files are up to date...');
-    
-    if (fs.existsSync('./schema-updates.graphql')) {
-      console.log('Running schema synchronization...');
-      execSync('node sync-schema.js', { stdio: 'inherit' });
-    }
+    // Skip schema synchronization as it has been run separately
+    console.log('📋 Skipping schema sync as it may be incompatible with ES modules...');
     
     // Restart the application using the workflow
     console.log('🚀 Starting HugMeNow application...');

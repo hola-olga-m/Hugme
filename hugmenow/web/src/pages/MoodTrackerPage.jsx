@@ -5,7 +5,7 @@ import MainLayout from '../layouts/MainLayout';
 import { CREATE_MOOD } from '../graphql/mutations';
 import { GET_USER_MOODS } from '../graphql/queries';
 
-function MoodTrackerPage() {
+function MoodTrackerPage {
   const [moodScore, setMoodScore] = useState(5);
   const [moodNote, setMoodNote] = useState('');
   const [isPublic, setIsPublic] = useState(false);
@@ -13,11 +13,10 @@ function MoodTrackerPage() {
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [todaysMood, setTodaysMood] = useState(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate;
 
   // Fetch user's moods
   const { data: moodsData, loading: moodsLoading } = useQuery(GET_USER_MOODS, {
-    variables: { limit: 1 },
     fetchPolicy: 'network-only'
   });
 
@@ -33,12 +32,12 @@ function MoodTrackerPage() {
     if (moodsData && moodsData.userMoods && moodsData.userMoods.length > 0) {
       const latestMood = moodsData.userMoods[0];
       const moodDate = new Date(latestMood.createdAt);
-      const today = new Date();
+      const today = new Date;
       
       if (
-        moodDate.getDate() === today.getDate() &&
-        moodDate.getMonth() === today.getMonth() &&
-        moodDate.getFullYear() === today.getFullYear()
+        moodDate.getDate === today.getDate &&
+        moodDate.getMonth === today.getMonth &&
+        moodDate.getFullYear === today.getFullYear
       ) {
         setTodaysMood(latestMood);
       }
@@ -46,7 +45,7 @@ function MoodTrackerPage() {
   }, [moodsData]);
 
   const handleMoodSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault;
     setError(null);
     setSuccess(false);
     setSubmitting(true);
@@ -56,7 +55,7 @@ function MoodTrackerPage() {
         variables: {
           createMoodInput: {
             score: moodScore,
-            note: moodNote.trim() || undefined,
+            note: moodNote.trim || undefined,
             isPublic
           }
         }
@@ -128,7 +127,7 @@ function MoodTrackerPage() {
                   <blockquote className="mood-note">"{todaysMood.note}"</blockquote>
                 )}
                 <p className="mood-timestamp">
-                  Logged at {new Date(todaysMood.createdAt).toLocaleTimeString()}
+                  Logged at {new Date(todaysMood.createdAt).toLocaleTimeString}
                 </p>
               </div>
             </div>
