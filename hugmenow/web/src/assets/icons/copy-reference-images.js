@@ -15,10 +15,9 @@ const __dirname = path.dirname(__filename);
 
 // Define paths
 const iconsDir = __dirname;
-const rootDir = path.join(__dirname, '..', '..', '..', '..');
 const publicImagesDir = path.join(__dirname, '..', '..', '..', 'public', 'images');
 const distImagesDir = path.join(__dirname, '..', '..', '..', 'dist', 'images');
-const sourceImagePath = path.join(rootDir, 'attached_assets', 'ChatGPT Image Mar 27, 2025, 08_37_11 AM.png');
+const sourceImagePath = '/home/runner/workspace/attached_assets/ChatGPT Image Mar 27, 2025, 08_37_11 AM.png';
 const referenceImageName = 'reference-human-hugs.png';
 
 // Ensure directories exist

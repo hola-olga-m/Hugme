@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // Configuration
 const config = {
-  inputImagePath: path.join(__dirname, 'reference-human-hugs.png'), 
+  inputImagePath: '/home/runner/workspace/attached_assets/ChatGPT Image Mar 27, 2025, 08_37_11 AM.png',
   outputDir: path.join(__dirname, 'png-icons'),
   GRID_ROWS: 4,
   GRID_COLS: 6,
@@ -33,10 +33,8 @@ if (!fs.existsSync(config.outputDir)) {
   console.log(`Created output directory: ${config.outputDir}`);
 }
 
-// Copy the reference image to the assets directory
+// Also save the reference image to public directory
 const referenceImageName = 'reference-human-hugs.png';
-const referenceImageSrc = path.join(__dirname, '..', '..', '..', 'attached_assets', 'ChatGPT Image Mar 27, 2025, 08_37_11 AM.png');
-const referenceImageDest = path.join(__dirname, referenceImageName);
 const publicImagesDir = path.join(__dirname, '..', '..', '..', 'public', 'images');
 
 // Create public/images directory if it doesn't exist
@@ -45,16 +43,13 @@ if (!fs.existsSync(publicImagesDir)) {
   console.log(`Created public images directory: ${publicImagesDir}`);
 }
 
-// Copy the reference image to both locations
+// Copy the reference image to public location
 try {
-  fs.copyFileSync(referenceImageSrc, referenceImageDest);
-  console.log(`Copied reference image to: ${referenceImageDest}`);
-  
-  fs.copyFileSync(referenceImageSrc, path.join(publicImagesDir, referenceImageName));
+  fs.copyFileSync(config.inputImagePath, path.join(publicImagesDir, referenceImageName));
   console.log(`Copied reference image to public directory`);
 } catch (err) {
-  console.error(`Error copying reference image: ${err.message}`);
-  process.exit(1);
+  console.error(`Error copying reference image to public: ${err.message}`);
+  // Continue execution even if copy fails
 }
 
 /**

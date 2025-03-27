@@ -1,1 +1,3 @@
-export { default } from './HumanHugGallery';
+import HumanHugGallery from './HumanHugGallery';
+
+export default HumanHugGallery;

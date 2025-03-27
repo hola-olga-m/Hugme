@@ -1,243 +1,223 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-/**
- * Human Hug Gallery Component
- * A standalone component that displays the human-figured hug icons,
- * both static and animated versions.
- */
-
-// Styled components for the gallery
 const GalleryContainer = styled.div`
+  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  text-align: center;
-  margin-bottom: 1rem;
-  color: ${props => props.theme.colors.primary};
-`;
-
-const Description = styled.p`
-  text-align: center;
-  margin-bottom: 2rem;
-  color: ${props => props.theme.colors.text};
+  
+  h1 {
+    color: #6a4c93;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .reference-image {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const IconsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
 `;
 
 const IconCard = styled.div`
-  background-color: ${props => props.theme.colors.cardBackground};
+  background: #f8f9fa;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  h3 {
+    margin: 10px 0;
+    color: #495057;
+    text-align: center;
+  }
+  
+  img {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .animation-container {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .animation-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    
+    &.active {
+      opacity: 1;
+    }
   }
 `;
 
-const IconName = styled.h3`
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  color: ${props => props.theme.colors.primary};
+const AnimationControls = styled.div`
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  
+  button {
+    padding: 5px 10px;
+    background: #6a4c93;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    
+    &:hover {
+      background: #563d7c;
+    }
+    
+    &:disabled {
+      background: #adb5bd;
+      cursor: not-allowed;
+    }
+  }
 `;
 
-const IconDescription = styled.p`
-  font-size: 0.9rem;
-  color: ${props => props.theme.colors.text};
-`;
-
-const IconImage = styled.img`
-  width: 100%;
-  max-width: 150px;
-  height: auto;
-  margin: 0 auto;
-`;
-
-const Tabs = styled.div`
+const TopControls = styled.div`
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 20px;
+  gap: 10px;
 `;
 
-const Tab = styled.button`
-  padding: 0.75rem 1.5rem;
-  border: none;
-  background-color: ${props => props.active ? props.theme.colors.primary : props.theme.colors.cardBackground};
-  color: ${props => props.active ? 'white' : props.theme.colors.text};
-  font-weight: ${props => props.active ? 'bold' : 'normal'};
-  border-radius: 8px;
-  margin: 0 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  
-  &:hover {
-    background-color: ${props => props.active ? props.theme.colors.primary : props.theme.colors.background};
-  }
-`;
-
-const ReferenceSection = styled.div`
-  text-align: center;
-  margin-top: 3rem;
-  padding: 1.5rem;
-  background-color: ${props => props.theme.colors.cardBackground};
-  border-radius: 8px;
-`;
-
-const ReferenceTitle = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: ${props => props.theme.colors.primary};
-`;
-
-const ReferenceImage = styled.img`
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-`;
-
-// Main component
 const HumanHugGallery = () => {
-  const [activeTab, setActiveTab] = useState('static');
-  const [icons, setIcons] = useState([]);
-  const [currentFrame, setCurrentFrame] = useState(1);
+  const [hugTypes, setHugTypes] = useState([
+    'BearHug', 'Supporting', 'Comforting', 'Loving', 'Celebrating', 'Festive',
+    'Caring', 'Teasing', 'Teasing2', 'Inviting', 'Inviting2', 'Moody'
+  ]);
+  const [activeAnimations, setActiveAnimations] = useState({});
+  const [isPlaying, setIsPlaying] = useState({});
   
-  // This would normally load the images dynamically using import.meta.glob or similar
-  // Since we can't do that directly, we'll mimic it with predefined data
-  const iconTypes = [
-    {
-      type: 'BearHug',
-      description: 'A warm, enveloping hug that brings comfort and security.'
-    },
-    {
-      type: 'Supporting',
-      description: 'A supportive embrace for tough times.'
-    },
-    {
-      type: 'Comforting',
-      description: 'A gentle hug to soothe and calm.'
-    },
-    {
-      type: 'Loving',
-      description: 'A tender expression of affection and care.'
-    },
-    {
-      type: 'Celebrating',
-      description: 'A joyful hug to share in happy moments.'
-    },
-    {
-      type: 'Festive',
-      description: 'A cheerful hug for celebrations and special occasions.'
-    },
-    {
-      type: 'Caring',
-      description: 'A nurturing embrace that shows deep compassion.'
-    },
-    {
-      type: 'Teasing',
-      description: 'A playful squeeze to lighten the mood.'
-    },
-    {
-      type: 'Inviting',
-      description: 'A welcoming hug that brings people together.'
-    },
-    {
-      type: 'Moody',
-      description: 'A consoling hug for those emotion-heavy moments.'
+  // Function to handle animation playback
+  const handleAnimation = (hugType, action) => {
+    if (action === 'play') {
+      setIsPlaying(prev => ({ ...prev, [hugType]: true }));
+    } else if (action === 'pause') {
+      setIsPlaying(prev => ({ ...prev, [hugType]: false }));
     }
-  ];
+  };
   
-  // Set up animation timer
+  // Animation frames management
   useEffect(() => {
-    if (activeTab === 'animated') {
-      const interval = setInterval(() => {
-        setCurrentFrame(prev => (prev % 6) + 1);
-      }, 150);
-      
-      return () => clearInterval(interval);
-    }
-  }, [activeTab]);
-  
-  // Prepare icon paths
-  useEffect(() => {
-    const basePath = '/images';
+    const animationIntervals = {};
     
-    // In a real implementation, we would load the actual files dynamically
-    // Here we're just constructing paths based on our knowledge of the file structure
-    const preparedIcons = iconTypes.map(icon => {
-      const staticIconPath = `${basePath}/human-${icon.type}.png`;
-      const animatedFramePaths = Array.from({ length: 6 }, (_, i) => 
-        `${basePath}/human-${icon.type}-animated_frame${i + 1}.png`
-      );
-      
-      return {
-        ...icon,
-        staticPath: staticIconPath,
-        animatedPaths: animatedFramePaths
-      };
+    Object.entries(isPlaying).forEach(([hugType, playing]) => {
+      if (playing) {
+        let frameIndex = 0;
+        
+        animationIntervals[hugType] = setInterval(() => {
+          frameIndex = (frameIndex + 1) % 6; // 6 frames per animation
+          setActiveAnimations(prev => ({
+            ...prev,
+            [hugType]: frameIndex + 1 // Frame indices start at 1
+          }));
+        }, 150); // Frame rate
+      } else if (animationIntervals[hugType]) {
+        clearInterval(animationIntervals[hugType]);
+        delete animationIntervals[hugType];
+      }
     });
     
-    setIcons(preparedIcons);
-  }, []);
+    return () => {
+      // Clean up all intervals
+      Object.values(animationIntervals).forEach(interval => clearInterval(interval));
+    };
+  }, [isPlaying]);
+  
+  // Play/pause all animations
+  const handleAllAnimations = (action) => {
+    const newState = {};
+    hugTypes.forEach(type => {
+      newState[type] = action === 'play';
+    });
+    setIsPlaying(newState);
+  };
   
   return (
     <GalleryContainer>
-      <Title>Human Hug Icons Gallery</Title>
-      <Description>
-        Explore our collection of human-figured hug icons, designed to express different
-        emotions and types of support.
-      </Description>
+      <h1>Human Hug Icons Gallery</h1>
       
-      <Tabs>
-        <Tab 
-          active={activeTab === 'static'} 
-          onClick={() => setActiveTab('static')}
-        >
-          Static Icons
-        </Tab>
-        <Tab 
-          active={activeTab === 'animated'} 
-          onClick={() => setActiveTab('animated')}
-        >
-          Animated Icons
-        </Tab>
-      </Tabs>
+      <img 
+        className="reference-image" 
+        src="/images/reference-human-hugs.png" 
+        alt="Human hug icons reference grid" 
+      />
+      
+      <TopControls>
+        <button onClick={() => handleAllAnimations('play')}>
+          Play All Animations
+        </button>
+        <button onClick={() => handleAllAnimations('pause')}>
+          Pause All Animations
+        </button>
+      </TopControls>
       
       <IconsGrid>
-        {icons.map((icon) => (
-          <IconCard key={icon.type}>
-            <IconImage 
-              src={activeTab === 'static' 
-                ? icon.staticPath 
-                : icon.animatedPaths[currentFrame - 1]} 
-              alt={`${icon.type} hug icon`} 
-            />
-            <IconName>{icon.type}</IconName>
-            <IconDescription>{icon.description}</IconDescription>
+        {hugTypes.map(hugType => (
+          <IconCard key={hugType}>
+            <h3>{hugType}</h3>
+            
+            {isPlaying[hugType] ? (
+              <div className="animation-container">
+                {[1, 2, 3, 4, 5, 6].map(frame => (
+                  <img
+                    key={`${hugType}-frame-${frame}`}
+                    src={`/assets/icons/png-icons/human-${hugType}-animated_frame${frame}.png`}
+                    alt={`${hugType} animation frame ${frame}`}
+                    className={`animation-frame ${activeAnimations[hugType] === frame ? 'active' : ''}`}
+                  />
+                ))}
+              </div>
+            ) : (
+              <img
+                src={`/assets/icons/png-icons/human-${hugType}.png`}
+                alt={`${hugType} icon`}
+              />
+            )}
+            
+            <AnimationControls>
+              <button 
+                onClick={() => handleAnimation(hugType, 'play')}
+                disabled={isPlaying[hugType]}
+              >
+                Play
+              </button>
+              <button 
+                onClick={() => handleAnimation(hugType, 'pause')}
+                disabled={!isPlaying[hugType]}
+              >
+                Pause
+              </button>
+            </AnimationControls>
           </IconCard>
         ))}
       </IconsGrid>
-      
-      <ReferenceSection>
-        <ReferenceTitle>Reference Grid</ReferenceTitle>
-        <ReferenceImage 
-          src="/images/reference-human-hugs.png" 
-          alt="Hug types reference grid" 
-        />
-      </ReferenceSection>
     </GalleryContainer>
   );
 };
