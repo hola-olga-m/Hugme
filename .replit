@@ -8,22 +8,6 @@ runButton = "Project"
 
 [[workflows.workflow]]
 name = "HugMeNow Full Stack"
-author = "agent"
-mode = "sequential"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "./start-hugmenow.sh"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "HugMeNow Full Stack"
 mode = "parallel"
 author = "agent"
 
@@ -35,7 +19,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && node simple-server.js"
+args = "./start-hugmenow.sh"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -52,11 +36,11 @@ args = "HugMeNow API Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "HugMeNow Full Stack"
+args = "HugMeNow Frontend"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "HugMeNow Frontend"
+args = "HugMeNow Full Stack"
 
 [[workflows.workflow]]
 name = "HugMeNow API Server"
