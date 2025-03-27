@@ -9,6 +9,8 @@ import DashboardStats from '../components/dashboard/DashboardStats';
 import FriendMoodsWidget from '../components/dashboard/FriendMoodsWidget';
 import QuickSendHugWidget from '../components/dashboard/QuickSendHugWidget';
 import ReceivedHugsWidget from '../components/dashboard/ReceivedHugsWidget';
+import QuickHugButton from '../components/dashboard/QuickHugButton';
+import WelcomeHugButton from '../components/dashboard/WelcomeHugButton';
 import { Icon } from '../components/ui/IconComponent';
 
 // Styled components
@@ -36,6 +38,16 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  @media (max-width: 768px) {
+    gap: 8px;
+  }
 `;
 
 const UserInfo = styled.div`
@@ -331,24 +343,28 @@ const Dashboard = () => {
           <Icon type="hugIcon" size={28} />
           HugMeNow
         </Logo>
-        <UserInfo>
-          <Avatar 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', bounce: 0.5 }}
-            whileHover={{ scale: 1.1 }}
-          >
-            {getInitials(currentUser?.name)}
-          </Avatar>
-          <Username className="user-name">{currentUser?.name || 'Guest'}</Username>
-          <LogoutButton 
-            onClick={handleLogout}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Logout
-          </LogoutButton>
-        </UserInfo>
+        <HeaderActions>
+          <QuickHugButton onSent={() => console.log('Quick hug sent successfully!')} />
+          <WelcomeHugButton onSent={() => console.log('Welcome hug and friend request sent successfully!')} />
+          <UserInfo>
+            <Avatar 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', bounce: 0.5 }}
+              whileHover={{ scale: 1.1 }}
+            >
+              {getInitials(currentUser?.name)}
+            </Avatar>
+            <Username className="user-name">{currentUser?.name || 'Guest'}</Username>
+            <LogoutButton 
+              onClick={handleLogout}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Logout
+            </LogoutButton>
+          </UserInfo>
+        </HeaderActions>
       </DashboardHeader>
       
       <DashboardContent>

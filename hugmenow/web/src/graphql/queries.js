@@ -370,3 +370,37 @@ export const RESPOND_TO_HUG_REQUEST = gql`
     }
   }
 `;
+
+export const SEND_FRIEND_REQUEST = gql`
+  mutation SendFriendRequest($createFriendshipInput: CreateFriendshipInput!) {
+    sendFriendRequest(createFriendshipInput: $createFriendshipInput) {
+      id
+      requesterId
+      recipientId
+      status
+      followsMood
+      createdAt
+      requester {
+        id
+        username
+        name
+      }
+      recipient {
+        id
+        username
+        name
+      }
+    }
+  }
+`;
+
+export const RESPOND_TO_FRIEND_REQUEST = gql`
+  mutation RespondToFriendRequest($updateFriendshipInput: UpdateFriendshipInput!) {
+    respondToFriendRequest(updateFriendshipInput: $updateFriendshipInput) {
+      id
+      status
+      followsMood
+      updatedAt
+    }
+  }
+`;
