@@ -100,3 +100,20 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "./start-postgraphile.sh"
 waitForPort = 3003
+
+[[workflows.workflow]]
+name = "FixGraphQLSchema"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = '''node fix-schema-mismatches.js "$(cat hugmenow/web/src/graphql/error.log || echo '[GraphQL error]: Message: Unknown argument \"limit\" on field \"Query.publicMoods\"')"'''
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node sync-schema.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"Schema fixes generated. You may need to restart the application to apply changes.\""

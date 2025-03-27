@@ -77,9 +77,9 @@ function analyzeFile(filePath) {
 function extractIssues(output) {
   const issues = [];
   const lines = output.split('\n');
-  
+
   let currentIssue = null;
-  
+
   for (const line of lines) {
     if (line.includes('→ ')) {
       // This is an issue line
@@ -88,7 +88,7 @@ function extractIssues(output) {
         message: issue,
         suggestion: null
       };
-      
+
       // Generate suggestions based on error type
       if (issue.includes('Unknown argument')) {
         const match = issue.match(/Unknown argument "(\w+)"/);
@@ -105,13 +105,60 @@ function extractIssues(output) {
         if (match) {
           currentIssue.suggestion = `Update the server schema to include the '${match[1]}' type`;
         }
+      } else if (issue.includes('type "Int" used in position expecting type "Float"')) {
+        const match = issue.match(/Variable "(\$\w+)"/);
+        if (match) {
+          currentIssue.suggestion = `Convert ${match[1]} from Int to Float in your schema definition`;
+        }
       }
-      
+
       issues.push(currentIssue);
     }
   }
-  
+
   return issues;
+}
+
+function generateSchemaUpdates(issues) {
+  const schemaUpdates = [];
+
+  // Group issues by type to handle them more effectively
+  const argIssues = issues.filter(i => i.message.includes('Unknown argument'));
+  const fieldIssues = issues.filter(i => i.message.includes('Cannot query field'));
+  const typeIssues = issues.filter(i => i.message.includes('Unknown type'));
+  const typeMismatchIssues = issues.filter(i => i.message.includes('type "Int" used in position expecting type "Float"'));
+
+  // Handle unknown arguments by extending types
+  for (const issue of argIssues) {
+    const argMatch = issue.message.match(/Unknown argument "(\w+)" on field "Query\.(\w+)"/);
+    if (argMatch) {
+      const [_, argName, fieldName] = argMatch;
+      let argType = 'Int';
+
+      // Infer argument type
+      if (argName === 'search' || argName === 'filter') {
+        argType = 'String';
+      } else if (argName === 'limit' || argName === 'offset') {
+        argType = 'Int';
+      }
+
+      schemaUpdates.push(`extend type Query {
+  ${fieldName}(${argName}: ${argType}): [${fieldName.replace(/s$/, '')}!]
+}`);
+    }
+  }
+
+  // Handle type mismatches
+  for (const issue of typeMismatchIssues) {
+    const varMatch = issue.message.match(/Variable "(\$\w+)" of type "(\w+)" used in position expecting type "(\w+)"/);
+    if (varMatch) {
+      const [_, varName, fromType, toType] = varMatch;
+      schemaUpdates.push(`# Type conversion issue: ${varName} should be ${toType} but was ${fromType}
+# Update your client query to use ${toType} instead of ${fromType} or extend schema`);
+    }
+  }
+
+  return schemaUpdates.join('\n\n');
 }
 
 function writeAnalysisReport(results) {
@@ -191,4 +238,36 @@ function analyzeSchema() {
   }
 }
 
-analyzeSchema();
+function fixSchemaIssues(output) {
+  const issues = extractIssues(output);
+  const schemaUpdates = generateSchemaUpdates(issues);
+
+  // Write updates to schema-updates.graphql file
+  const fs = require('fs');
+  fs.writeFileSync('schema-updates.graphql', schemaUpdates, 'utf8');
+
+  console.log(`Identified ${issues.length} schema issues.`);
+  console.log('Schema update suggestions written to schema-updates.graphql');
+  return issues;
+}
+
+module.exports = {
+  extractIssues,
+  generateSchemaUpdates,
+  fixSchemaIssues
+};
+
+// If run directly from command line
+if (require.main === module) {
+  const fs = require('fs');
+  const consoleOutput = process.argv[2] || './graphql-errors.log';
+
+  let output;
+  try {
+    output = fs.readFileSync(consoleOutput, 'utf8');
+  } catch (error) {
+    output = consoleOutput; // Use the argument directly if not a file
+  }
+
+  fixSchemaIssues(output);
+}

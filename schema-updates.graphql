@@ -20,3 +20,28 @@ type Query {
   userMoods: [Mood!]!
   users(search: String, limit: Int, offset: Int): [User!]!
 }
+# Schema extensions to fix the GraphQL errors
+
+# Fix for publicMoods pagination and filtering
+extend type Query {
+  publicMoods(limit: Int, offset: Int): [Mood!]
+}
+
+# Fix for friendsMoods pagination
+extend type Query {
+  friendsMoods(limit: Int, offset: Int): [Mood!]
+}
+
+# Fix for receivedHugs pagination
+extend type Query {
+  receivedHugs(limit: Int, offset: Int): [Hug!]
+}
+
+# Fix for users search and pagination
+extend type Query {
+  users(search: String, limit: Int, offset: Int): [User!]
+}
+
+# Note: For the type mismatch error (Int vs Float), either:
+# 1. Update your client queries to use Float instead of Int for limit variables, or
+# 2. Update your server schema to accept Int for these arguments
