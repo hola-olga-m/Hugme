@@ -39,11 +39,10 @@ app.get('/test', (req, res) => {
 
 // Setup API proxy
 app.use('/api', createProxyMiddleware({
-  target: 'http://127.0.0.1:3001',
+  target: 'http://localhost:3000',
   changeOrigin: true,
-  pathRewrite: {
-    '^/api': '/', // rewrite path
-  },
+  // Don't rewrite the path, as the API server expects /api prefix
+  pathRewrite: null,
   onProxyReq: (proxyReq, req, res) => {
     console.log(`Proxying API request: ${req.method} ${req.url} -> ${proxyReq.path}`);
   },
@@ -58,10 +57,10 @@ app.use('/api', createProxyMiddleware({
 
 // Setup GraphQL proxy
 app.use('/graphql', createProxyMiddleware({
-  target: 'http://127.0.0.1:3001',
+  target: 'http://localhost:3000',
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`Proxying GraphQL request: ${req.method} ${req.url}`);
+    console.log(`Proxying GraphQL request: ${req.method} ${req.url} -> ${proxyReq.path}`);
   },
   onError: (err, req, res) => {
     console.error('GraphQL proxy error:', err);

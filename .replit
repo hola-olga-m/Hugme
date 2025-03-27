@@ -60,7 +60,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/api && node simplified-server.js"
-waitForPort = 3001
+waitForPort = 3000
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
