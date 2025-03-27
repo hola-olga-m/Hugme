@@ -20,6 +20,8 @@ const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
 const HugGalleryDemo = lazy(() => import('./pages/HugGalleryDemo'));
 const PublicHugGallery = lazy(() => import('./pages/PublicHugGallery'));
+const AnimalHugGalleryDemo = lazy(() => import('./pages/AnimalHugGalleryDemo'));
+const HumanHugGalleryDemo = lazy(() => import('./pages/HumanHugGalleryDemo'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -143,6 +145,11 @@ const App = () => {
                 <Route path="/animal-hug-gallery" element={
                   <StaticRoute>
                     <AnimalHugGalleryDemo />
+                  </StaticRoute>
+                } />
+                <Route path="/human-hug-gallery" element={
+                  <StaticRoute>
+                    <HumanHugGalleryDemo />
                   </StaticRoute>
                 } />
                 

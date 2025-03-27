@@ -8,7 +8,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:start": "vite build && node express-server.js"
+    "build:start": "vite build && node express-server.js",
+    "process-icons": "node src/assets/icons/process-icons.js",
+    "split-icons": "node src/assets/icons/split-icons.js",
+    "create-animations": "node src/assets/icons/create-animated-icons.js"
   },
   "dependencies": {
     "@apollo/client": "^3.8.0",
