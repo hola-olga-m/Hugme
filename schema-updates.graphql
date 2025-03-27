@@ -1,7 +1,19 @@
+# Schema extensions to fix the GraphQL errors
+
 type Query {
+  # Add pagination to publicMoods query
+  publicMoods(limit: Int, offset: Int): [Mood!]!
+
+  # Add pagination to receivedHugs query
+  receivedHugs(limit: Int, offset: Int): [Hug!]!
+
+  # Add search and pagination to users query
+  users(search: String, limit: Int, offset: Int): [User!]!
+
+  # Add pagination to friendsMoods query
+  friendsMoods(limit: Int, offset: Int): [Mood!]!
   checkFriendship(userId: String!): Boolean!
   communityHugRequests: [HugRequest!]!
-  friendsMoods(limit: Int = 20, offset: Int): [Mood!]!
   hug(id: ID!): Hug!
   hugRequest(id: ID!): HugRequest!
   me: User!
@@ -12,36 +24,24 @@ type Query {
   myHugRequests: [HugRequest!]!
   pendingFriendRequests: [Friendship!]!
   pendingHugRequests: [HugRequest!]!
-  publicMoods(limit: Int, offset: Int): [Mood!]!
-  receivedHugs(limit: Int, offset: Int): [Hug!]!
   sentFriendRequests: [Friendship!]!
   sentHugs(limit: Int, offset: Int): [Hug!]!
   user(id: ID!): User!
   userMoods: [Mood!]!
-  users(search: String, limit: Int, offset: Int): [User!]!
-}
-# Schema extensions to fix the GraphQL errors
-
-# Fix for publicMoods pagination and filtering
-extend type Query {
-  publicMoods(limit: Int, offset: Int): [Mood!]
 }
 
-# Fix for friendsMoods pagination
-extend type Query {
-  friendsMoods(limit: Int, offset: Int): [Mood!]
+# Fix type mismatch for limit parameter
+input MoodsPaginationInput {
+  limit: Int
+  offset: Int
 }
 
-# Fix for receivedHugs pagination
-extend type Query {
-  receivedHugs(limit: Int, offset: Int): [Hug!]
+input UsersPaginationInput {
+  limit: Int
+  offset: Int
 }
 
-# Fix for users search and pagination
-extend type Query {
-  users(search: String, limit: Int, offset: Int): [User!]
+input HugsPaginationInput {
+  limit: Int
+  offset: Int
 }
-
-# Note: For the type mismatch error (Int vs Float), either:
-# 1. Update your client queries to use Float instead of Int for limit variables, or
-# 2. Update your server schema to accept Int for these arguments
