@@ -15,7 +15,7 @@ const Home = () => {
               Track your mood, send virtual hugs, and connect with a supportive community
             </p>
             
-            {!isAuthenticated && (
+            {!isAuthenticated() && (
               <div className="hero-cta">
                 <Link to="/register" className="btn btn-primary btn-lg">
                   Get Started
@@ -26,7 +26,7 @@ const Home = () => {
               </div>
             )}
             
-            {isAuthenticated && (
+            {isAuthenticated() && (
               <div className="hero-cta">
                 <Link to="/dashboard" className="btn btn-primary btn-lg">
                   Go to Dashboard
@@ -75,13 +75,13 @@ const Home = () => {
             <h2>Ready to start your wellness journey?</h2>
             <p>Join thousands of users who have improved their emotional wellbeing with HugMeNow</p>
             
-            {!isAuthenticated && (
+            {!isAuthenticated() && (
               <Link to="/register" className="btn btn-primary btn-lg">
                 Sign Up Now
               </Link>
             )}
             
-            {isAuthenticated && (
+            {isAuthenticated() && (
               <Link to="/dashboard" className="btn btn-primary btn-lg">
                 Go to Dashboard
               </Link>

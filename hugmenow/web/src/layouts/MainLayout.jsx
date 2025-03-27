@@ -57,7 +57,7 @@ function MainLayout({ children }) {
             </Link>
           </div>
           
-          {isAuthenticated && (
+          {isAuthenticated() && (
             <nav className={`main-nav ${isMenuOpen ? 'open' : ''}`}>
               <ul className="nav-list">
                 <li className="nav-item">
@@ -105,7 +105,7 @@ function MainLayout({ children }) {
           )}
           
           <div className="header-right">
-            {isAuthenticated ? (
+            {isAuthenticated() ? (
               <div className="user-menu">
                 <button 
                   className="user-avatar"

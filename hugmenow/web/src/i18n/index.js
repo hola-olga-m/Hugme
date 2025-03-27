@@ -4,18 +4,15 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translations
 import en from './locales/en';
-import ru from './locales/ru';
 
-// Configure and initialize i18next
-const i18nInstance = i18n.createInstance();
-
-i18nInstance
+// Initialize i18next
+i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
       en: { translation: en },
-      ru: { translation: ru }
+      // Additional languages can be added here
     },
     fallbackLng: 'en',
     debug: process.env.NODE_ENV === 'development',
@@ -29,10 +26,6 @@ i18nInstance
     react: {
       useSuspense: false,
     },
-    initImmediate: false, // This ensures synchronous initialization
   });
 
-console.log('i18n initialized with languages:', Object.keys(i18nInstance.options.resources));
-
-// Export the initialized instance
-export default i18nInstance;
+export default i18n;

@@ -10,9 +10,6 @@ import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicRoute from './components/routing/PublicRoute';
 import StaticRoute from './components/routing/StaticRoute';
 
-// Import global CSS variables
-import './styles/variables.css';
-
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));

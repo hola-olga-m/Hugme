@@ -1,0 +1,71 @@
+AuthContext.jsx:450 AuthContext - Checking authentication status: {hasToken: true, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga', isAnonymous: false}
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: true, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga'}
+AuthContext.jsx:403 Logout error: Error: HTTP error 404: Not Found
+    at Vr (api.js:47:13)
+    at async E (AuthContext.jsx:400:9)
+    at async l (Dashboard.jsx:183:5)
+E @ AuthContext.jsx:403
+await in E
+l @ Dashboard.jsx:183
+U0 @ react-dom.production.min.js:54
+B0 @ react-dom.production.min.js:54
+q0 @ react-dom.production.min.js:55
+Od @ react-dom.production.min.js:105
+Wv @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+sf @ react-dom.production.min.js:273
+mv @ react-dom.production.min.js:52
+dl @ react-dom.production.min.js:109
+Ac @ react-dom.production.min.js:74
+s1 @ react-dom.production.min.js:73
+AuthContext.jsx:410 Successfully logged out
+AuthContext.jsx:450 AuthContext - Checking authentication status: {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+PublicRoute.jsx:11 PublicRoute - Loading: false
+PublicRoute.jsx:17 PublicRoute - Auth state: {isAuthenticated: false, hasCurrentUser: false, currentUser: null}
+PublicRoute.jsx:32 PublicRoute - Not authenticated, rendering children
+Login.jsx:371 Starting regular login with email: olga.v.matusevich@gmail.com
+AuthContext.jsx:161 Attempting GraphQL login mutation
+AuthContext.jsx:450 AuthContext - Checking authentication status: {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+PublicRoute.jsx:11 PublicRoute - Loading: true
+AuthContext.jsx:182 Successfully logged in via GraphQL
+Login.jsx:374 Regular login successful, setting redirect flag
+Login.jsx:378 Navigating to dashboard after login
+AuthContext.jsx:450 AuthContext - Checking authentication status: {hasToken: true, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga', isAnonymous: false}
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: false, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga'}
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+Dashboard.jsx:158 Dashboard detected redirect flag from login
+Dashboard.jsx:175 Dashboard fully loaded after login redirect
+AuthContext.jsx:450 AuthContext - Checking authentication status: {hasToken: true, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga', isAnonymous: false}
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: true, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga'}
+ Logout error: 
+E @ main-fa093eb4.js:258
+await in E
+l @ Dashboard-008cc534.js:229
+U0 @ main-fa093eb4.js:37
+B0 @ main-fa093eb4.js:37
+q0 @ main-fa093eb4.js:37
+Od @ main-fa093eb4.js:37
+Wv @ main-fa093eb4.js:37
+(anonymous) @ main-fa093eb4.js:37
+sf @ main-fa093eb4.js:40
+mv @ main-fa093eb4.js:37
+dl @ main-fa093eb4.js:37
+Ac @ main-fa093eb4.js:37
+s1 @ main-fa093eb4.js:37
+ Successfully logged out
+ AuthContext - Checking authentication status: {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+ PublicRoute - Loading: false
+ PublicRoute - Auth state: {isAuthenticated: false, hasCurrentUser: false, currentUser: null}
+ PublicRoute - Not authenticated, rendering children
+ Starting regular login with email: olga.v.matusevich@gmail.com
+ Attempting GraphQL login mutation
+ AuthContext - Checking authentication status: {hasToken: false, hasUser: false, userId: undefined, username: undefined, isAnonymous: undefined}
+ PublicRoute - Loading: true
+ Successfully logged in via GraphQL
+ Regular login successful, setting redirect flag
+ Navigating to dashboard after login
+ AuthContext - Checking authentication status: {hasToken: true, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga', isAnonymous: false}
+ ProtectedRoute Component - Auth State: {isAuthenticated: true, loading: false, hasUser: true, userId: '506f579c-7564-4ab0-8d17-2150cc9019eb', username: 'olga'}
+ ProtectedRoute: User is authenticated, rendering protected content
+ Dashboard detected redirect flag from login
+ Dashboard fully loaded after login redirect

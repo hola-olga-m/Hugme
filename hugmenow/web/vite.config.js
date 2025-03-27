@@ -6,7 +6,7 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5000,
+    port: 5173,
     host: '0.0.0.0', // Make the server accessible externally
     hmr: {
       // Allow HMR from all hosts
