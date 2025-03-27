@@ -1,14 +1,10 @@
+
 /**
  * Simple script to fix GraphQL queries by removing pagination parameters
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Get current directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const fs = require('fs');
+const path = require('path');
 
 // Files to fix
 const files = [
@@ -67,3 +63,5 @@ for (const filePath of files) {
 }
 
 console.log('Done fixing queries.');
+
+module.exports = { fixPatterns };
