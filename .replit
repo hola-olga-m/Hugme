@@ -4,7 +4,7 @@ modules = ["nodejs-20", "postgresql-16"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
+runButton = "HugMeNow Full Stack"
 
 [[workflows.workflow]]
 name = "Project"
@@ -45,7 +45,7 @@ args = "cd hugmenow/api && npm run start:dev"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && node simple-server.js"
+args = "cd hugmenow/web && npm run start"
 
 [[workflows.workflow]]
 name = "NestJS API Server"
@@ -61,6 +61,28 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd hugmenow/api && node simplified-server.js"
 waitForPort = 3000
+
+[[workflows.workflow]]
+name = "HugMeNow Full Stack"
+author = 40513268
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/api && npm run start:dev"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && node simple-server.js"
+
+[[workflows.workflow]]
+name = "HugMeNow with API Gateway"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
@@ -87,4 +109,3 @@ externalPort = 5000
 
 [[ports]]
 localPort = 5173
-externalPort = 80
