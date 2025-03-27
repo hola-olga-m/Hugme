@@ -117,3 +117,20 @@ args = "node sync-schema.js"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"Schema fixes generated. You may need to restart the application to apply changes.\""
+
+[[workflows.workflow]]
+name = "FixSchemaAndRestart"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = '''node fix-schema-mismatches.js "$(cat hugmenow/web/src/graphql/error.log || echo '[GraphQL error]: Message: Unknown argument \"limit\" on field \"Query.publicMoods\".\n[GraphQL error]: Message: Unknown argument \"search\" on field \"Query.users\".\n[GraphQL error]: Message: Unknown argument \"limit\" on field \"Query.users\".\n[GraphQL error]: Message: Unknown argument \"offset\" on field \"Query.users\".\n[GraphQL error]: Message: Unknown argument \"offset\" on field \"Query.friendsMoods\".\n[GraphQL error]: Message: Variable \"$limit\" of type \"Int\" used in position expecting type \"Float\".')"'''
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node sync-schema.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node restart-app.js"

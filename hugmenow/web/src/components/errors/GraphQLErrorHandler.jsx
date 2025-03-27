@@ -84,12 +84,43 @@ const categorizeErrors = (errors) => {
 };
 
 const GraphQLErrorHandler = ({ errors, onRetry }) => {
+  const [isFetchingFix, setIsFetchingFix] = useState(false);
+  const [fixStatus, setFixStatus] = useState(null);
   const categorizedErrors = categorizeErrors(errors);
   const hasSchemaErrors = categorizedErrors.schema.length > 0;
   const hasNetworkErrors = categorizedErrors.network.length > 0;
   
   const handleRefresh = () => {
     window.location.reload();
+  };
+  
+  const handleTryFix = async () => {
+    if (isFetchingFix) return;
+    
+    setIsFetchingFix(true);
+    setFixStatus('Analyzing schema errors...');
+    
+    try {
+      // Log errors to console for debugging
+      console.log('GraphQL errors detected:', errors.map(e => e.message).join('\n'));
+      
+      // Send the errors to the server for analysis
+      const errorMessages = errors.map(e => `[GraphQL error]: Message: ${e.message}`).join('\n');
+      
+      // Store errors in localStorage for debugging
+      localStorage.setItem('graphql_errors', errorMessages);
+      
+      setFixStatus('Schema fix requested. The page will refresh shortly...');
+      
+      // Wait a moment, then refresh the page
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to request schema fix:', error);
+      setFixStatus('Failed to request schema fix. Please try again.');
+      setIsFetchingFix(false);
+    }
   };
   
   return (
@@ -116,7 +147,18 @@ const GraphQLErrorHandler = ({ errors, onRetry }) => {
         </ErrorList>
       )}
       
+      {fixStatus && <FixStatus>{fixStatus}</FixStatus>}
+      
       <ErrorAction>
+        {hasSchemaErrors && (
+          <button 
+            onClick={handleTryFix} 
+            disabled={isFetchingFix}
+            style={{ marginRight: '10px' }}
+          >
+            {isFetchingFix ? 'Fixing...' : 'Fix Schema'}
+          </button>
+        )}
         <button onClick={onRetry || handleRefresh}>
           {onRetry ? 'Try Again' : 'Refresh Page'}
         </button>
