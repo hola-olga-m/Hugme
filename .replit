@@ -134,3 +134,24 @@ args = "node sync-schema.js"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node restart-app.js"
+
+[[workflows.workflow]]
+name = "FixGraphQLErrors"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node collect-errors.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node fix-schema-mismatches.js \"$(cat hugmenow/web/src/graphql/error.log)\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node sync-schema.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node restart-app.js"

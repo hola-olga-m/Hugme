@@ -1,5 +1,5 @@
 
-#!/usr/bin/env node
+// Fix GraphQL schema mismatches
 
 /**
  * GraphQL Schema Mismatch Fixer

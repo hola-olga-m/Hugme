@@ -1,5 +1,5 @@
 
-#!/usr/bin/env node
+// Application Restart Script
 
 /**
  * Application Restart Script

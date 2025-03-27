@@ -1,5 +1,5 @@
 
-#!/usr/bin/env node
+// GraphQL Schema Synchronization Tool
 
 /**
  * GraphQL Schema Synchronization Tool
