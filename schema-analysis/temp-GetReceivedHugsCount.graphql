@@ -1,0 +1,6 @@
+
+  query GetReceivedHugsCount {
+    receivedHugs {
+      id
+    }
+  }

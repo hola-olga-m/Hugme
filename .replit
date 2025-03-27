@@ -45,6 +45,10 @@ author = "agent"
 task = "workflow.run"
 args = "HugMeNow"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "SyncGraphQLSchema"
+
 [[workflows.workflow]]
 name = "HugMeNow"
 author = "agent"
@@ -59,3 +63,17 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "node index.js"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "SyncGraphQLSchema"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./schema-sync-workflow.sh"

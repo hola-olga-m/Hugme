@@ -1,0 +1,23 @@
+schema: ./hugmenow/web/src/generated/schema.graphql
+documents:
+  - ./hugmenow/web/src/graphql/**/*.{js,jsx,ts,tsx}
+  - ./hugmenow/web/src/components/**/*.{js,jsx,ts,tsx}
+  - ./hugmenow/web/src/pages/**/*.{js,jsx,ts,tsx}
+generates:
+  ./hugmenow/web/src/generated/graphql.tsx:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      withHooks: true
+      withHOC: false
+      withComponent: false
+      skipTypename: false
+      avoidOptionals: true
+      preResolveTypes: true
+      scalars:
+        DateTime: string
+hooks:
+  afterAllFileWrite:
+    - prettier --write

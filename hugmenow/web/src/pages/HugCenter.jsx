@@ -594,7 +594,7 @@ const HugCenter = () => {
       variables: {
         respondToRequestInput: {
           requestId,
-          accepted
+          status: accepted ? 'ACCEPTED' : 'DECLINED'
         }
       }
     });

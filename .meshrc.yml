@@ -1,0 +1,41 @@
+sources:
+  - name: HugMeNowAPI
+    handler: 
+      graphql:
+        source: http://localhost:5000/graphql
+        operationHeaders:
+          Authorization: '{env.GRAPHQL_AUTH_TOKEN}'
+
+transforms:
+  - namingConvention:
+      typeNames: pascalCase
+      fieldNames: camelCase
+      enumValues: upperCase
+
+additionalTypeDefs: |
+  extend type Query {
+    # Add any client-only fields here
+    _clientInfo: ClientInfo!
+  }
+  
+  type ClientInfo {
+    version: String!
+    buildDate: String!
+  }
+
+additionalResolvers:
+  - ./mesh-resolvers.js
+
+plugins:
+  - responseCache:
+      ttl: 300  # 5 minutes
+  - parserCache: {}
+  - validationCache: {}
+  - depthLimit:
+      maxDepth: 10
+
+serve:
+  playground: true
+  cors:
+    origin: '*'
+  port: 8080

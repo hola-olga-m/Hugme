@@ -307,7 +307,7 @@ export const GET_MY_HUG_REQUESTS = gql`
     myHugRequests {
       id
       message
-      type
+      isCommunityRequest
       status
       createdAt
     }
@@ -319,10 +319,10 @@ export const GET_PENDING_HUG_REQUESTS = gql`
     pendingHugRequests {
       id
       message
-      type
+      isCommunityRequest
       status
       createdAt
-      user {
+      requester {
         id
         username
         name
@@ -337,10 +337,10 @@ export const GET_COMMUNITY_HUG_REQUESTS = gql`
     communityHugRequests {
       id
       message
-      type
+      isCommunityRequest
       status
       createdAt
-      user {
+      requester {
         id
         username
         name
@@ -351,23 +351,25 @@ export const GET_COMMUNITY_HUG_REQUESTS = gql`
 `;
 
 export const CREATE_HUG_REQUEST = gql`
-  mutation CreateHugRequest($input: HugRequestInput!) {
-    createHugRequest(input: $input) {
+  mutation CreateHugRequest($createHugRequestInput: CreateHugRequestInput!) {
+    createHugRequest(createHugRequestInput: $createHugRequestInput) {
       id
       message
-      type
+      isCommunityRequest
       status
       createdAt
+      requesterId
+      recipientId
     }
   }
 `;
 
 export const RESPOND_TO_HUG_REQUEST = gql`
-  mutation RespondToHugRequest($id: ID!, $accept: Boolean!) {
-    respondToHugRequest(id: $id, accept: $accept) {
+  mutation RespondToHugRequest($respondToRequestInput: RespondToRequestInput!) {
+    respondToHugRequest(respondToRequestInput: $respondToRequestInput) {
       id
       status
-      updatedAt
+      respondedAt
     }
   }
 `;
