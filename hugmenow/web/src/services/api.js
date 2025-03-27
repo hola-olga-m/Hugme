@@ -34,6 +34,13 @@ const getHeaders = () => {
  */
 const handleResponse = async (response) => {
   if (!response.ok) {
+    // First, check the content type to detect if we're getting HTML instead of JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      console.error('Received HTML response when expecting JSON. Authentication likely failed.');
+      throw new Error('Unexpected token: Server returned HTML instead of JSON. Your session may have expired.');
+    }
+    
     // Try to parse error response
     let errorData;
     try {
@@ -65,6 +72,13 @@ const handleResponse = async (response) => {
     throw new Error(
       errorData.message || errorData.error || `HTTP error ${response.status}: ${response.statusText}`
     );
+  }
+  
+  // Check content type before trying to parse as JSON
+  const contentType = response.headers.get('content-type');
+  if (contentType && !contentType.includes('application/json')) {
+    console.warn(`Unexpected content type: ${contentType}. Expected application/json.`);
+    throw new Error('Unexpected response format: Server did not return JSON.');
   }
   
   return response.json();

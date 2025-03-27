@@ -127,6 +127,12 @@ export const AuthProvider = ({ children }) => {
               clearAuthData();
               setAuthToken(null);
               setCurrentUser(null);
+            } else if (validationError.message && validationError.message.includes('Unexpected token')) {
+              // HTML response instead of JSON, likely due to an API routing issue or server error
+              console.log('Received invalid response format from server, clearing auth data');
+              clearAuthData();
+              setAuthToken(null);
+              setCurrentUser(null);
             } else {
               // Some other error occurred with the token validation
               console.log('Invalid token, clearing auth data');
