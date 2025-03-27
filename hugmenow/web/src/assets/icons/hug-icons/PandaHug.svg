@@ -1,0 +1,46 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Panda hug icon - A panda offering a warm hug -->
+  <g transform="translate(2, 2)">
+    <!-- Background -->
+    <circle cx="30" cy="30" r="28" fill="#F5F5F5" fill-opacity="0.3" />
+    
+    <!-- Panda body -->
+    <circle cx="30" cy="35" r="15" fill="white" stroke="#333" stroke-width="0.5" />
+    
+    <!-- Panda head -->
+    <circle cx="30" cy="20" r="12" fill="white" stroke="#333" stroke-width="0.5" />
+    
+    <!-- Panda ears -->
+    <circle cx="22" cy="13" r="5" fill="black" stroke="#333" stroke-width="0.3" />
+    <circle cx="38" cy="13" r="5" fill="black" stroke="#333" stroke-width="0.3" />
+    
+    <!-- Panda eye patches -->
+    <ellipse cx="24" cy="20" rx="5" ry="6" fill="black" />
+    <ellipse cx="36" cy="20" rx="5" ry="6" fill="black" />
+    
+    <!-- Panda eyes -->
+    <circle cx="24" cy="20" r="1.5" fill="white" />
+    <circle cx="36" cy="20" r="1.5" fill="white" />
+    
+    <!-- Panda nose -->
+    <circle cx="30" cy="24" r="2.5" fill="black" />
+    
+    <!-- Panda mouth -->
+    <path d="M28 27C29 28 31 28 32 27" fill="none" stroke="black" stroke-width="0.5" />
+    
+    <!-- Panda arms -->
+    <path d="M15 35C10 30 10 25 15 20" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" /> <!-- Left arm -->
+    <path d="M45 35C50 30 50 25 45 20" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" /> <!-- Right arm -->
+    
+    <!-- Panda legs/feet -->
+    <ellipse cx="22" cy="48" rx="5" ry="3" fill="black" />
+    <ellipse cx="38" cy="48" rx="5" ry="3" fill="black" />
+    
+    <!-- Panda belly -->
+    <circle cx="30" cy="35" r="8" fill="black" />
+    
+    <!-- Hearts -->
+    <path d="M20 30C22 28 24 29 25 30C26 31 25 33 20 37C15 33 14 31 15 30C16 29 18 28 20 30Z" fill="#FF6B6B" />
+    <path d="M40 30C42 28 44 29 45 30C46 31 45 33 40 37C35 33 34 31 35 30C36 29 38 28 40 30Z" fill="#FF6B6B" />
+  </g>
+</svg>

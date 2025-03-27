@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { getHugIconByType, getHugTypeColor, getHugTypeDisplayName } from '../../utils/hugIcons';
+import { getAnimalHugIconByType, getAnimalHugTypeColor, getAnimalHugTypeDisplayName, ANIMAL_HUG_ICONS } from '../../utils/animalsHugIcons';
 
 /**
  * Styled components for the HugIcon
@@ -79,6 +80,7 @@ const iconVariants = {
 /**
  * HugIcon Component
  * Displays a hug icon with optional label and animations
+ * Supports both standard and animal-themed hug icons
  */
 const HugIcon = ({
   /** Type of hug icon to display */
@@ -98,10 +100,21 @@ const HugIcon = ({
   /** Click handler for the icon */
   onClick
 }) => {
+  // Check if this is an animal icon type or standard type
+  const isAnimalType = Object.keys(ANIMAL_HUG_ICONS).includes(type);
+  
   // Get the icon source and color based on the type
-  const iconSrc = getHugIconByType(type);
-  const color = getHugTypeColor(type);
-  const name = getHugTypeDisplayName(type);
+  const iconSrc = isAnimalType 
+    ? getAnimalHugIconByType(type) 
+    : getHugIconByType(type);
+    
+  const color = isAnimalType 
+    ? getAnimalHugTypeColor(type) 
+    : getHugTypeColor(type);
+    
+  const name = isAnimalType 
+    ? getAnimalHugTypeDisplayName(type) 
+    : getHugTypeDisplayName(type);
 
   return (
     <IconContainer 
@@ -133,8 +146,14 @@ const HugIcon = ({
   );
 };
 
+// Combine standard and animal hug types for PropTypes validation
+const validHugTypes = [
+  'standard', 'supportive', 'group', 'comforting', 'enthusiastic', 'virtual',
+  ...Object.keys(ANIMAL_HUG_ICONS)
+];
+
 HugIcon.propTypes = {
-  type: PropTypes.oneOf(['standard', 'supportive', 'group', 'comforting', 'enthusiastic', 'virtual']),
+  type: PropTypes.oneOf(validHugTypes),
   size: PropTypes.oneOfType([
     PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl']),
     PropTypes.string

@@ -1,0 +1,40 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sloth hug icon - A sloth gently hugging -->
+  <g transform="translate(2, 2)">
+    <!-- Background -->
+    <circle cx="30" cy="30" r="28" fill="#F5F5DC" fill-opacity="0.3" />
+    
+    <!-- Sloth body -->
+    <ellipse cx="30" cy="32" rx="18" ry="16" fill="#9E8F7F" stroke="#333" stroke-width="0.5" />
+    
+    <!-- Sloth head -->
+    <circle cx="30" cy="20" r="10" fill="#9E8F7F" stroke="#333" stroke-width="0.5" />
+    
+    <!-- Sloth face -->
+    <circle cx="26" cy="18" r="1.2" fill="#333" /> <!-- Left eye -->
+    <circle cx="34" cy="18" r="1.2" fill="#333" /> <!-- Right eye -->
+    <ellipse cx="30" cy="22" rx="3" ry="2" fill="#7A6D5D" /> <!-- Nose -->
+    <path d="M27 25C28 26 32 26 33 25" fill="none" stroke="#333" stroke-width="0.5" /> <!-- Smile -->
+    
+    <!-- Sloth arms -->
+    <path d="M12 32C10 28 12 24 15 22" fill="none" stroke="#9E8F7F" stroke-width="4" stroke-linecap="round" /> <!-- Left arm -->
+    <path d="M48 32C50 28 48 24 45 22" fill="none" stroke="#9E8F7F" stroke-width="4" stroke-linecap="round" /> <!-- Right arm -->
+    
+    <!-- Sloth claws -->
+    <path d="M12 32L13 36" fill="none" stroke="#333" stroke-width="1" /> <!-- Left claw 1 -->
+    <path d="M12 32L11 35" fill="none" stroke="#333" stroke-width="1" /> <!-- Left claw 2 -->
+    <path d="M12 32L9 34" fill="none" stroke="#333" stroke-width="1" /> <!-- Left claw 3 -->
+    
+    <path d="M48 32L47 36" fill="none" stroke="#333" stroke-width="1" /> <!-- Right claw 1 -->
+    <path d="M48 32L49 35" fill="none" stroke="#333" stroke-width="1" /> <!-- Right claw 2 -->
+    <path d="M48 32L51 34" fill="none" stroke="#333" stroke-width="1" /> <!-- Right claw 3 -->
+    
+    <!-- Small creature being hugged -->
+    <ellipse cx="30" cy="40" rx="6" ry="4" fill="#B7AC9A" stroke="#333" stroke-width="0.3" />
+    <circle cx="28" cy="39" r="0.7" fill="#333" /> <!-- Left eye -->
+    <circle cx="32" cy="39" r="0.7" fill="#333" /> <!-- Right eye -->
+    
+    <!-- Heart -->
+    <path d="M30 28C32 26 34 27 35 28C36 29 35 31 30 35C25 31 24 29 25 28C26 27 28 26 30 28Z" fill="#FF7F7F" />
+  </g>
+</svg>
