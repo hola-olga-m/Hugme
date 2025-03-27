@@ -395,9 +395,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     
     try {
-      // Call logout API
+      // Call logout API only if authToken exists
       if (authToken) {
-        await authApi.logout();
+        try {
+          await authApi.logout();
+        } catch (err) {
+          // Only log the error, don't let it prevent the client-side logout
+          console.error('Logout API call error:', err);
+        }
       }
     } catch (err) {
       console.error('Logout error:', err);

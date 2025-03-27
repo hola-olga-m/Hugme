@@ -218,13 +218,30 @@ export const authApi = {
    * @returns {Promise<Object>} Logout response
    */
   logout: async () => {
-    const response = await fetch(`${API_BASE_URL}/logout`, {
-      method: 'POST',
-      headers: getHeaders(),
-      credentials: 'include'
-    });
-    
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${API_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: getHeaders(),
+        credentials: 'include'
+      });
+      
+      // If the server returns a 404 (no logout endpoint) or other error,
+      // we still want to consider the client-side logout successful
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.warn('Logout endpoint not found, continuing with client-side logout');
+          return { success: true, message: 'Logged out on client' };
+        }
+        console.warn(`Logout API returned status ${response.status}, continuing with client-side logout`);
+        return { success: true, message: 'Logged out on client despite server error' };
+      }
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.warn('Error during logout API call, continuing with client-side logout:', error);
+      // Return a successful result despite the API error
+      return { success: true, message: 'Logged out on client only' };
+    }
   },
   
   /**

@@ -5,6 +5,14 @@ import hugIcon from '../../assets/icons/hug-icon.svg';
 import moodTracker from '../../assets/icons/mood-tracker.svg';
 import community from '../../assets/icons/community.svg';
 
+// Import hug type SVGs
+import ComfortingHug from '../../assets/icons/ComfortingHug.svg';
+import EnthusiasticHug from '../../assets/icons/EnthusiasticHug.svg';
+import GroupHug from '../../assets/icons/GroupHug.svg';
+import StandardHug from '../../assets/icons/StandardHug.svg';
+import SupportiveHug from '../../assets/icons/SupportiveHug.svg';
+import VirtualHug from '../../assets/icons/VirtualHug.svg';
+
 // SVG data URIs for mood emojis
 const moodEmojis = {
   verySad: `data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='60' cy='60' r='50' fill='%23FFCDD2'/%3E%3Cpath d='M40 45C40 45 45 40 50 45' stroke='%23374151' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M70 45C70 45 75 40 80 45' stroke='%23374151' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M40 85C40 85 60 75 80 85' stroke='%23374151' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E`,
@@ -95,8 +103,45 @@ export const Icon = ({ type, score, size = 40, animate = true, ...props }) => {
       src = fire;
       alt = 'Fire';
       break;
+    // Hug type icons
+    case 'Comforting':
+    case 'ComfortingHug':
+      src = ComfortingHug;
+      alt = 'Comforting Hug';
+      break;
+    case 'Enthusiastic':
+    case 'EnthusiasticHug':
+      src = EnthusiasticHug;
+      alt = 'Enthusiastic Hug';
+      break;
+    case 'Group':
+    case 'GroupHug':
+      src = GroupHug;
+      alt = 'Group Hug';
+      break;
+    case 'Standard':
+    case 'StandardHug':
+      src = StandardHug;
+      alt = 'Standard Hug';
+      break;
+    case 'Supportive':
+    case 'SupportiveHug':
+      src = SupportiveHug;
+      alt = 'Supportive Hug';
+      break;
+    case 'Virtual':
+    case 'VirtualHug':
+      src = VirtualHug;
+      alt = 'Virtual Hug';
+      break;
     default:
-      return null;
+      // For any other hug type, fall back to standard
+      if (type && type.includes('Hug')) {
+        src = StandardHug;
+        alt = type;
+      } else {
+        return null;
+      }
   }
   
   if (animate) {
