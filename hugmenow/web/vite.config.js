@@ -6,7 +6,7 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
+    port: 5000,
     host: '0.0.0.0', // Make the server accessible externally
     hmr: {
       // Allow HMR from all hosts
@@ -31,50 +31,83 @@ export default defineConfig({
     proxy: {
       // Forward API requests to the NestJS server
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('Received Response:', proxyRes.statusCode, req.url);
+          });
+        },
       },
       // Forward GraphQL requests to the NestJS server
       '/graphql': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('graphql proxy error', err);
+          });
+        },
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
+        }
       },
       // Forward authentication requests
       '/login': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       '/register': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       '/anonymous-login': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       '/logout': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       '/me': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       // Forward user-related requests
       '/users': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       // Forward mood-related requests
       '/moods': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
       // Forward hug-related requests
       '/hugs': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
       },
     },
   },

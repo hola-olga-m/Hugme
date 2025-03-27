@@ -11,18 +11,9 @@
  * @returns {string} The base URL for API requests
  */
 export const getApiBaseUrl = () => {
-  // In a Replit environment
-  if (window.location.hostname.includes('replit.dev') || 
-      window.location.hostname.includes('replit.co') ||
-      window.location.hostname.includes('repl.co')) {
-    
-    // In Replit, the API and frontend are on the same domain but different ports
-    // Try to use relative URLs first which helps bypass CORS issues
-    return '';
-  }
-  
-  // Local development
-  return 'http://localhost:3000';
+  // For simplicity and reliability, during development we'll use a relative path
+  // This will make requests go through the Vite dev server which can proxy them
+  return '';
 };
 
 /**
