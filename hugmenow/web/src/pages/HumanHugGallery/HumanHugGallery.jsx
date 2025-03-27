@@ -106,10 +106,21 @@ const TopControls = styled.div`
   gap: 10px;
 `;
 
+// Format display name for variant icons
+const formatDisplayName = (name) => {
+  if (name.includes('1') || name.includes('2')) {
+    // Format variant names (e.g., Teasing1 -> Teasing (Variant 1))
+    const baseName = name.replace(/[0-9]/g, '');
+    const variantNum = name.slice(-1);
+    return `${baseName} (Variant ${variantNum})`;
+  }
+  return name;
+};
+
 const HumanHugGallery = () => {
   const [hugTypes, setHugTypes] = useState([
     'BearHug', 'Supporting', 'Comforting', 'Loving', 'Celebrating', 'Festive',
-    'Caring', 'Teasing', 'Teasing2', 'Inviting', 'Inviting2', 'Moody'
+    'Caring', 'Teasing1', 'Teasing2', 'Inviting1', 'Inviting2', 'Moody'
   ]);
   const [activeAnimations, setActiveAnimations] = useState({});
   const [isPlaying, setIsPlaying] = useState({});
@@ -181,7 +192,7 @@ const HumanHugGallery = () => {
       <IconsGrid>
         {hugTypes.map(hugType => (
           <IconCard key={hugType}>
-            <h3>{hugType}</h3>
+            <h3>{formatDisplayName(hugType)}</h3>
             
             {isPlaying[hugType] ? (
               <div className="animation-container">
@@ -189,15 +200,23 @@ const HumanHugGallery = () => {
                   <img
                     key={`${hugType}-frame-${frame}`}
                     src={`/assets/icons/png-icons/human-${hugType}-animated_frame${frame}.png`}
-                    alt={`${hugType} animation frame ${frame}`}
+                    alt={`${formatDisplayName(hugType)} animation frame ${frame}`}
                     className={`animation-frame ${activeAnimations[hugType] === frame ? 'active' : ''}`}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/assets/icons/default-icon.png';
+                    }}
                   />
                 ))}
               </div>
             ) : (
               <img
                 src={`/assets/icons/png-icons/human-${hugType}.png`}
-                alt={`${hugType} icon`}
+                alt={`${formatDisplayName(hugType)} icon`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/assets/icons/default-icon.png';
+                }}
               />
             )}
             
@@ -218,6 +237,49 @@ const HumanHugGallery = () => {
           </IconCard>
         ))}
       </IconsGrid>
+      
+      <div style={{ 
+        marginTop: '30px',
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '15px'
+      }}>
+        <p style={{ textAlign: 'center' }}>
+          View our specialized galleries for different icon sets:
+        </p>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <a 
+            href="/human-hug-gallery.html" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              padding: '8px 16px',
+              background: '#6a4c93',
+              color: 'white',
+              borderRadius: '4px',
+              textDecoration: 'none'
+            }}
+          >
+            Original Static Gallery
+          </a>
+          <a 
+            href="/new-human-icons-gallery.html" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              padding: '8px 16px',
+              background: '#6a4c93',
+              color: 'white',
+              borderRadius: '4px',
+              textDecoration: 'none'
+            }}
+          >
+            New Icons Gallery
+          </a>
+        </div>
+      </div>
     </GalleryContainer>
   );
 };

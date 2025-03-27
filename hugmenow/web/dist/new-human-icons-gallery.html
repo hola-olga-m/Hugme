@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Human Hug Icons Gallery</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #6c5ce7;
+            margin: 0;
+        }
+        
+        .subheading {
+            color: #a29bfe;
+            font-weight: normal;
+            margin-top: 10px;
+        }
+        
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .icon-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        .icon-title {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #6c5ce7;
+        }
+        
+        .icon-static {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .icon-static img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+        }
+        
+        .animation-container {
+            position: relative;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f7;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .animation-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .animation-container img.active {
+            opacity: 1;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #5649c0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin: 40px 0 20px;
+            color: #6c5ce7;
+            font-size: 1.8em;
+        }
+        
+        @media (max-width: 768px) {
+            .gallery-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HugMeNow</h1>
+        <p class="subheading">New Human Hug Icons Gallery</p>
+    </header>
+    
+    <h2 class="section-title">Core Hug Icons</h2>
+    <div class="gallery-container" id="core-icons">
+        <!-- Core Icons Will Be Generated Here -->
+    </div>
+    
+    <h2 class="section-title">Variant Hug Icons</h2>
+    <div class="gallery-container" id="variant-icons">
+        <!-- Variant Icons Will Be Generated Here -->
+    </div>
+    
+    <script>
+        // List of core hug types from the new grid
+        const coreHugTypes = [
+            'BearHug',
+            'Supporting',
+            'Comforting',
+            'Loving',
+            'Celebrating',
+            'Festive',
+            'Caring',
+            'Moody'
+        ];
+        
+        // List of variant types
+        const variantHugTypes = [
+            'Teasing1',
+            'Teasing2',
+            'Inviting1',
+            'Inviting2'
+        ];
+        
+        // Function to create an icon card
+        function createIconCard(iconName, containerId) {
+            const container = document.getElementById(containerId);
+            
+            // Create card element
+            const card = document.createElement('div');
+            card.className = 'icon-card';
+            
+            // Format the display name
+            let displayName = iconName;
+            if (displayName.includes('1') || displayName.includes('2')) {
+                // Remove number and add " (Variant X)"
+                const variantNum = displayName.slice(-1);
+                displayName = displayName.replace(/[0-9]/g, '');
+                displayName += ` (Variant ${variantNum})`;
+            }
+            
+            // Create card title
+            const title = document.createElement('div');
+            title.className = 'icon-title';
+            title.textContent = displayName;
+            card.appendChild(title);
+            
+            // Create static icon display
+            const staticContainer = document.createElement('div');
+            staticContainer.className = 'icon-static';
+            
+            const staticImg = document.createElement('img');
+            staticImg.src = `/assets/icons/png-icons/human-${iconName}.png`;
+            staticImg.alt = `${displayName} hug icon`;
+            staticContainer.appendChild(staticImg);
+            card.appendChild(staticContainer);
+            
+            // Create animation container
+            const animContainer = document.createElement('div');
+            animContainer.className = 'animation-container';
+            
+            // Add animation frames
+            for (let i = 1; i <= 6; i++) {
+                const frameImg = document.createElement('img');
+                frameImg.src = `/assets/icons/png-icons/human-${iconName}-animated_frame${i}.png`;
+                frameImg.alt = `${displayName} animation frame ${i}`;
+                frameImg.className = i === 1 ? 'active' : '';
+                frameImg.dataset.frame = i;
+                animContainer.appendChild(frameImg);
+            }
+            
+            card.appendChild(animContainer);
+            
+            // Create animation controls
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+            
+            const playButton = document.createElement('button');
+            playButton.textContent = 'Play Animation';
+            playButton.addEventListener('click', () => playAnimation(animContainer));
+            
+            controls.appendChild(playButton);
+            card.appendChild(controls);
+            
+            // Add card to container
+            container.appendChild(card);
+        }
+        
+        // Function to play animation
+        function playAnimation(container) {
+            const frames = container.querySelectorAll('img');
+            let currentFrame = 0;
+            
+            // Reset all frames
+            frames.forEach(frame => frame.classList.remove('active'));
+            
+            // Start animation
+            const animation = setInterval(() => {
+                // Hide previous frame
+                if (currentFrame > 0) {
+                    frames[currentFrame - 1].classList.remove('active');
+                } else {
+                    frames[frames.length - 1].classList.remove('active');
+                }
+                
+                // Show current frame
+                frames[currentFrame].classList.add('active');
+                
+                // Move to next frame
+                currentFrame = (currentFrame + 1) % frames.length;
+                
+                // Stop after one cycle
+                if (currentFrame === 0) {
+                    clearInterval(animation);
+                }
+            }, 150);
+        }
+        
+        // Initialize gallery
+        function initGallery() {
+            // Create core icon cards
+            coreHugTypes.forEach(type => createIconCard(type, 'core-icons'));
+            
+            // Create variant icon cards
+            variantHugTypes.forEach(type => createIconCard(type, 'variant-icons'));
+        }
+        
+        // Run initialization when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGallery);
+    </script>
+</body>
+</html>

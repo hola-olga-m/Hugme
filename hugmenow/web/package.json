@@ -9,9 +9,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:start": "vite build && node express-server.js",
-    "process-icons": "node src/assets/icons/process-icons.js",
-    "split-icons": "node src/assets/icons/split-icons.js",
-    "create-animations": "node src/assets/icons/create-animated-icons.js"
+    "process-icons": "node src/assets/icons/process-all-icons.js",
+    "split-icons": "node src/assets/icons/split-human-icons.js",
+    "create-animations": "node src/assets/icons/create-animated-human-icons.js",
+    "smart-split": "node src/assets/icons/run-smart-splitter.js",
+    "copy-icons": "node src/assets/icons/copy-icons-to-public.js",
+    "simple-split": "node src/assets/icons/simple-split.js",
+    "simple-animate": "node src/assets/icons/simple-animate.js",
+    "animate-newest": "node src/assets/icons/animate-newest-icons.js",
+    "process-new-icons": "npm run simple-split && npm run animate-newest",
+    "process-new-grid": "node src/assets/icons/process-new-grid.js"
   },
   "dependencies": {
     "@apollo/client": "^3.8.0",
