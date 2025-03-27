@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
@@ -14,8 +14,8 @@ export class UsersResolver {
   @UseGuards(GqlAuthGuard)
   async users(
     @Args('search', { type: () => String, nullable: true }) search?: string,
-    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
-    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
   ): Promise<User[]> {
     return this.usersService.findAll(search, limit, offset);
   }

@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { MoodsService } from './moods.service';
 import { Mood } from './entities/mood.entity';
@@ -24,8 +24,8 @@ export class MoodsResolver {
   @Query(() => [Mood])
   @UseGuards(GqlAuthGuard)
   async publicMoods(
-    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
-    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
   ): Promise<Mood[]> {
     return this.moodsService.findPublic(limit, offset);
   }
@@ -42,7 +42,7 @@ export class MoodsResolver {
     return this.moodsService.findOne(id);
   }
 
-  @Query(() => Number)
+  @Query(() => Int)
   @UseGuards(GqlAuthGuard)
   async moodStreak(@CurrentUser() user: User): Promise<number> {
     return this.moodsService.getUserMoodStreak(user.id);
@@ -52,8 +52,8 @@ export class MoodsResolver {
   @UseGuards(GqlAuthGuard)
   async friendsMoods(
     @CurrentUser() user: User,
-    @Args('limit', { type: () => Number, nullable: true, defaultValue: 20 }) limit?: number,
-    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 20 }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
   ): Promise<Mood[]> {
     return this.moodsService.findFriendsMoods(user.id, limit, offset);
   }

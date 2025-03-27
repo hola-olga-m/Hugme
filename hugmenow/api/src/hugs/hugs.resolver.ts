@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { Hug } from './entities/hug.entity';
 import { HugRequest } from './entities/hug-request.entity';
@@ -38,8 +38,8 @@ export class HugsResolver {
   @UseGuards(GqlAuthGuard)
   async sentHugs(
     @CurrentUser() user: User,
-    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
-    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
   ): Promise<Hug[]> {
     return this.hugsService.findHugsBySender(user.id, limit, offset);
   }
@@ -48,8 +48,8 @@ export class HugsResolver {
   @UseGuards(GqlAuthGuard)
   async receivedHugs(
     @CurrentUser() user: User,
-    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
-    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
   ): Promise<Hug[]> {
     return this.hugsService.findHugsByRecipient(user.id, limit, offset);
   }
