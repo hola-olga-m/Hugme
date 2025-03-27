@@ -295,9 +295,9 @@ const FilterButton = styled.button`
 // Component
 const FriendMoodsWidget = () => {
   const { loading, error, data, refetch } = useQuery(GET_FRIENDS_MOODS, {
-    variables: { limit: 10 },
+    variables: { limit: 10.0 }, // Using Float type as expected by the server
     fetchPolicy: 'network-only',
-    pollInterval: 60000, // Poll every minute for updates
+    pollInterval: 60000 // Poll every minute for updates
   });
   
   const [expandedMood, setExpandedMood] = useState(null);
@@ -352,8 +352,8 @@ const FriendMoodsWidget = () => {
     try {
       const response = await sendHug({
         variables: {
-          input: {
-            receiverId: mood.user.id,
+          sendHugInput: {
+            recipientId: mood.user.id,
             type: mood.score <= 4 ? 'ComfortingHug' : 'StandardHug',
             message: mood.score <= 4 
               ? `I noticed you're not feeling great. Sending you a comforting hug!` 

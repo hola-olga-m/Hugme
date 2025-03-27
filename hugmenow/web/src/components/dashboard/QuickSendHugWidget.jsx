@@ -373,7 +373,7 @@ const QuickSendHugWidget = () => {
   
   // GraphQL queries and mutations
   const { loading, error, data } = useQuery(GET_USERS, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'network-only'
   });
   
   const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG);
