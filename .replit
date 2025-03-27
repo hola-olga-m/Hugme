@@ -20,6 +20,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "./start-hugmenow.sh"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "HugMeNow Full Stack"
@@ -58,21 +59,6 @@ task = "workflow.run"
 args = "HugMeNow Frontend"
 
 [[workflows.workflow]]
-name = "HugMeNow Frontend"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd hugmenow/web && node cjs-server.cjs"
-waitForPort = 5000
-
-[[workflows.workflow]]
 name = "HugMeNow API Server"
 author = "agent"
 
@@ -86,6 +72,21 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd hugmenow/api && node dist/main.js"
 waitForPort = 3001
+
+[[workflows.workflow]]
+name = "HugMeNow Frontend"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && node fixed-server.cjs"
+waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
