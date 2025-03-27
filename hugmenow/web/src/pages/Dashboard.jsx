@@ -262,6 +262,13 @@ const Dashboard = () => {
               Manage your personal information, preferences, and privacy settings.
             </p>
           </FeatureCard>
+          
+          <FeatureCard onClick={() => navigateToFeature('/purple-hug-gallery')}>
+            <h2>Purple Hug Gallery</h2>
+            <p>
+              Explore our new collection of purple-themed emotional support icons designed to provide comfort.
+            </p>
+          </FeatureCard>
         </FeaturesGrid>
         
         <div style={{ marginTop: '2rem' }}>

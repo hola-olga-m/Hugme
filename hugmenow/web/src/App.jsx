@@ -11,6 +11,7 @@ import PublicRoute from './components/routing/PublicRoute';
 import StaticRoute from './components/routing/StaticRoute';
 import StaticHugGallery from './pages/StaticHugGallery';
 import HumanHugGallery from './pages/HumanHugGallery'; // Import directly to avoid circular dependency
+import PurpleHugGallery from './pages/PurpleHugGallery'; // Import directly our new component
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -153,6 +154,11 @@ const App = () => {
                 <Route path="/human-hug-gallery" element={
                   <StaticRoute>
                     <HumanHugGallery />
+                  </StaticRoute>
+                } />
+                <Route path="/purple-hug-gallery" element={
+                  <StaticRoute>
+                    <PurpleHugGallery />
                   </StaticRoute>
                 } />
                 
