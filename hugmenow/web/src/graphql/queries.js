@@ -124,8 +124,8 @@ export const GET_USER_MOODS = gql`
 `;
 
 export const GET_PUBLIC_MOODS = gql`
-  query GetPublicMoods($limit: Int, $offset: Int) {
-    publicMoods(limit: $limit, offset: $offset) {
+  query GetPublicMoods {
+    publicMoods {
       id
       score
       note
@@ -141,8 +141,8 @@ export const GET_PUBLIC_MOODS = gql`
 `;
 
 export const GET_FRIENDS_MOODS = gql`
-  query GetFriendsMoods($limit: Int, $offset: Int) {
-    friendsMoods(limit: $limit, offset: $offset) {
+  query GetFriendsMoods($limit: Float) {
+    friendsMoods(limit: $limit) {
       id
       score
       note
@@ -170,8 +170,8 @@ export const CREATE_MOOD_ENTRY = gql`
 
 // Hug queries
 export const GET_RECEIVED_HUGS = gql`
-  query GetReceivedHugs($limit: Int, $offset: Int) {
-    receivedHugs(limit: $limit, offset: $offset) {
+  query GetReceivedHugs {
+    receivedHugs {
       id
       type
       message
@@ -188,8 +188,8 @@ export const GET_RECEIVED_HUGS = gql`
 `;
 
 export const GET_SENT_HUGS = gql`
-  query GetSentHugs($limit: Int, $offset: Int) {
-    sentHugs(limit: $limit, offset: $offset) {
+  query GetSentHugs {
+    sentHugs {
       id
       type
       message
@@ -276,8 +276,8 @@ export const GET_COMMUNITY_FEED = gql`
 
 // User queries
 export const GET_USERS = gql`
-  query GetUsers($search: String, $limit: Int, $offset: Int) {
-    users(search: $search, limit: $limit, offset: $offset) {
+  query GetUsers {
+    users {
       id
       username
       name

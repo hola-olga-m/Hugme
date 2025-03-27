@@ -57,7 +57,7 @@ export class MoodsService {
       ORDER BY created_at DESC
     `;
     
-    const queryParams = [];
+    const queryParams: any[] = [];
     
     if (limit !== undefined) {
       query += ' LIMIT $1';
