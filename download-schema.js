@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // Use ES modules
-const fs = require('fs');
-const { getIntrospectionQuery, buildClientSchema, printSchema } = require('graphql');
+import fs from 'fs';
+import { getIntrospectionQuery, buildClientSchema, printSchema } from 'graphql';
 
 const GRAPHQL_ENDPOINT = 'http://localhost:5000/graphql';
 const OUTPUT_PATH = './hugmenow/web/src/generated/schema.graphql';

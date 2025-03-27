@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 
-const GRAPHQL_ENDPOINT = 'http://localhost:3002/graphql';
+// Connect via the proxy server which forwards to the backend
+const GRAPHQL_ENDPOINT = 'http://localhost:5000/graphql';
 
 // Function to make GraphQL requests
 async function executeGraphQL(query, variables = {}, token = null) {
@@ -220,58 +221,30 @@ async function testCreateMood(token) {
 async function testGetUserMoods(token, userId) {
   console.log('\n========== TESTING GET USER MOODS ==========');
   
+  // Based on our schema analysis, we should use 'userMoods' query
   const query = `
-    query GetUserMoods($userId: ID!) {
-      moodsByUserId(userId: $userId) {
+    query {
+      userMoods {
         id
         score
         note
         createdAt
         isPublic
+        userId
       }
     }
   `;
   
-  const variables = {
-    userId
-  };
-  
-  const result = await executeGraphQL(query, variables, token);
+  const result = await executeGraphQL(query, {}, token);
   
   if (result.errors) {
     console.log('❌ Fetching user moods failed:');
     console.log(JSON.stringify(result.errors, null, 2));
-    
-    // Try alternative field name
-    console.log('Trying alternative query field name...');
-    
-    const altQuery = `
-      query GetUserMoods($userId: ID!) {
-        moods(userId: $userId) {
-          id
-          score
-          note
-          createdAt
-          isPublic
-        }
-      }
-    `;
-    
-    const altResult = await executeGraphQL(altQuery, variables, token);
-    
-    if (altResult.errors) {
-      console.log('❌ Alternative query also failed:');
-      console.log(JSON.stringify(altResult.errors, null, 2));
-      return null;
-    } else {
-      console.log('✅ Alternative query successful');
-      console.log(`Found ${altResult.data.moods.length} mood entries`);
-      return altResult.data.moods;
-    }
+    return null;
   } else {
     console.log('✅ Fetching user moods successful');
-    console.log(`Found ${result.data.moodsByUserId.length} mood entries`);
-    return result.data.moodsByUserId;
+    console.log(`Found ${result.data.userMoods.length} mood entries`);
+    return result.data.userMoods;
   }
 }
 
@@ -279,21 +252,14 @@ async function testGetUserMoods(token, userId) {
 async function testGetMoodStreak(token, userId) {
   console.log('\n========== TESTING GET MOOD STREAK ==========');
   
+  // Based on our schema analysis, moodStreak returns a Float value
   const query = `
-    query GetMoodStreak($userId: ID!) {
-      moodStreak(userId: $userId) {
-        currentStreak
-        longestStreak
-        lastMoodDate
-      }
+    query {
+      moodStreak
     }
   `;
   
-  const variables = {
-    userId
-  };
-  
-  const result = await executeGraphQL(query, variables, token);
+  const result = await executeGraphQL(query, {}, token);
   
   if (result.errors) {
     console.log('❌ Fetching mood streak failed:');
@@ -301,8 +267,7 @@ async function testGetMoodStreak(token, userId) {
     return null;
   } else {
     console.log('✅ Fetching mood streak successful');
-    console.log(`Current streak: ${result.data.moodStreak.currentStreak}`);
-    console.log(`Longest streak: ${result.data.moodStreak.longestStreak}`);
+    console.log(`Mood streak: ${result.data.moodStreak}`);
     return result.data.moodStreak;
   }
 }
@@ -327,17 +292,21 @@ async function testSendHug(token, fromUserId) {
     return null;
   }
   
-  const query = `
-    mutation SendHug($input: SendHugInput!) {
-      sendHug(sendHugInput: $input) {
+  // We need to create a friendship first because the API requires users to be friends
+  console.log('Creating friendship with target user...');
+  
+  const sendFriendRequestQuery = `
+    mutation SendFriendRequest($input: CreateFriendshipInput!) {
+      sendFriendRequest(createFriendshipInput: $input) {
         id
-        message
-        createdAt
-        from {
+        status
+        requesterId
+        recipientId
+        requester {
           id
           username
         }
-        to {
+        recipient {
           id
           username
         }
@@ -345,10 +314,82 @@ async function testSendHug(token, fromUserId) {
     }
   `;
   
+  const friendshipVariables = {
+    input: {
+      recipientId: toUser.id,
+      followMood: true
+    }
+  };
+  
+  const friendshipResult = await executeGraphQL(sendFriendRequestQuery, friendshipVariables, token);
+  
+  if (friendshipResult.errors) {
+    console.log('❌ Creating friendship failed:');
+    console.log(JSON.stringify(friendshipResult.errors, null, 2));
+    console.log('Attempting to send hug without friendship...');
+  } else {
+    console.log('✅ Friendship request created successfully');
+    
+    // Automatically accept the friendship request to create a valid friendship
+    const acceptFriendshipQuery = `
+      mutation RespondToFriendRequest($input: UpdateFriendshipInput!) {
+        respondToFriendRequest(updateFriendshipInput: $input) {
+          id
+          status
+        }
+      }
+    `;
+    
+    const acceptVariables = {
+      input: {
+        friendshipId: friendshipResult.data.sendFriendRequest.id,
+        status: "ACCEPTED"
+      }
+    };
+    
+    const acceptResult = await executeGraphQL(acceptFriendshipQuery, acceptVariables, token);
+    
+    if (acceptResult.errors) {
+      console.log('❌ Accepting friendship failed:');
+      console.log(JSON.stringify(acceptResult.errors, null, 2));
+    } else {
+      console.log('✅ Friendship accepted successfully');
+    }
+  }
+  
+  // Now try sending a hug
+  console.log('Attempting to send hug...');
+  
+  // Based on our schema analysis, SendHugInput requires: 
+  // - type: HugType! (enum)
+  // - recipientId: String (optional)
+  // - message: String (optional)
+  // - externalRecipient: ExternalRecipientInput (optional)
+  const query = `
+    mutation SendHug($input: SendHugInput!) {
+      sendHug(sendHugInput: $input) {
+        id
+        message
+        createdAt
+        isRead
+        sender {
+          id
+          username
+        }
+        recipient {
+          id
+          username
+        }
+        type
+      }
+    }
+  `;
+  
   const variables = {
     input: {
-      toUserId: toUser.id,
-      message: "Sending you a test hug!"
+      recipientId: toUser.id,
+      message: "Sending you a test hug!",
+      type: "StandardHug" // Using StandardHug as discovered in schema introspection
     }
   };
   
@@ -357,6 +398,27 @@ async function testSendHug(token, fromUserId) {
   if (result.errors) {
     console.log('❌ Sending hug failed:');
     console.log(JSON.stringify(result.errors, null, 2));
+    
+    // Try with different HugType values we found in our schema introspection
+    const hugTypes = [
+      "FriendlyHug", "ComfortingHug", "EnthusiasticHug", "FamilyHug", 
+      "GroupHug", "GentleHug", "SupportiveHug", "SmilingHug", "VirtualHug", 
+      "WelcomeHug", "RelaxingHug", "CELEBRATORY", "COMFORTING", "ENCOURAGING", 
+      "QUICK", "SUPPORTIVE", "WARM"
+    ];
+    
+    for (const type of hugTypes) {
+      console.log(`Trying with type: ${type}`);
+      variables.input.type = type;
+      const retryResult = await executeGraphQL(query, variables, token);
+      
+      if (!retryResult.errors) {
+        console.log(`✅ Sending hug successful with type: ${type}`);
+        console.log(`Sent hug to: ${toUser.username} (${toUser.id})`);
+        return retryResult.data.sendHug;
+      }
+    }
+    
     return null;
   } else {
     console.log('✅ Sending hug successful');

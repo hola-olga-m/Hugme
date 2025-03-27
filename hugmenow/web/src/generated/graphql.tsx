@@ -714,9 +714,7 @@ export type GetPublicMoodsQuery = {
   }>;
 };
 
-export type GetFriendsMoodsQueryVariables = Exact<{
-  limit: InputMaybe<Scalars["Float"]["input"]>;
-}>;
+export type GetFriendsMoodsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetFriendsMoodsQuery = {
   __typename?: "Query";
@@ -2482,8 +2480,8 @@ export type GetPublicMoodsQueryResult = Apollo.QueryResult<
   GetPublicMoodsQueryVariables
 >;
 export const GetFriendsMoodsDocument = gql`
-  query GetFriendsMoods($limit: Float) {
-    friendsMoods(limit: $limit) {
+  query GetFriendsMoods {
+    friendsMoods {
       id
       score
       note
@@ -2510,7 +2508,6 @@ export const GetFriendsMoodsDocument = gql`
  * @example
  * const { data, loading, error } = useGetFriendsMoodsQuery({
  *   variables: {
- *      limit: // value for 'limit'
  *   },
  * });
  */

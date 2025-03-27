@@ -74,6 +74,25 @@ app.use('/graphql', createProxyMiddleware({
   }
 }));
 
+// Setup PostGraphile proxy
+app.use('/postgraphile', createProxyMiddleware({
+  target: 'http://localhost:3003',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/postgraphile': '/postgraphile', // keep the /postgraphile path
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`Proxying PostGraphile request: ${req.method} ${req.url} -> ${proxyReq.path}`);
+  },
+  onError: (err, req, res) => {
+    console.error('PostGraphile proxy error:', err);
+    res.status(500).json({
+      error: 'PostGraphile proxy error',
+      message: err.message
+    });
+  }
+}));
+
 // Serve static files from dist directory
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath, {

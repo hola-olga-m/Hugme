@@ -1,0 +1,2746 @@
+Comparing PostGraphile and client GraphQL schemas...
+PostGraphile schema size: 69555 bytes
+Client schema size: 4456 bytes
+PostGraphile schema has 46 types
+Client schema has 11 types
+Schemas are different
+
+Schema differences (unified diff format):
+--- temp-postgraphile-schema.graphql	2025-03-27 21:44:20.060233325 +0000
++++ temp-client-schema.graphql	2025-03-27 21:44:20.060233325 +0000
+@@ -1,947 +1,26 @@
+-"""The root query type which gives access points into the data universe."""
+-type Query implements Node {
+-  """
+-  Exposes the root query type nested one level down. This is helpful for Relay 1
+-  which can only query top level fields if they are in a particular form.
+-  """
+-  query: Query!
+-
+-  """
+-  The root query type must be a `Node` to work well with Relay 1 mutations. This just resolves to `query`.
+-  """
+-  nodeId: ID!
+-
+-  """Fetches an object given its globally unique `ID`."""
+-  node(
+-    """The globally unique `ID`."""
+-    nodeId: ID!
+-  ): Node
+-
+-  """Reads and enables pagination through a set of `Friendship`."""
+-  allFriendships(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Friendship`."""
+-    orderBy: [FriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: FriendshipCondition
+-  ): FriendshipsConnection
+-
+-  """Reads and enables pagination through a set of `HugRequest`."""
+-  allHugRequests(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `HugRequest`."""
+-    orderBy: [HugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: HugRequestCondition
+-  ): HugRequestsConnection
+-
+-  """Reads and enables pagination through a set of `Hug`."""
+-  allHugs(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Hug`."""
+-    orderBy: [HugsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: HugCondition
+-  ): HugsConnection
+-
+-  """Reads and enables pagination through a set of `Migration`."""
+-  allMigrations(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Migration`."""
+-    orderBy: [MigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: MigrationCondition
+-  ): MigrationsConnection
+-
+-  """Reads and enables pagination through a set of `Mood`."""
+-  allMoods(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Mood`."""
+-    orderBy: [MoodsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: MoodCondition
+-  ): MoodsConnection
+-
+-  """Reads and enables pagination through a set of `User`."""
+-  allUsers(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `User`."""
+-    orderBy: [UsersOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: UserCondition
+-  ): UsersConnection
+-  friendshipById(id: UUID!): Friendship
+-  friendshipByRequesterIdAndRecipientId(requesterId: UUID!, recipientId: UUID!): Friendship
+-  hugRequestById(id: UUID!): HugRequest
+-  hugById(id: UUID!): Hug
+-  migrationById(id: Int!): Migration
+-  migrationByName(name: String!): Migration
+-  moodById(id: UUID!): Mood
+-  userById(id: UUID!): User
+-  userByUsername(username: String!): User
+-  userByEmail(email: String!): User
+-
+-  """Reads a single `Friendship` using its globally unique `ID`."""
+-  friendship(
+-    """
+-    The globally unique `ID` to be used in selecting a single `Friendship`.
+-    """
+-    nodeId: ID!
+-  ): Friendship
+-
+-  """Reads a single `HugRequest` using its globally unique `ID`."""
+-  hugRequest(
+-    """
+-    The globally unique `ID` to be used in selecting a single `HugRequest`.
+-    """
+-    nodeId: ID!
+-  ): HugRequest
+-
+-  """Reads a single `Hug` using its globally unique `ID`."""
+-  hug(
+-    """The globally unique `ID` to be used in selecting a single `Hug`."""
+-    nodeId: ID!
+-  ): Hug
+-
+-  """Reads a single `Migration` using its globally unique `ID`."""
+-  migration(
+-    """The globally unique `ID` to be used in selecting a single `Migration`."""
+-    nodeId: ID!
+-  ): Migration
+-
+-  """Reads a single `Mood` using its globally unique `ID`."""
+-  mood(
+-    """The globally unique `ID` to be used in selecting a single `Mood`."""
+-    nodeId: ID!
+-  ): Mood
+-
+-  """Reads a single `User` using its globally unique `ID`."""
+-  user(
+-    """The globally unique `ID` to be used in selecting a single `User`."""
+-    nodeId: ID!
+-  ): User
+-}
+-
+-"""An object with a globally unique `ID`."""
+-interface Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""A connection to a list of `Friendship` values."""
+-type FriendshipsConnection {
+-  """A list of `Friendship` objects."""
+-  nodes: [Friendship!]!
+-
+-  """
+-  A list of edges which contains the `Friendship` and cursor to aid in pagination.
+-  """
+-  edges: [FriendshipsEdge!]!
+-
+-  """Information to aid in pagination."""
+-  pageInfo: PageInfo!
+-
+-  """The count of *all* `Friendship` you could get from the connection."""
+-  totalCount: Int!
+-}
+-
+-type Friendship implements Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-  id: UUID!
+-  requesterId: UUID!
+-  recipientId: UUID!
+-  status: String!
+-  followsMood: Boolean!
+-  createdAt: Datetime!
+-  updatedAt: Datetime
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRecipientId: User
+-}
+-
+-"""
+-A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
+-"""
+-scalar UUID
+-
+-"""
+-A point in time as described by the [ISO
+-8601](https://en.wikipedia.org/wiki/ISO_8601) standard. May or may not include a timezone.
+-"""
+-scalar Datetime
+-
+-"""A user of the application"""
+-type User implements Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-
+-  """The primary unique identifier for the user"""
+-  id: UUID!
+-
+-  """The username used to login"""
+-  username: String!
+-
+-  """The email address of the user"""
+-  email: String!
+-
+-  """The display name of the user"""
+-  name: String!
+-  password: String!
++input AnonymousLoginInput {
+   avatarUrl: String
+-
+-  """Whether this user is anonymous"""
+-  isAnonymous: Boolean!
+-  createdAt: Datetime!
+-  updatedAt: Datetime!
+-
+-  """Reads and enables pagination through a set of `Mood`."""
+-  moodsByUserId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Mood`."""
+-    orderBy: [MoodsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: MoodCondition
+-  ): MoodsConnection!
+-
+-  """Reads and enables pagination through a set of `Hug`."""
+-  hugsBySenderId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Hug`."""
+-    orderBy: [HugsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: HugCondition
+-  ): HugsConnection!
+-
+-  """Reads and enables pagination through a set of `Hug`."""
+-  hugsByRecipientId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Hug`."""
+-    orderBy: [HugsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: HugCondition
+-  ): HugsConnection!
+-
+-  """Reads and enables pagination through a set of `HugRequest`."""
+-  hugRequestsByRequesterId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `HugRequest`."""
+-    orderBy: [HugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: HugRequestCondition
+-  ): HugRequestsConnection!
+-
+-  """Reads and enables pagination through a set of `HugRequest`."""
+-  hugRequestsByRecipientId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `HugRequest`."""
+-    orderBy: [HugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: HugRequestCondition
+-  ): HugRequestsConnection!
+-
+-  """Reads and enables pagination through a set of `Friendship`."""
+-  friendshipsByRequesterId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Friendship`."""
+-    orderBy: [FriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: FriendshipCondition
+-  ): FriendshipsConnection!
+-
+-  """Reads and enables pagination through a set of `Friendship`."""
+-  friendshipsByRecipientId(
+-    """Only read the first `n` values of the set."""
+-    first: Int
+-
+-    """Only read the last `n` values of the set."""
+-    last: Int
+-
+-    """
+-    Skip the first `n` values from our `after` cursor, an alternative to cursor
+-    based pagination. May not be used with `last`.
+-    """
+-    offset: Int
+-
+-    """Read all values in the set before (above) this cursor."""
+-    before: Cursor
+-
+-    """Read all values in the set after (below) this cursor."""
+-    after: Cursor
+-
+-    """The method to use when ordering `Friendship`."""
+-    orderBy: [FriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+-
+-    """
+-    A condition to be used in determining which values should be returned by the collection.
+-    """
+-    condition: FriendshipCondition
+-  ): FriendshipsConnection!
+-}
+-
+-"""A connection to a list of `Mood` values."""
+-type MoodsConnection {
+-  """A list of `Mood` objects."""
+-  nodes: [Mood!]!
+-
+-  """
+-  A list of edges which contains the `Mood` and cursor to aid in pagination.
+-  """
+-  edges: [MoodsEdge!]!
+-
+-  """Information to aid in pagination."""
+-  pageInfo: PageInfo!
+-
+-  """The count of *all* `Mood` you could get from the connection."""
+-  totalCount: Int!
+-}
+-
+-"""A mood entry recorded by a user"""
+-type Mood implements Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-  id: UUID!
+-
+-  """The mood score from 1-10"""
+-  score: Int!
+-  note: String
+-
+-  """Whether this mood entry is publicly visible"""
+-  isPublic: Boolean!
+-  userId: UUID!
+-  createdAt: Datetime!
+-
+-  """Reads a single `User` that is related to this `Mood`."""
+-  userByUserId: User
+-}
+-
+-"""A `Mood` edge in the connection."""
+-type MoodsEdge {
+-  """A cursor for use in pagination."""
+-  cursor: Cursor
+-
+-  """The `Mood` at the end of the edge."""
+-  node: Mood!
+-}
+-
+-"""A location in a connection that can be used for resuming pagination."""
+-scalar Cursor
+-
+-"""Information about pagination in a connection."""
+-type PageInfo {
+-  """When paginating forwards, are there more items?"""
+-  hasNextPage: Boolean!
+-
+-  """When paginating backwards, are there more items?"""
+-  hasPreviousPage: Boolean!
+-
+-  """When paginating backwards, the cursor to continue."""
+-  startCursor: Cursor
+-
+-  """When paginating forwards, the cursor to continue."""
+-  endCursor: Cursor
+-}
+-
+-"""Methods to use when ordering `Mood`."""
+-enum MoodsOrderBy {
+-  NATURAL
+-  ID_ASC
+-  ID_DESC
+-  SCORE_ASC
+-  SCORE_DESC
+-  NOTE_ASC
+-  NOTE_DESC
+-  IS_PUBLIC_ASC
+-  IS_PUBLIC_DESC
+-  USER_ID_ASC
+-  USER_ID_DESC
+-  CREATED_AT_ASC
+-  CREATED_AT_DESC
+-  PRIMARY_KEY_ASC
+-  PRIMARY_KEY_DESC
+-}
+-
+-"""
+-A condition to be used against `Mood` object types. All fields are tested for equality and combined with a logical ‘and.’
+-"""
+-input MoodCondition {
+-  """Checks for equality with the object’s `id` field."""
+-  id: UUID
+-
+-  """Checks for equality with the object’s `score` field."""
+-  score: Int
+-
+-  """Checks for equality with the object’s `note` field."""
+-  note: String
+-
+-  """Checks for equality with the object’s `isPublic` field."""
+-  isPublic: Boolean
+-
+-  """Checks for equality with the object’s `userId` field."""
+-  userId: UUID
+-
+-  """Checks for equality with the object’s `createdAt` field."""
+-  createdAt: Datetime
+-}
+-
+-"""A connection to a list of `Hug` values."""
+-type HugsConnection {
+-  """A list of `Hug` objects."""
+-  nodes: [Hug!]!
+-
+-  """
+-  A list of edges which contains the `Hug` and cursor to aid in pagination.
+-  """
+-  edges: [HugsEdge!]!
+-
+-  """Information to aid in pagination."""
+-  pageInfo: PageInfo!
+-
+-  """The count of *all* `Hug` you could get from the connection."""
+-  totalCount: Int!
++  nickname: String!
+ }
+ 
+-"""A virtual hug sent from one user to another"""
+-type Hug implements Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-  id: UUID!
+-
+-  """The type of hug (QUICK, WARM, SUPPORTIVE, etc)"""
+-  type: String!
+-  message: String
+-  senderId: UUID!
+-  recipientId: UUID!
+-
+-  """Whether the recipient has read the hug"""
+-  isRead: Boolean!
+-  createdAt: Datetime!
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userBySenderId: User
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userByRecipientId: User
++type AuthResponse {
++  accessToken: String!
++  user: User!
+ }
+ 
+-"""A `Hug` edge in the connection."""
+-type HugsEdge {
+-  """A cursor for use in pagination."""
+-  cursor: Cursor
+-
+-  """The `Hug` at the end of the edge."""
+-  node: Hug!
+-}
+-
+-"""Methods to use when ordering `Hug`."""
+-enum HugsOrderBy {
+-  NATURAL
+-  ID_ASC
+-  ID_DESC
+-  TYPE_ASC
+-  TYPE_DESC
+-  MESSAGE_ASC
+-  MESSAGE_DESC
+-  SENDER_ID_ASC
+-  SENDER_ID_DESC
+-  RECIPIENT_ID_ASC
+-  RECIPIENT_ID_DESC
+-  IS_READ_ASC
+-  IS_READ_DESC
+-  CREATED_AT_ASC
+-  CREATED_AT_DESC
+-  PRIMARY_KEY_ASC
+-  PRIMARY_KEY_DESC
+-}
+-
+-"""
+-A condition to be used against `Hug` object types. All fields are tested for equality and combined with a logical ‘and.’
+-"""
+-input HugCondition {
+-  """Checks for equality with the object’s `id` field."""
+-  id: UUID
+-
+-  """Checks for equality with the object’s `type` field."""
+-  type: String
+-
+-  """Checks for equality with the object’s `message` field."""
+-  message: String
+-
+-  """Checks for equality with the object’s `senderId` field."""
+-  senderId: UUID
+-
+-  """Checks for equality with the object’s `recipientId` field."""
+-  recipientId: UUID
+-
+-  """Checks for equality with the object’s `isRead` field."""
+-  isRead: Boolean
+-
+-  """Checks for equality with the object’s `createdAt` field."""
+-  createdAt: Datetime
+-}
+-
+-"""A connection to a list of `HugRequest` values."""
+-type HugRequestsConnection {
+-  """A list of `HugRequest` objects."""
+-  nodes: [HugRequest!]!
+-
+-  """
+-  A list of edges which contains the `HugRequest` and cursor to aid in pagination.
+-  """
+-  edges: [HugRequestsEdge!]!
+-
+-  """Information to aid in pagination."""
+-  pageInfo: PageInfo!
+-
+-  """The count of *all* `HugRequest` you could get from the connection."""
+-  totalCount: Int!
++input CreateFriendshipInput {
++  followMood: Boolean = false
++  recipientId: String!
+ }
+ 
+-"""A request for a hug from another user or the community"""
+-type HugRequest implements Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-  id: UUID!
+-  message: String
+-  requesterId: UUID!
+-  recipientId: UUID
+-
+-  """Whether this is a request to the community rather than a specific user"""
++input CreateHugRequestInput {
+   isCommunityRequest: Boolean!
+-
+-  """
+-  The status of the request (PENDING, ACCEPTED, DECLINED, EXPIRED, CANCELLED)
+-  """
+-  status: String!
+-  createdAt: Datetime!
+-  respondedAt: Datetime
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRecipientId: User
+-}
+-
+-"""A `HugRequest` edge in the connection."""
+-type HugRequestsEdge {
+-  """A cursor for use in pagination."""
+-  cursor: Cursor
+-
+-  """The `HugRequest` at the end of the edge."""
+-  node: HugRequest!
+-}
+-
+-"""Methods to use when ordering `HugRequest`."""
+-enum HugRequestsOrderBy {
+-  NATURAL
+-  ID_ASC
+-  ID_DESC
+-  MESSAGE_ASC
+-  MESSAGE_DESC
+-  REQUESTER_ID_ASC
+-  REQUESTER_ID_DESC
+-  RECIPIENT_ID_ASC
+-  RECIPIENT_ID_DESC
+-  IS_COMMUNITY_REQUEST_ASC
+-  IS_COMMUNITY_REQUEST_DESC
+-  STATUS_ASC
+-  STATUS_DESC
+-  CREATED_AT_ASC
+-  CREATED_AT_DESC
+-  RESPONDED_AT_ASC
+-  RESPONDED_AT_DESC
+-  PRIMARY_KEY_ASC
+-  PRIMARY_KEY_DESC
+-}
+-
+-"""
+-A condition to be used against `HugRequest` object types. All fields are tested
+-for equality and combined with a logical ‘and.’
+-"""
+-input HugRequestCondition {
+-  """Checks for equality with the object’s `id` field."""
+-  id: UUID
+-
+-  """Checks for equality with the object’s `message` field."""
+   message: String
+-
+-  """Checks for equality with the object’s `requesterId` field."""
+-  requesterId: UUID
+-
+-  """Checks for equality with the object’s `recipientId` field."""
+-  recipientId: UUID
+-
+-  """Checks for equality with the object’s `isCommunityRequest` field."""
+-  isCommunityRequest: Boolean
+-
+-  """Checks for equality with the object’s `status` field."""
+-  status: String
+-
+-  """Checks for equality with the object’s `createdAt` field."""
+-  createdAt: Datetime
+-
+-  """Checks for equality with the object’s `respondedAt` field."""
+-  respondedAt: Datetime
+-}
+-
+-"""Methods to use when ordering `Friendship`."""
+-enum FriendshipsOrderBy {
+-  NATURAL
+-  ID_ASC
+-  ID_DESC
+-  REQUESTER_ID_ASC
+-  REQUESTER_ID_DESC
+-  RECIPIENT_ID_ASC
+-  RECIPIENT_ID_DESC
+-  STATUS_ASC
+-  STATUS_DESC
+-  FOLLOWS_MOOD_ASC
+-  FOLLOWS_MOOD_DESC
+-  CREATED_AT_ASC
+-  CREATED_AT_DESC
+-  UPDATED_AT_ASC
+-  UPDATED_AT_DESC
+-  PRIMARY_KEY_ASC
+-  PRIMARY_KEY_DESC
++  recipientId: String
+ }
+ 
+-"""
+-A condition to be used against `Friendship` object types. All fields are tested
+-for equality and combined with a logical ‘and.’
+-"""
+-input FriendshipCondition {
+-  """Checks for equality with the object’s `id` field."""
+-  id: UUID
+-
+-  """Checks for equality with the object’s `requesterId` field."""
+-  requesterId: UUID
+-
+-  """Checks for equality with the object’s `recipientId` field."""
+-  recipientId: UUID
+-
+-  """Checks for equality with the object’s `status` field."""
+-  status: String
+-
+-  """Checks for equality with the object’s `followsMood` field."""
+-  followsMood: Boolean
+-
+-  """Checks for equality with the object’s `createdAt` field."""
+-  createdAt: Datetime
+-
+-  """Checks for equality with the object’s `updatedAt` field."""
+-  updatedAt: Datetime
+-}
+-
+-"""A `Friendship` edge in the connection."""
+-type FriendshipsEdge {
+-  """A cursor for use in pagination."""
+-  cursor: Cursor
+-
+-  """The `Friendship` at the end of the edge."""
+-  node: Friendship!
+-}
+-
+-"""A connection to a list of `Migration` values."""
+-type MigrationsConnection {
+-  """A list of `Migration` objects."""
+-  nodes: [Migration!]!
+-
+-  """
+-  A list of edges which contains the `Migration` and cursor to aid in pagination.
+-  """
+-  edges: [MigrationsEdge!]!
+-
+-  """Information to aid in pagination."""
+-  pageInfo: PageInfo!
+-
+-  """The count of *all* `Migration` you could get from the connection."""
+-  totalCount: Int!
+-}
+-
+-type Migration implements Node {
+-  """
+-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+-  """
+-  nodeId: ID!
+-  id: Int!
+-  name: String!
+-  appliedAt: Datetime
+-}
+-
+-"""A `Migration` edge in the connection."""
+-type MigrationsEdge {
+-  """A cursor for use in pagination."""
+-  cursor: Cursor
+-
+-  """The `Migration` at the end of the edge."""
+-  node: Migration!
+-}
+-
+-"""Methods to use when ordering `Migration`."""
+-enum MigrationsOrderBy {
+-  NATURAL
+-  ID_ASC
+-  ID_DESC
+-  NAME_ASC
+-  NAME_DESC
+-  APPLIED_AT_ASC
+-  APPLIED_AT_DESC
+-  PRIMARY_KEY_ASC
+-  PRIMARY_KEY_DESC
++input CreateMoodInput {
++  isPublic: Boolean!
++  note: String
++  score: Int!
+ }
+@@ -949,1611 +28,205 @@
+ """
+-A condition to be used against `Migration` object types. All fields are tested
+-for equality and combined with a logical ‘and.’
++A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+ """
+-input MigrationCondition {
+-  """Checks for equality with the object’s `id` field."""
+-  id: Int
+-
+-  """Checks for equality with the object’s `name` field."""
+-  name: String
+-
+-  """Checks for equality with the object’s `appliedAt` field."""
+-  appliedAt: Datetime
+-}
++scalar DateTime
+ 
+-"""A connection to a list of `User` values."""
+-type UsersConnection {
+-  """A list of `User` objects."""
+-  nodes: [User!]!
+-
+-  """
+-  A list of edges which contains the `User` and cursor to aid in pagination.
+-  """
+-  edges: [UsersEdge!]!
+-
+-  """Information to aid in pagination."""
+-  pageInfo: PageInfo!
+-
+-  """The count of *all* `User` you could get from the connection."""
+-  totalCount: Int!
+-}
+-
+-"""A `User` edge in the connection."""
+-type UsersEdge {
+-  """A cursor for use in pagination."""
+-  cursor: Cursor
+-
+-  """The `User` at the end of the edge."""
+-  node: User!
+-}
+-
+-"""Methods to use when ordering `User`."""
+-enum UsersOrderBy {
+-  NATURAL
+-  ID_ASC
+-  ID_DESC
+-  USERNAME_ASC
+-  USERNAME_DESC
+-  EMAIL_ASC
+-  EMAIL_DESC
+-  NAME_ASC
+-  NAME_DESC
+-  PASSWORD_ASC
+-  PASSWORD_DESC
+-  AVATAR_URL_ASC
+-  AVATAR_URL_DESC
+-  IS_ANONYMOUS_ASC
+-  IS_ANONYMOUS_DESC
+-  CREATED_AT_ASC
+-  CREATED_AT_DESC
+-  UPDATED_AT_ASC
+-  UPDATED_AT_DESC
+-  PRIMARY_KEY_ASC
+-  PRIMARY_KEY_DESC
++type ExternalRecipient {
++  contact: String!
++  type: String!
+ }
+ 
+-"""
+-A condition to be used against `User` object types. All fields are tested for equality and combined with a logical ‘and.’
+-"""
+-input UserCondition {
+-  """Checks for equality with the object’s `id` field."""
+-  id: UUID
+-
+-  """Checks for equality with the object’s `username` field."""
+-  username: String
+-
+-  """Checks for equality with the object’s `email` field."""
+-  email: String
+-
+-  """Checks for equality with the object’s `name` field."""
+-  name: String
+-
+-  """Checks for equality with the object’s `password` field."""
+-  password: String
+-
+-  """Checks for equality with the object’s `avatarUrl` field."""
+-  avatarUrl: String
+-
+-  """Checks for equality with the object’s `isAnonymous` field."""
+-  isAnonymous: Boolean
+-
+-  """Checks for equality with the object’s `createdAt` field."""
+-  createdAt: Datetime
+-
+-  """Checks for equality with the object’s `updatedAt` field."""
+-  updatedAt: Datetime
++input ExternalRecipientInput {
++  contact: String!
++  type: ExternalRecipientType!
+ }
+ 
+-"""
+-The root mutation type which contains root level fields which mutate data.
+-"""
+-type Mutation {
+-  """Creates a single `Friendship`."""
+-  createFriendship(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: CreateFriendshipInput!
+-  ): CreateFriendshipPayload
+-
+-  """Creates a single `HugRequest`."""
+-  createHugRequest(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: CreateHugRequestInput!
+-  ): CreateHugRequestPayload
+-
+-  """Creates a single `Hug`."""
+-  createHug(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: CreateHugInput!
+-  ): CreateHugPayload
+-
+-  """Creates a single `Migration`."""
+-  createMigration(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: CreateMigrationInput!
+-  ): CreateMigrationPayload
+-
+-  """Creates a single `Mood`."""
+-  createMood(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: CreateMoodInput!
+-  ): CreateMoodPayload
+-
+-  """Creates a single `User`."""
+-  createUser(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: CreateUserInput!
+-  ): CreateUserPayload
+-
+-  """
+-  Updates a single `Friendship` using its globally unique id and a patch.
+-  """
+-  updateFriendship(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateFriendshipInput!
+-  ): UpdateFriendshipPayload
+-
+-  """Updates a single `Friendship` using a unique key and a patch."""
+-  updateFriendshipById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateFriendshipByIdInput!
+-  ): UpdateFriendshipPayload
+-
+-  """Updates a single `Friendship` using a unique key and a patch."""
+-  updateFriendshipByRequesterIdAndRecipientId(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateFriendshipByRequesterIdAndRecipientIdInput!
+-  ): UpdateFriendshipPayload
+-
+-  """
+-  Updates a single `HugRequest` using its globally unique id and a patch.
+-  """
+-  updateHugRequest(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateHugRequestInput!
+-  ): UpdateHugRequestPayload
+-
+-  """Updates a single `HugRequest` using a unique key and a patch."""
+-  updateHugRequestById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateHugRequestByIdInput!
+-  ): UpdateHugRequestPayload
+-
+-  """Updates a single `Hug` using its globally unique id and a patch."""
+-  updateHug(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateHugInput!
+-  ): UpdateHugPayload
+-
+-  """Updates a single `Hug` using a unique key and a patch."""
+-  updateHugById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateHugByIdInput!
+-  ): UpdateHugPayload
+-
+-  """Updates a single `Migration` using its globally unique id and a patch."""
+-  updateMigration(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateMigrationInput!
+-  ): UpdateMigrationPayload
+-
+-  """Updates a single `Migration` using a unique key and a patch."""
+-  updateMigrationById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateMigrationByIdInput!
+-  ): UpdateMigrationPayload
+-
+-  """Updates a single `Migration` using a unique key and a patch."""
+-  updateMigrationByName(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateMigrationByNameInput!
+-  ): UpdateMigrationPayload
+-
+-  """Updates a single `Mood` using its globally unique id and a patch."""
+-  updateMood(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateMoodInput!
+-  ): UpdateMoodPayload
+-
+-  """Updates a single `Mood` using a unique key and a patch."""
+-  updateMoodById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateMoodByIdInput!
+-  ): UpdateMoodPayload
+-
+-  """Updates a single `User` using its globally unique id and a patch."""
+-  updateUser(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateUserInput!
+-  ): UpdateUserPayload
+-
+-  """Updates a single `User` using a unique key and a patch."""
+-  updateUserById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateUserByIdInput!
+-  ): UpdateUserPayload
+-
+-  """Updates a single `User` using a unique key and a patch."""
+-  updateUserByUsername(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateUserByUsernameInput!
+-  ): UpdateUserPayload
+-
+-  """Updates a single `User` using a unique key and a patch."""
+-  updateUserByEmail(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: UpdateUserByEmailInput!
+-  ): UpdateUserPayload
+-
+-  """Deletes a single `Friendship` using its globally unique id."""
+-  deleteFriendship(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteFriendshipInput!
+-  ): DeleteFriendshipPayload
+-
+-  """Deletes a single `Friendship` using a unique key."""
+-  deleteFriendshipById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteFriendshipByIdInput!
+-  ): DeleteFriendshipPayload
+-
+-  """Deletes a single `Friendship` using a unique key."""
+-  deleteFriendshipByRequesterIdAndRecipientId(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteFriendshipByRequesterIdAndRecipientIdInput!
+-  ): DeleteFriendshipPayload
+-
+-  """Deletes a single `HugRequest` using its globally unique id."""
+-  deleteHugRequest(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteHugRequestInput!
+-  ): DeleteHugRequestPayload
+-
+-  """Deletes a single `HugRequest` using a unique key."""
+-  deleteHugRequestById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteHugRequestByIdInput!
+-  ): DeleteHugRequestPayload
+-
+-  """Deletes a single `Hug` using its globally unique id."""
+-  deleteHug(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteHugInput!
+-  ): DeleteHugPayload
+-
+-  """Deletes a single `Hug` using a unique key."""
+-  deleteHugById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteHugByIdInput!
+-  ): DeleteHugPayload
+-
+-  """Deletes a single `Migration` using its globally unique id."""
+-  deleteMigration(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteMigrationInput!
+-  ): DeleteMigrationPayload
+-
+-  """Deletes a single `Migration` using a unique key."""
+-  deleteMigrationById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteMigrationByIdInput!
+-  ): DeleteMigrationPayload
+-
+-  """Deletes a single `Migration` using a unique key."""
+-  deleteMigrationByName(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteMigrationByNameInput!
+-  ): DeleteMigrationPayload
+-
+-  """Deletes a single `Mood` using its globally unique id."""
+-  deleteMood(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteMoodInput!
+-  ): DeleteMoodPayload
+-
+-  """Deletes a single `Mood` using a unique key."""
+-  deleteMoodById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteMoodByIdInput!
+-  ): DeleteMoodPayload
+-
+-  """Deletes a single `User` using its globally unique id."""
+-  deleteUser(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteUserInput!
+-  ): DeleteUserPayload
+-
+-  """Deletes a single `User` using a unique key."""
+-  deleteUserById(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteUserByIdInput!
+-  ): DeleteUserPayload
+-
+-  """Deletes a single `User` using a unique key."""
+-  deleteUserByUsername(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteUserByUsernameInput!
+-  ): DeleteUserPayload
+-
+-  """Deletes a single `User` using a unique key."""
+-  deleteUserByEmail(
+-    """
+-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+-    """
+-    input: DeleteUserByEmailInput!
+-  ): DeleteUserPayload
+-}
+-
+-"""The output of our create `Friendship` mutation."""
+-type CreateFriendshipPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Friendship` that was created by this mutation."""
+-  friendship: Friendship
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `Friendship`. May be used by Relay 1."""
+-  friendshipEdge(
+-    """The method to use when ordering `Friendship`."""
+-    orderBy: [FriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): FriendshipsEdge
++"""The type of external recipient contact"""
++enum ExternalRecipientType {
++  EMAIL
++  TELEGRAM
+ }
+ 
+-"""All input for the create `Friendship` mutation."""
+-input CreateFriendshipInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The `Friendship` to be created by this mutation."""
+-  friendship: FriendshipInput!
+-}
+-
+-"""An input for mutations affecting `Friendship`"""
+-input FriendshipInput {
+-  id: UUID!
+-  requesterId: UUID!
+-  recipientId: UUID!
+-  status: String
++type Friendship {
++  createdAt: DateTime!
+   followsMood: Boolean
+-  createdAt: Datetime
+-  updatedAt: Datetime
+-}
+-
+-"""The output of our create `HugRequest` mutation."""
+-type CreateHugRequestPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `HugRequest` that was created by this mutation."""
+-  hugRequest: HugRequest
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `HugRequest`. May be used by Relay 1."""
+-  hugRequestEdge(
+-    """The method to use when ordering `HugRequest`."""
+-    orderBy: [HugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): HugRequestsEdge
+-}
+-
+-"""All input for the create `HugRequest` mutation."""
+-input CreateHugRequestInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The `HugRequest` to be created by this mutation."""
+-  hugRequest: HugRequestInput!
+-}
+-
+-"""An input for mutations affecting `HugRequest`"""
+-input HugRequestInput {
+-  id: UUID
+-  message: String
+-  requesterId: UUID!
+-  recipientId: UUID
+-
+-  """Whether this is a request to the community rather than a specific user"""
+-  isCommunityRequest: Boolean
+-
+-  """
+-  The status of the request (PENDING, ACCEPTED, DECLINED, EXPIRED, CANCELLED)
+-  """
+-  status: String
+-  createdAt: Datetime
+-  respondedAt: Datetime
+-}
+-
+-"""The output of our create `Hug` mutation."""
+-type CreateHugPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Hug` that was created by this mutation."""
+-  hug: Hug
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userBySenderId: User
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `Hug`. May be used by Relay 1."""
+-  hugEdge(
+-    """The method to use when ordering `Hug`."""
+-    orderBy: [HugsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): HugsEdge
+-}
+-
+-"""All input for the create `Hug` mutation."""
+-input CreateHugInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The `Hug` to be created by this mutation."""
+-  hug: HugInput!
+-}
+-
+-"""An input for mutations affecting `Hug`"""
+-input HugInput {
+-  id: UUID
+-
+-  """The type of hug (QUICK, WARM, SUPPORTIVE, etc)"""
+-  type: String!
++  id: ID!
++  recipient: User!
++  recipientId: String!
++  requester: User!
++  requesterId: String!
++  status: FriendshipStatus!
++  updatedAt: DateTime
++}
++
++"""The status of a friendship between two users"""
++enum FriendshipStatus {
++  ACCEPTED
++  BLOCKED
++  PENDING
++  REJECTED
++}
++
++type Hug {
++  createdAt: DateTime!
++  externalRecipient: ExternalRecipient
++  id: ID!
++  isRead: Boolean!
+   message: String
+-  senderId: UUID!
+-  recipientId: UUID!
+-
+-  """Whether the recipient has read the hug"""
+-  isRead: Boolean
+-  createdAt: Datetime
+-}
+-
+-"""The output of our create `Migration` mutation."""
+-type CreateMigrationPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Migration` that was created by this mutation."""
+-  migration: Migration
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """An edge for our `Migration`. May be used by Relay 1."""
+-  migrationEdge(
+-    """The method to use when ordering `Migration`."""
+-    orderBy: [MigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): MigrationsEdge
+-}
+-
+-"""All input for the create `Migration` mutation."""
+-input CreateMigrationInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The `Migration` to be created by this mutation."""
+-  migration: MigrationInput!
+-}
+-
+-"""An input for mutations affecting `Migration`"""
+-input MigrationInput {
+-  id: Int
+-  name: String!
+-  appliedAt: Datetime
++  recipient: User
++  recipientId: String
++  sender: User!
++  senderId: String!
++  type: HugType!
+ }
+ 
+-"""The output of our create `Mood` mutation."""
+-type CreateMoodPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Mood` that was created by this mutation."""
+-  mood: Mood
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Mood`."""
+-  userByUserId: User
+-
+-  """An edge for our `Mood`. May be used by Relay 1."""
+-  moodEdge(
+-    """The method to use when ordering `Mood`."""
+-    orderBy: [MoodsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): MoodsEdge
++type HugRequest {
++  createdAt: DateTime!
++  id: ID!
++  isCommunityRequest: Boolean!
++  message: String
++  recipient: User
++  recipientId: String
++  requester: User!
++  requesterId: String!
++  respondedAt: DateTime
++  status: HugRequestStatus!
++}
++
++"""The status of a hug request"""
++enum HugRequestStatus {
++  ACCEPTED
++  CANCELLED
++  DECLINED
++  EXPIRED
++  PENDING
++}
++
++"""The type of hug sent"""
++enum HugType {
++  CELEBRATORY
++  COMFORTING
++  ComfortingHug
++  ENCOURAGING
++  EnthusiasticHug
++  FamilyHug
++  FriendlyHug
++  GentleHug
++  GroupHug
++  QUICK
++  RelaxingHug
++  SUPPORTIVE
++  SmilingHug
++  StandardHug
++  SupportiveHug
++  VirtualHug
++  WARM
++  WelcomeHug
+ }
+ 
+-"""All input for the create `Mood` mutation."""
+-input CreateMoodInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The `Mood` to be created by this mutation."""
+-  mood: MoodInput!
++input LoginInput {
++  email: String!
++  password: String!
+ }
+ 
+-"""An input for mutations affecting `Mood`"""
+-input MoodInput {
+-  id: UUID
+-
+-  """The mood score from 1-10"""
+-  score: Int!
++type Mood {
++  createdAt: DateTime!
++  id: ID!
++  isPublic: Boolean!
+   note: String
+-
+-  """Whether this mood entry is publicly visible"""
+-  isPublic: Boolean
+-  userId: UUID!
+-  createdAt: Datetime
++  score: Int!
++  user: User!
++  userId: String!
+ }
+ 
+-"""The output of our create `User` mutation."""
+-type CreateUserPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `User` that was created by this mutation."""
+-  user: User
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """An edge for our `User`. May be used by Relay 1."""
+-  userEdge(
+-    """The method to use when ordering `User`."""
+-    orderBy: [UsersOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): UsersEdge
+-}
+-
+-"""All input for the create `User` mutation."""
+-input CreateUserInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The `User` to be created by this mutation."""
+-  user: UserInput!
+-}
+-
+-"""An input for mutations affecting `User`"""
+-input UserInput {
+-  """The primary unique identifier for the user"""
+-  id: UUID
+-
+-  """The username used to login"""
+-  username: String!
++type Mutation {
++  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthResponse!
++  cancelHugRequest(requestId: ID!): HugRequest!
++  createHugRequest(createHugRequestInput: CreateHugRequestInput!): HugRequest!
++  createMood(createMoodInput: CreateMoodInput!): Mood!
++  login(loginInput: LoginInput!): AuthResponse!
++  markHugAsRead(hugId: ID!): Hug!
++  register(registerInput: RegisterInput!): AuthResponse!
++  removeMood(id: ID!): Boolean!
++  removeUser: Boolean!
++  respondToFriendRequest(updateFriendshipInput: UpdateFriendshipInput!): Friendship!
++  respondToHugRequest(respondToRequestInput: RespondToRequestInput!): HugRequest!
++  sendFriendRequest(createFriendshipInput: CreateFriendshipInput!): Friendship!
++  sendHug(sendHugInput: SendHugInput!): Hug!
++  updateMood(updateMoodInput: UpdateMoodInput!): Mood!
++  updateMoodFollowing(updateFriendshipInput: UpdateFriendshipInput!): Friendship!
++  updateUser(updateUserInput: UpdateUserInput!): User!
++}
++
++type Query {
++  checkFriendship(userId: String!): Boolean!
++  communityHugRequests: [HugRequest!]!
++  friendsMoods(limit: Float = 20): [Mood!]!
++  hug(id: ID!): Hug!
++  hugRequest(id: ID!): HugRequest!
++  me: User!
++  mood(id: ID!): Mood!
++  moodFollowing: [Friendship!]!
++  moodStreak: Float!
++  myFriends: [Friendship!]!
++  myHugRequests: [HugRequest!]!
++  pendingFriendRequests: [Friendship!]!
++  pendingHugRequests: [HugRequest!]!
++  publicMoods: [Mood!]!
++  receivedHugs: [Hug!]!
++  sentFriendRequests: [Friendship!]!
++  sentHugs: [Hug!]!
++  user(id: ID!): User!
++  userMoods: [Mood!]!
++  users: [User!]!
++}
+ 
+-  """The email address of the user"""
++input RegisterInput {
++  avatarUrl: String
+   email: String!
+-
+-  """The display name of the user"""
+   name: String!
+   password: String!
+-  avatarUrl: String
+-
+-  """Whether this user is anonymous"""
+-  isAnonymous: Boolean
+-  createdAt: Datetime
+-  updatedAt: Datetime
+-}
+-
+-"""The output of our update `Friendship` mutation."""
+-type UpdateFriendshipPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Friendship` that was updated by this mutation."""
+-  friendship: Friendship
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `Friendship`. May be used by Relay 1."""
+-  friendshipEdge(
+-    """The method to use when ordering `Friendship`."""
+-    orderBy: [FriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): FriendshipsEdge
+-}
+-
+-"""All input for the `updateFriendship` mutation."""
+-input UpdateFriendshipInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Friendship` to be updated.
+-  """
+-  nodeId: ID!
+-
+-  """
+-  An object where the defined keys will be set on the `Friendship` being updated.
+-  """
+-  friendshipPatch: FriendshipPatch!
+-}
+-
+-"""
+-Represents an update to a `Friendship`. Fields that are set will be updated.
+-"""
+-input FriendshipPatch {
+-  id: UUID
+-  requesterId: UUID
+-  recipientId: UUID
+-  status: String
+-  followsMood: Boolean
+-  createdAt: Datetime
+-  updatedAt: Datetime
+-}
+-
+-"""All input for the `updateFriendshipById` mutation."""
+-input UpdateFriendshipByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `Friendship` being updated.
+-  """
+-  friendshipPatch: FriendshipPatch!
+-  id: UUID!
+-}
+-
+-"""
+-All input for the `updateFriendshipByRequesterIdAndRecipientId` mutation.
+-"""
+-input UpdateFriendshipByRequesterIdAndRecipientIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `Friendship` being updated.
+-  """
+-  friendshipPatch: FriendshipPatch!
+-  requesterId: UUID!
+-  recipientId: UUID!
+-}
+-
+-"""The output of our update `HugRequest` mutation."""
+-type UpdateHugRequestPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `HugRequest` that was updated by this mutation."""
+-  hugRequest: HugRequest
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `HugRequest`. May be used by Relay 1."""
+-  hugRequestEdge(
+-    """The method to use when ordering `HugRequest`."""
+-    orderBy: [HugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): HugRequestsEdge
+-}
+-
+-"""All input for the `updateHugRequest` mutation."""
+-input UpdateHugRequestInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `HugRequest` to be updated.
+-  """
+-  nodeId: ID!
+-
+-  """
+-  An object where the defined keys will be set on the `HugRequest` being updated.
+-  """
+-  hugRequestPatch: HugRequestPatch!
++  username: String!
+ }
+ 
+-"""
+-Represents an update to a `HugRequest`. Fields that are set will be updated.
+-"""
+-input HugRequestPatch {
+-  id: UUID
+-  message: String
+-  requesterId: UUID
+-  recipientId: UUID
+-
+-  """Whether this is a request to the community rather than a specific user"""
+-  isCommunityRequest: Boolean
+-
+-  """
+-  The status of the request (PENDING, ACCEPTED, DECLINED, EXPIRED, CANCELLED)
+-  """
+-  status: String
+-  createdAt: Datetime
+-  respondedAt: Datetime
+-}
+-
+-"""All input for the `updateHugRequestById` mutation."""
+-input UpdateHugRequestByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `HugRequest` being updated.
+-  """
+-  hugRequestPatch: HugRequestPatch!
+-  id: UUID!
+-}
+-
+-"""The output of our update `Hug` mutation."""
+-type UpdateHugPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Hug` that was updated by this mutation."""
+-  hug: Hug
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userBySenderId: User
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `Hug`. May be used by Relay 1."""
+-  hugEdge(
+-    """The method to use when ordering `Hug`."""
+-    orderBy: [HugsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): HugsEdge
+-}
+-
+-"""All input for the `updateHug` mutation."""
+-input UpdateHugInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Hug` to be updated.
+-  """
+-  nodeId: ID!
+-
+-  """
+-  An object where the defined keys will be set on the `Hug` being updated.
+-  """
+-  hugPatch: HugPatch!
+-}
+-
+-"""Represents an update to a `Hug`. Fields that are set will be updated."""
+-input HugPatch {
+-  id: UUID
+-
+-  """The type of hug (QUICK, WARM, SUPPORTIVE, etc)"""
+-  type: String
++input RespondToRequestInput {
+   message: String
+-  senderId: UUID
+-  recipientId: UUID
+-
+-  """Whether the recipient has read the hug"""
+-  isRead: Boolean
+-  createdAt: Datetime
+-}
+-
+-"""All input for the `updateHugById` mutation."""
+-input UpdateHugByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `Hug` being updated.
+-  """
+-  hugPatch: HugPatch!
+-  id: UUID!
+-}
+-
+-"""The output of our update `Migration` mutation."""
+-type UpdateMigrationPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Migration` that was updated by this mutation."""
+-  migration: Migration
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """An edge for our `Migration`. May be used by Relay 1."""
+-  migrationEdge(
+-    """The method to use when ordering `Migration`."""
+-    orderBy: [MigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): MigrationsEdge
+-}
+-
+-"""All input for the `updateMigration` mutation."""
+-input UpdateMigrationInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Migration` to be updated.
+-  """
+-  nodeId: ID!
+-
+-  """
+-  An object where the defined keys will be set on the `Migration` being updated.
+-  """
+-  migrationPatch: MigrationPatch!
+-}
+-
+-"""
+-Represents an update to a `Migration`. Fields that are set will be updated.
+-"""
+-input MigrationPatch {
+-  id: Int
+-  name: String
+-  appliedAt: Datetime
++  requestId: String!
++  status: HugRequestStatus!
+ }
+ 
+-"""All input for the `updateMigrationById` mutation."""
+-input UpdateMigrationByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `Migration` being updated.
+-  """
+-  migrationPatch: MigrationPatch!
+-  id: Int!
+-}
+-
+-"""All input for the `updateMigrationByName` mutation."""
+-input UpdateMigrationByNameInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `Migration` being updated.
+-  """
+-  migrationPatch: MigrationPatch!
+-  name: String!
++input SendHugInput {
++  externalRecipient: ExternalRecipientInput
++  message: String
++  recipientId: String
++  type: HugType!
+ }
+ 
+-"""The output of our update `Mood` mutation."""
+-type UpdateMoodPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Mood` that was updated by this mutation."""
+-  mood: Mood
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Mood`."""
+-  userByUserId: User
+-
+-  """An edge for our `Mood`. May be used by Relay 1."""
+-  moodEdge(
+-    """The method to use when ordering `Mood`."""
+-    orderBy: [MoodsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): MoodsEdge
++input UpdateFriendshipInput {
++  followMood: Boolean
++  friendshipId: String!
++  status: FriendshipStatus
+ }
+ 
+-"""All input for the `updateMood` mutation."""
+ input UpdateMoodInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Mood` to be updated.
+-  """
+-  nodeId: ID!
+-
+-  """
+-  An object where the defined keys will be set on the `Mood` being updated.
+-  """
+-  moodPatch: MoodPatch!
+-}
+-
+-"""Represents an update to a `Mood`. Fields that are set will be updated."""
+-input MoodPatch {
+-  id: UUID
+-
+-  """The mood score from 1-10"""
+-  score: Int
+-  note: String
+-
+-  """Whether this mood entry is publicly visible"""
++  id: ID!
+   isPublic: Boolean
+-  userId: UUID
+-  createdAt: Datetime
+-}
+-
+-"""All input for the `updateMoodById` mutation."""
+-input UpdateMoodByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `Mood` being updated.
+-  """
+-  moodPatch: MoodPatch!
+-  id: UUID!
+-}
+-
+-"""The output of our update `User` mutation."""
+-type UpdateUserPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `User` that was updated by this mutation."""
+-  user: User
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """An edge for our `User`. May be used by Relay 1."""
+-  userEdge(
+-    """The method to use when ordering `User`."""
+-    orderBy: [UsersOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): UsersEdge
++  note: String
++  score: Int
+ }
+ 
+-"""All input for the `updateUser` mutation."""
+ input UpdateUserInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `User` to be updated.
+-  """
+-  nodeId: ID!
+-
+-  """
+-  An object where the defined keys will be set on the `User` being updated.
+-  """
+-  userPatch: UserPatch!
+-}
+-
+-"""Represents an update to a `User`. Fields that are set will be updated."""
+-input UserPatch {
+-  """The primary unique identifier for the user"""
+-  id: UUID
+-
+-  """The username used to login"""
+-  username: String
+-
+-  """The email address of the user"""
+-  email: String
+-
+-  """The display name of the user"""
++  avatarUrl: String
+   name: String
+   password: String
+-  avatarUrl: String
+-
+-  """Whether this user is anonymous"""
+-  isAnonymous: Boolean
+-  createdAt: Datetime
+-  updatedAt: Datetime
+-}
+-
+-"""All input for the `updateUserById` mutation."""
+-input UpdateUserByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `User` being updated.
+-  """
+-  userPatch: UserPatch!
+-
+-  """The primary unique identifier for the user"""
+-  id: UUID!
+-}
+-
+-"""All input for the `updateUserByUsername` mutation."""
+-input UpdateUserByUsernameInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `User` being updated.
+-  """
+-  userPatch: UserPatch!
+-
+-  """The username used to login"""
+-  username: String!
+ }
+ 
+-"""All input for the `updateUserByEmail` mutation."""
+-input UpdateUserByEmailInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  An object where the defined keys will be set on the `User` being updated.
+-  """
+-  userPatch: UserPatch!
+-
+-  """The email address of the user"""
++type User {
++  avatarUrl: String
++  createdAt: DateTime!
+   email: String!
+-}
+-
+-"""The output of our delete `Friendship` mutation."""
+-type DeleteFriendshipPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Friendship` that was deleted by this mutation."""
+-  friendship: Friendship
+-  deletedFriendshipId: ID
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `Friendship`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `Friendship`. May be used by Relay 1."""
+-  friendshipEdge(
+-    """The method to use when ordering `Friendship`."""
+-    orderBy: [FriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): FriendshipsEdge
+-}
+-
+-"""All input for the `deleteFriendship` mutation."""
+-input DeleteFriendshipInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Friendship` to be deleted.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""All input for the `deleteFriendshipById` mutation."""
+-input DeleteFriendshipByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-  id: UUID!
+-}
+-
+-"""
+-All input for the `deleteFriendshipByRequesterIdAndRecipientId` mutation.
+-"""
+-input DeleteFriendshipByRequesterIdAndRecipientIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-  requesterId: UUID!
+-  recipientId: UUID!
+-}
+-
+-"""The output of our delete `HugRequest` mutation."""
+-type DeleteHugRequestPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `HugRequest` that was deleted by this mutation."""
+-  hugRequest: HugRequest
+-  deletedHugRequestId: ID
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRequesterId: User
+-
+-  """Reads a single `User` that is related to this `HugRequest`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `HugRequest`. May be used by Relay 1."""
+-  hugRequestEdge(
+-    """The method to use when ordering `HugRequest`."""
+-    orderBy: [HugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): HugRequestsEdge
+-}
+-
+-"""All input for the `deleteHugRequest` mutation."""
+-input DeleteHugRequestInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `HugRequest` to be deleted.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""All input for the `deleteHugRequestById` mutation."""
+-input DeleteHugRequestByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-  id: UUID!
+-}
+-
+-"""The output of our delete `Hug` mutation."""
+-type DeleteHugPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Hug` that was deleted by this mutation."""
+-  hug: Hug
+-  deletedHugId: ID
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userBySenderId: User
+-
+-  """Reads a single `User` that is related to this `Hug`."""
+-  userByRecipientId: User
+-
+-  """An edge for our `Hug`. May be used by Relay 1."""
+-  hugEdge(
+-    """The method to use when ordering `Hug`."""
+-    orderBy: [HugsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): HugsEdge
+-}
+-
+-"""All input for the `deleteHug` mutation."""
+-input DeleteHugInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Hug` to be deleted.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""All input for the `deleteHugById` mutation."""
+-input DeleteHugByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-  id: UUID!
+-}
+-
+-"""The output of our delete `Migration` mutation."""
+-type DeleteMigrationPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Migration` that was deleted by this mutation."""
+-  migration: Migration
+-  deletedMigrationId: ID
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """An edge for our `Migration`. May be used by Relay 1."""
+-  migrationEdge(
+-    """The method to use when ordering `Migration`."""
+-    orderBy: [MigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): MigrationsEdge
+-}
+-
+-"""All input for the `deleteMigration` mutation."""
+-input DeleteMigrationInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Migration` to be deleted.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""All input for the `deleteMigrationById` mutation."""
+-input DeleteMigrationByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-  id: Int!
+-}
+-
+-"""All input for the `deleteMigrationByName` mutation."""
+-input DeleteMigrationByNameInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
++  id: ID!
++  isAnonymous: Boolean!
+   name: String!
+-}
+-
+-"""The output of our delete `Mood` mutation."""
+-type DeleteMoodPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `Mood` that was deleted by this mutation."""
+-  mood: Mood
+-  deletedMoodId: ID
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """Reads a single `User` that is related to this `Mood`."""
+-  userByUserId: User
+-
+-  """An edge for our `Mood`. May be used by Relay 1."""
+-  moodEdge(
+-    """The method to use when ordering `Mood`."""
+-    orderBy: [MoodsOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): MoodsEdge
+-}
+-
+-"""All input for the `deleteMood` mutation."""
+-input DeleteMoodInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `Mood` to be deleted.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""All input for the `deleteMoodById` mutation."""
+-input DeleteMoodByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-  id: UUID!
+-}
+-
+-"""The output of our delete `User` mutation."""
+-type DeleteUserPayload {
+-  """
+-  The exact same `clientMutationId` that was provided in the mutation input,
+-  unchanged and unused. May be used by a client to track mutations.
+-  """
+-  clientMutationId: String
+-
+-  """The `User` that was deleted by this mutation."""
+-  user: User
+-  deletedUserId: ID
+-
+-  """
+-  Our root query field type. Allows us to run any query from our mutation payload.
+-  """
+-  query: Query
+-
+-  """An edge for our `User`. May be used by Relay 1."""
+-  userEdge(
+-    """The method to use when ordering `User`."""
+-    orderBy: [UsersOrderBy!] = [PRIMARY_KEY_ASC]
+-  ): UsersEdge
+-}
+-
+-"""All input for the `deleteUser` mutation."""
+-input DeleteUserInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """
+-  The globally unique `ID` which will identify a single `User` to be deleted.
+-  """
+-  nodeId: ID!
+-}
+-
+-"""All input for the `deleteUserById` mutation."""
+-input DeleteUserByIdInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The primary unique identifier for the user"""
+-  id: UUID!
+-}
+-
+-"""All input for the `deleteUserByUsername` mutation."""
+-input DeleteUserByUsernameInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The username used to login"""
++  updatedAt: DateTime!
+   username: String!
+-}
+-
+-"""All input for the `deleteUserByEmail` mutation."""
+-input DeleteUserByEmailInput {
+-  """
+-  An arbitrary string value with no semantic meaning. Will be included in the
+-  payload verbatim. May be used to track mutations by the client.
+-  """
+-  clientMutationId: String
+-
+-  """The email address of the user"""
+-  email: String!
+-}
++}
+\ No newline at end of file
+

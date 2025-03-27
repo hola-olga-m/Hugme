@@ -16,13 +16,11 @@ function DashboardPage() {
 
   // Fetch user's recent moods
   const { data: moodsData, loading: moodsLoading } = useQuery(GET_USER_MOODS, {
-    variables: { limit: 7 },
     fetchPolicy: 'network-only'
   });
 
   // Fetch user's unread hugs
   const { data: hugsData, loading: hugsLoading } = useQuery(GET_RECEIVED_HUGS, {
-    variables: { unreadOnly: true },
     fetchPolicy: 'network-only'
   });
   

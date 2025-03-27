@@ -31,6 +31,7 @@ echo ""
 echo "The frontend is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co"
 echo "The API is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/api"
 echo "The GraphQL endpoint is at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/graphql"
+echo "The PostGraphile interface is at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/postgraphile/graphiql"
 echo ""
 echo "Press Ctrl+C to stop all services"
 

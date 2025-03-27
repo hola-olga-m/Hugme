@@ -295,7 +295,6 @@ const FilterButton = styled.button`
 // Component
 const FriendMoodsWidget = () => {
   const { loading, error, data, refetch } = useQuery(GET_FRIENDS_MOODS, {
-    variables: { limit: 10.0 }, // Using Float type as expected by the server
     fetchPolicy: 'network-only',
     pollInterval: 60000 // Poll every minute for updates
   });

@@ -3,16 +3,21 @@
 # GraphQL Schema Synchronization Workflow Script
 # This script automates fetching, analyzing, and validating GraphQL schemas
 # to maintain compatibility between client and server.
+#
+# Updated to include PostGraphile schema comparison and synchronization.
 
 set -e  # Exit on any error
 
 # Configuration
 GRAPHQL_ENDPOINT="${GRAPHQL_ENDPOINT:-http://localhost:5000/graphql}"
+POSTGRAPHILE_ENDPOINT="${POSTGRAPHILE_ENDPOINT:-http://localhost:5000/postgraphile/graphql}"
 AUTH_TOKEN="${GRAPHQL_AUTH_TOKEN:-}"
 OUTPUT_DIR="./hugmenow/web/src/generated"
 SCHEMA_PATH="$OUTPUT_DIR/schema.graphql"
+POSTGRAPHILE_SCHEMA_PATH="./postgraphile-schema.graphql" 
 ANALYSIS_DIR="./schema-analysis"
 ANALYSIS_REPORT="$ANALYSIS_DIR/mismatch-report.md"
+SCHEMA_DIFF_REPORT="$ANALYSIS_DIR/schema-diff-report.md"
 
 # Ensure needed directories exist
 mkdir -p "$OUTPUT_DIR"
@@ -40,12 +45,26 @@ check_server() {
   fi
 }
 
+# Function to check if PostGraphile server is accessible
+check_postgraphile_server() {
+  echo "🚀 Checking PostGraphile server..."
+  
+  # Simple health check to see if the server is up
+  if curl -s -o /dev/null -w "%{http_code}" "$POSTGRAPHILE_ENDPOINT" | grep -q "200\|400"; then
+    echo "✅ PostGraphile server is accessible"
+    return 0
+  else
+    echo "❌ PostGraphile server is not accessible at $POSTGRAPHILE_ENDPOINT"
+    return 1
+  fi
+}
+
 # Function to download schema using custom script
 fetch_schema() {
   echo "🔄 Fetching schema and generating TypeScript types..."
   
   # Use our custom schema download script
-  node download-schema.js
+  node --experimental-modules download-schema.js
   
   if [ $? -ne 0 ]; then
     echo "❌ Schema download failed"
@@ -63,8 +82,8 @@ generate_types() {
     return 1
   fi
   
-  # Run GraphQL Code Generator
-  npx graphql-codegen --config codegen.yml
+  # Run GraphQL Code Generator with auto-yes
+  echo "y" | npx graphql-codegen --config codegen.yml
   
   if [ $? -ne 0 ]; then
     echo "❌ Generating TypeScript types failed"
@@ -96,23 +115,86 @@ analyze_schema() {
   return 0
 }
 
+# Function to compare PostGraphile schema with client schema
+compare_postgraphile_schema() {
+  echo "🔍 Comparing PostGraphile schema with client schema..."
+  
+  # Check if both schemas exist
+  if [ ! -f "$POSTGRAPHILE_SCHEMA_PATH" ]; then
+    echo "❌ PostGraphile schema file not found at $POSTGRAPHILE_SCHEMA_PATH"
+    return 1
+  fi
+  
+  if [ ! -f "$SCHEMA_PATH" ]; then
+    echo "❌ Client schema file not found at $SCHEMA_PATH"
+    return 1
+  fi
+  
+  # Run our custom comparison script
+  node --experimental-modules compare-schemas.js > "$SCHEMA_DIFF_REPORT"
+  
+  if [ $? -ne 0 ]; then
+    echo "❌ Schema comparison failed"
+    return 1
+  fi
+  
+  # Check if significant differences were found (basic check)
+  if grep -q "Schemas are identical" "$SCHEMA_DIFF_REPORT"; then
+    echo "✅ PostGraphile and client schemas are identical"
+  else
+    echo "⚠️ Schema differences found, check $SCHEMA_DIFF_REPORT for details"
+  fi
+  
+  return 0
+}
+
 # Main workflow execution
 main() {
-  # Check for analysis-only mode
+  # Check command-line arguments for specific modes
   if [ "$1" = "--analyze" ]; then
     analyze_schema
     exit $?
+  fi
+  
+  if [ "$1" = "--compare-postgraphile" ]; then
+    compare_postgraphile_schema
+    exit $?
+  fi
+  
+  if [ "$1" = "--check-postgraphile" ]; then
+    if check_postgraphile_server; then
+      echo "✅ PostGraphile server is accessible, schema should be at $POSTGRAPHILE_SCHEMA_PATH"
+      # Check if schema file exists
+      if [ -f "$POSTGRAPHILE_SCHEMA_PATH" ]; then
+        echo "✅ PostGraphile schema file exists"
+        exit 0
+      else
+        echo "❌ PostGraphile schema file not found"
+        exit 1
+      fi
+    else
+      exit 1
+    fi
   fi
   
   # Run the full workflow
   if check_server; then
     if fetch_schema; then
       if generate_types; then
-        echo "✅ Schema synchronization completed successfully"
+        echo "✅ Main schema synchronization completed successfully"
         
-        # Run analysis at the end if requested
-        if [ "$1" = "--with-analysis" ]; then
+        # Run analysis
+        if [ "$1" = "--with-analysis" ] || [ "$1" = "--full" ]; then
           analyze_schema
+        fi
+        
+        # Compare with PostGraphile schema if requested
+        if [ "$1" = "--with-postgraphile" ] || [ "$1" = "--full" ]; then
+          if check_postgraphile_server; then
+            compare_postgraphile_schema
+          else
+            echo "⚠️ Skipping PostGraphile schema comparison: server not accessible"
+          fi
         fi
         
         exit 0

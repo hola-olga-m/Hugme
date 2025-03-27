@@ -141,8 +141,8 @@ export const GET_PUBLIC_MOODS = gql`
 `;
 
 export const GET_FRIENDS_MOODS = gql`
-  query GetFriendsMoods($limit: Float) {
-    friendsMoods(limit: $limit) {
+  query GetFriendsMoods {
+    friendsMoods {
       id
       score
       note

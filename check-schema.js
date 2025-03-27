@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 
-const GRAPHQL_ENDPOINT = 'http://localhost:3002/graphql';
+// Connect via the proxy server which forwards to the backend
+const GRAPHQL_ENDPOINT = 'http://localhost:5000/graphql';
 
 async function executeGraphQL(query, variables = {}, token = null) {
   const headers = {
@@ -119,6 +120,27 @@ async function getFullSchema() {
               }
             }
           }
+          inputFields {
+            name
+            description
+            defaultValue
+            type {
+              name
+              kind
+              ofType {
+                name
+                kind
+                ofType {
+                  name
+                  kind
+                }
+              }
+            }
+          }
+          enumValues {
+            name
+            description
+          }
         }
       }
     }
@@ -195,11 +217,15 @@ async function analyzeSchema() {
   const inputTypes = schema.types.filter(type => type.kind === 'INPUT_OBJECT');
   inputTypes.forEach(type => {
     console.log(`${type.name}:`);
-    if (type.fields) {
-      type.fields.forEach(field => {
-        console.log(`  ${field.name}: ${formatType(field.type)}`);
+    if (type.inputFields && type.inputFields.length > 0) {
+      type.inputFields.forEach(field => {
+        const defaultValue = field.defaultValue ? ` = ${field.defaultValue}` : '';
+        console.log(`  ${field.name}: ${formatType(field.type)}${defaultValue}`);
       });
+    } else {
+      console.log('  No fields defined');
     }
+    console.log(''); // Add a blank line for readability
   });
 }
 
