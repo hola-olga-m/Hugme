@@ -4,10 +4,9 @@
  */
 
 /**
- * Base API URL - using relative path with Vite's proxy configuration
- * Matches the same base URL used in Apollo client
+ * Import API configuration from the shared utility
  */
-export const API_BASE_URL = '';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 /**
  * Helper function to create request headers with auth token

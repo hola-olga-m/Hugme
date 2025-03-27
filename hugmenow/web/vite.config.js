@@ -40,6 +40,42 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // Forward authentication requests
+      '/login': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/register': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/anonymous-login': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/logout': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/me': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      // Forward user-related requests
+      '/users': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      // Forward mood-related requests
+      '/moods': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      // Forward hug-related requests
+      '/hugs': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
   build: {

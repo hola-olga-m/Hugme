@@ -1,0 +1,209 @@
+login:1 Access to fetch at 'https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur-3000.picard.replit.dev/graphql' from origin 'https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+AuthContext.jsx:316 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur-3000.picard.replit.dev/graphql net::ERR_FAILED
+(anonymous) @ createHttpLink.js:127
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:757
+(anonymous) @ QueryManager.js:126
+(anonymous) @ QueryManager.js:125
+l @ tslib.es6.mjs:147
+(anonymous) @ tslib.es6.mjs:128
+(anonymous) @ tslib.es6.mjs:121
+Bt @ tslib.es6.mjs:117
+e.mutate @ QueryManager.js:85
+e.mutate @ ApolloClient.js:249
+(anonymous) @ useMutation.js:94
+y @ AuthContext.jsx:316
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+client.js:18 [Network error]: TypeError: Failed to fetch
+(anonymous) @ client.js:18
+error @ index.js:41
+Kv @ module.js:137
+Cs @ module.js:176
+t.error @ module.js:229
+Kv @ module.js:137
+Cs @ module.js:176
+t.error @ module.js:229
+SS @ parseAndCheckHttpResponse.js:170
+(anonymous) @ createHttpLink.js:145
+Promise.catch
+(anonymous) @ createHttpLink.js:143
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:17
+Promise.then
+(anonymous) @ index.js:13
+e @ module.js:190
+t.subscribe @ module.js:264
+(anonymous) @ index.js:12
+e @ module.js:190
+t.subscribe @ module.js:264
+complete @ Concast.js:111
+t.start @ Concast.js:152
+t @ Concast.js:137
+e.getObservableFromLink @ QueryManager.js:757
+(anonymous) @ QueryManager.js:126
+(anonymous) @ QueryManager.js:125
+l @ tslib.es6.mjs:147
+(anonymous) @ tslib.es6.mjs:128
+(anonymous) @ tslib.es6.mjs:121
+Bt @ tslib.es6.mjs:117
+e.mutate @ QueryManager.js:85
+e.mutate @ ApolloClient.js:249
+(anonymous) @ useMutation.js:94
+y @ AuthContext.jsx:316
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+AuthContext.jsx:341 GraphQL anonymous login failed, trying REST API: ApolloError: Failed to fetch
+    at new t (index.js:40:28)
+    at Object.error (QueryManager.js:185:84)
+    at Kv (module.js:137:18)
+    at Cs (module.js:176:3)
+    at t.error (module.js:229:5)
+    at Object.error (asyncMap.js:27:33)
+    at Kv (module.js:137:18)
+    at Cs (module.js:176:3)
+    at t.error (module.js:229:5)
+    at iteration.js:7:67Caused by: TypeError: Failed to fetch
+    at createHttpLink.js:127:13
+    at new e (module.js:190:34)
+    at t.subscribe (module.js:264:12)
+    at index.js:17:45
+y @ AuthContext.jsx:341
+await in y
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+AuthContext.jsx:345 Network error details: TypeError: Failed to fetch
+    at createHttpLink.js:127:13
+    at new e (module.js:190:34)
+    at t.subscribe (module.js:264:12)
+    at index.js:17:45
+y @ AuthContext.jsx:345
+await in y
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+AuthContext.jsx:352 GraphQL error details: []
+y @ AuthContext.jsx:352
+await in y
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+login:1 Access to fetch at 'https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur-3000.picard.replit.dev/anonymous-login' from origin 'https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur.picard.replit.dev:5000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+api.js:202 
+            
+            
+           POST https://7fa8628b-b912-4497-b176-c8d40231744d-00-dn9xky196jur-3000.picard.replit.dev/anonymous-login net::ERR_FAILED
+anonymousLogin @ api.js:202
+y @ AuthContext.jsx:357
+await in y
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+AuthContext.jsx:385 Anonymous login failed completely: TypeError: Failed to fetch
+    at Object.anonymousLogin (api.js:202:28)
+    at y (AuthContext.jsx:357:40)
+    at async C (Login.jsx:408:24)
+y @ AuthContext.jsx:385
+await in y
+C @ Login.jsx:408
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73
+Login.jsx:437 Anonymous login error: TypeError: Failed to fetch
+    at Object.anonymousLogin (api.js:202:28)
+    at y (AuthContext.jsx:357:40)
+    at async C (Login.jsx:408:24)
+C @ Login.jsx:437
+await in C
+Xm @ react-dom.production.min.js:54
+ey @ react-dom.production.min.js:54
+ty @ react-dom.production.min.js:55
+tf @ react-dom.production.min.js:105
+Yh @ react-dom.production.min.js:106
+(anonymous) @ react-dom.production.min.js:117
+Bu @ react-dom.production.min.js:273
+Eh @ react-dom.production.min.js:52
+fs @ react-dom.production.min.js:109
+yu @ react-dom.production.min.js:74
+yy @ react-dom.production.min.js:73

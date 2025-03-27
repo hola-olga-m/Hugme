@@ -11,7 +11,7 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
     }));
     app.enableCors({
-        origin: ['http://localhost:3001', 'http://localhost:5000', process.env.FRONTEND_URL || '*'],
+        origin: ['http://localhost:3001', 'http://localhost:5000', 'http://localhost:5173', process.env.FRONTEND_URL || '*'],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
         allowedHeaders: 'Content-Type, Accept, Authorization, Accept-Protocol, Connection, X-Protocol-Hint, X-Client-Version, X-Retry-Attempt',

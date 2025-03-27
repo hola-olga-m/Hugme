@@ -2,10 +2,7 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
-
-// Base URLs
-export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy
-export const GRAPHQL_URL = '/graphql';
+import { API_BASE_URL, GRAPHQL_URL } from '../utils/apiConfig';
 
 // Create an error link for handling GraphQL errors
 const errorLink = onError(({ graphQLErrors, networkError }) => {
