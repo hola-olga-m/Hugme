@@ -13,26 +13,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "NestJS Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Frontend Server"
-
-[[workflows.workflow]]
-name = "NestJS Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd hugmenow/api && npm run start:dev"
-waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Frontend Server"

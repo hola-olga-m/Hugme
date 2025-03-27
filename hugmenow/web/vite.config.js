@@ -31,13 +31,13 @@ export default defineConfig({
     proxy: {
       // Forward API requests to the NestJS server
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       // Forward GraphQL requests to the NestJS server
       '/graphql': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
