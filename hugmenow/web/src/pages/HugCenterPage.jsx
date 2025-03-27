@@ -16,7 +16,7 @@ import {
   RESPOND_TO_HUG_REQUEST,
   CANCEL_HUG_REQUEST
 } from '../graphql/mutations';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { HugIcon, HugEmoji, HugTypeLabel, AnimatedHug } from '../components/HugIcons';
 import HugGallery from '../components/HugGallery';
 import EnhancedHugItem from '../components/EnhancedHugItem';

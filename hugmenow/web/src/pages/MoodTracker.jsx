@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { GET_USER_MOODS, GET_MOOD_STREAK } from '../graphql/queries';
 import { CREATE_MOOD, UPDATE_MOOD, REMOVE_MOOD } from '../graphql/mutations';
 import LoadingScreen from '../components/common/LoadingScreen';

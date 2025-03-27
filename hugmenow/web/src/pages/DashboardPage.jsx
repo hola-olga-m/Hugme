@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { motion } from 'framer-motion';
 import MainLayout from '../layouts/MainLayout';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { GET_USER_MOODS, GET_RECEIVED_HUGS, GET_PENDING_HUG_REQUESTS, GET_MOOD_STREAK } from '../graphql/queries';
 import { Icon, UserAvatar } from '../components/ui/IconComponent';
 import HugIconTest from '../components/ui/HugIconTest';
