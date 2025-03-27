@@ -23,6 +23,23 @@ function DashboardPage() {
     variables: { unreadOnly: true },
     fetchPolicy: 'network-only'
   });
+  
+  // Group hugs by type for gallery display
+  const [hugGroups, setHugGroups] = useState({});
+  
+  useEffect(() => {
+    if (hugsData?.receivedHugs && hugsData.receivedHugs.length > 0) {
+      const groups = hugsData.receivedHugs.reduce((acc, hug) => {
+        const type = hug.type || 'Standard';
+        if (!acc[type]) {
+          acc[type] = [];
+        }
+        acc[type].push(hug);
+        return acc;
+      }, {});
+      setHugGroups(groups);
+    }
+  }, [hugsData]);
 
   // Fetch pending hug requests
   const { data: requestsData, loading: requestsLoading } = useQuery(GET_PENDING_HUG_REQUESTS, {
@@ -450,6 +467,101 @@ function DashboardPage() {
                 <Link to="/settings" className="action-button">
                   <span className="action-icon">⚙️</span>
                   <span className="action-text">Settings</span>
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Unread Hugs Gallery Card */}
+          <motion.div 
+            className="dashboard-card hugs-gallery-card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              type: "spring",
+              damping: 12,
+              stiffness: 100,
+              delay: 0.5
+            }}
+          >
+            <h3>
+              <span className="card-icon">
+                <Icon type="hugIcon" size={24} />
+              </span>
+              Hug Gallery
+            </h3>
+            {hugsLoading ? (
+              <div className="loading-indicator">Loading hugs gallery...</div>
+            ) : hugsData?.receivedHugs?.length > 0 ? (
+              <div className="carousel-container">
+                <motion.div 
+                  className="carousel-track"
+                  drag="x"
+                  dragConstraints={{ 
+                    left: -(Object.keys(hugGroups).length * 150), 
+                    right: 0 
+                  }}
+                  initial={{ x: 0 }}
+                  animate={{ x: 0 }}
+                  transition={{ type: "spring", damping: 15 }}
+                >
+                  {Object.entries(hugGroups).map(([hugType, hugs], index) => (
+                    <motion.div 
+                      key={hugType}
+                      className="carousel-item"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.97 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.6 + (index * 0.1) }}
+                    >
+                      <div className="hug-card">
+                        <div className="hug-icon-container">
+                          <Icon type={hugType} size={48} />
+                        </div>
+                        <div className="hug-count">
+                          <span className="count-number">{hugs.length}</span>
+                          <span className="hug-type-label">{hugType} {hugs.length === 1 ? "Hug" : "Hugs"}</span>
+                        </div>
+                        <div className="hug-senders">
+                          {hugs.slice(0, 2).map((hug, idx) => (
+                            <div key={hug.id} className="hug-sender-item">
+                              <UserAvatar 
+                                name={hug.sender.name || hug.sender.username}
+                                size={20}
+                                bgColor={idx % 2 === 0 ? "#8B5CF6" : "#EC4899"}
+                              />
+                              <span className="sender-name">{hug.sender.name || hug.sender.username}</span>
+                            </div>
+                          ))}
+                          {hugs.length > 2 && (
+                            <div className="more-senders">+ {hugs.length - 2} more</div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+                <div className="carousel-instructions">
+                  <span>← Swipe to see more →</span>
+                </div>
+              </div>
+            ) : (
+              <motion.div 
+                className="no-data-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <p className="no-data-message">No unread hugs to display.</p>
+                <p className="no-data-subtext">Check back later or invite friends to send you hugs!</p>
+              </motion.div>
+            )}
+            <div className="card-actions">
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link to="/hug-center/received" className="btn btn-secondary">
+                  <span className="btn-icon">🤗</span>
+                  View All Hugs
                 </Link>
               </motion.div>
             </div>

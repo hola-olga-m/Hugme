@@ -30,6 +30,10 @@
   gap: 1.5rem;
 }
 
+.hugs-gallery-card {
+  grid-column: 1 / -1; /* Make the gallery card span the full width */
+}
+
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -76,6 +80,10 @@
 
 .actions-card::before {
   background: linear-gradient(to right, #10B981, #3B82F6);
+}
+
+.hugs-gallery-card::before {
+  background: linear-gradient(to right, #8B5CF6, #EC4899, #F59E0B);
 }
 
 .dashboard-card:hover {
@@ -402,4 +410,112 @@
 /* User Avatar Styling */
 .user-avatar {
   flex-shrink: 0;
+}
+
+/* Hug Gallery Carousel */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 1rem;
+  cursor: grab;
+  padding: 0.5rem 0;
+  min-height: 180px;
+}
+
+.carousel-track:active {
+  cursor: grabbing;
+}
+
+.carousel-item {
+  flex: 0 0 auto;
+  min-width: 150px;
+  max-width: 150px;
+}
+
+.hug-card {
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  height: 100%;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  transition: all 0.3s ease;
+}
+
+.hug-card:hover {
+  background: rgba(139, 92, 246, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2);
+}
+
+.hug-icon-container {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+.hug-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.hug-type-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.hug-senders {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hug-sender-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sender-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more-senders {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+  padding-top: 0.25rem;
+}
+
+.carousel-instructions {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0;
+  font-style: italic;
+  opacity: 0.7;
 }
