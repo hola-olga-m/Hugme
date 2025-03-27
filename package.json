@@ -39,6 +39,7 @@
     "react-i18next": "^15.4.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "sofa-api": "^0.18.8",
     "typeorm": "^0.3.21"
   }
 }

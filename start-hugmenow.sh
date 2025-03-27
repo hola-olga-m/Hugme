@@ -8,7 +8,7 @@ API_PORT=${API_PORT:-3002}
 
 # Start the API server in the background using the simplified server
 echo "Starting API server on port ${API_PORT}..."
-cd hugmenow/api && PORT=${API_PORT} node simplified-server.js &
+cd hugmenow/api && PORT=${API_PORT} node simplified-server.mjs &
 API_PID=$!
 
 # Give the API server a moment to start up
