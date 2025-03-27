@@ -51,7 +51,7 @@ const fixPatterns = [
 ];
 
 // Find all React component files that might contain GraphQL queries
-async function findComponentFiles() {
+function findComponentFiles() {
   return new Promise((resolve, reject) => {
     glob('./hugmenow/web/src/**/*.{jsx,js,tsx,ts}', (err, files) => {
       if (err) {

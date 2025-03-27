@@ -283,7 +283,7 @@ syncSchema();
 clearCaches();
 restartApp();
 const fixClientPagination = require('./fix-client-pagination'); //Added this line
-fixClientPagination(); // and this line.
+fixClientPagination.fixAllFiles(); // and this line.
 
 console.log('✅ GraphQL error fixing process completed');
 
