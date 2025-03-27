@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 
 // Setup API proxy
 app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:3001',
+  target: 'http://localhost:3002',
   changeOrigin: true,
   // Don't rewrite the path for API calls
   pathRewrite: {
@@ -54,7 +54,7 @@ app.use('/api', createProxyMiddleware({
 
 // Setup GraphQL proxy
 app.use('/graphql', createProxyMiddleware({
-  target: 'http://localhost:3001',
+  target: 'http://localhost:3002',
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     console.log(`Proxying GraphQL request: ${req.method} ${req.url} -> ${proxyReq.path}`);

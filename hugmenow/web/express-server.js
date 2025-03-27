@@ -46,7 +46,7 @@ app.get('/status', (req, res) => {
 
 // Proxy API requests to the NestJS server
 app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:3001',
+  target: 'http://localhost:3002',
   changeOrigin: true,
   pathRewrite: {
     '^/api': '/' // rewrite path
@@ -55,7 +55,7 @@ app.use('/api', createProxyMiddleware({
 
 // Proxy GraphQL requests to the NestJS server
 app.use('/graphql', createProxyMiddleware({
-  target: 'http://localhost:3001',
+  target: 'http://localhost:3002',
   changeOrigin: true,
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {
@@ -181,5 +181,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Express server running on port ${PORT}`);
   console.log(`- Serving static files from: ${path.join(__dirname, 'public')}`);
-  console.log(`- API proxy to: http://localhost:3001`);
+  console.log(`- API proxy to: http://localhost:3002`);
 });
