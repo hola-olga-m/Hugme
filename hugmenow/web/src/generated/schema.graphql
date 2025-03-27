@@ -160,24 +160,24 @@ type Mutation {
 type Query {
   checkFriendship(userId: String!): Boolean!
   communityHugRequests: [HugRequest!]!
-  friendsMoods(limit: Int = 20, offset: Int): [Mood!]!
+  friendsMoods(limit: Float = 20): [Mood!]!
   hug(id: ID!): Hug!
   hugRequest(id: ID!): HugRequest!
   me: User!
   mood(id: ID!): Mood!
   moodFollowing: [Friendship!]!
-  moodStreak: Int!
+  moodStreak: Float!
   myFriends: [Friendship!]!
   myHugRequests: [HugRequest!]!
   pendingFriendRequests: [Friendship!]!
   pendingHugRequests: [HugRequest!]!
-  publicMoods(limit: Int, offset: Int): [Mood!]!
-  receivedHugs(limit: Int, offset: Int): [Hug!]!
+  publicMoods: [Mood!]!
+  receivedHugs: [Hug!]!
   sentFriendRequests: [Friendship!]!
-  sentHugs(limit: Int, offset: Int): [Hug!]!
+  sentHugs: [Hug!]!
   user(id: ID!): User!
   userMoods: [Mood!]!
-  users(search: String, limit: Int, offset: Int): [User!]!
+  users: [User!]!
 }
 
 input RegisterInput {
