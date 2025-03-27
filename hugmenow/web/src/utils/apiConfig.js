@@ -11,9 +11,12 @@
  * @returns {string} The base URL for API requests
  */
 export const getApiBaseUrl = () => {
-  // For simplicity and reliability, during development we'll use a relative path
-  // This will make requests go through the Vite dev server which can proxy them
+  // In development, using Vite's proxy through a relative path
+  // This ensures requests go through the Vite dev server which correctly proxies them
   return '';
+  
+  // If direct access is needed (uncomment):
+  // return 'http://localhost:3000';
 };
 
 /**

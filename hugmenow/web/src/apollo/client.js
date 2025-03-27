@@ -45,6 +45,8 @@ const httpLink = createHttpLink({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
+    // Add Apollo specific headers to prevent CSRF issues
+    'apollo-require-preflight': 'true',
   }
 });
 

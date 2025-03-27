@@ -58,11 +58,23 @@ export default defineConfig({
           proxy.on('error', (err, _req, _res) => {
             console.log('graphql proxy error', err);
           });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Add Apollo-specific headers to prevent CSRF issues
+            if (req.method === 'POST') {
+              proxyReq.setHeader('apollo-require-preflight', 'true');
+              
+              // Try to extract the operation name from the request body
+              if (req.body && req.body.operationName) {
+                proxyReq.setHeader('x-apollo-operation-name', req.body.operationName);
+              }
+            }
+            console.log('GraphQL Proxy Request:', req.method, req.url);
+          });
         },
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
+          'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization, apollo-require-preflight, x-apollo-operation-name',
         }
       },
       // Forward authentication requests

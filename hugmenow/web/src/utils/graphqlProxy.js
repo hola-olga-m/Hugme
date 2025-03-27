@@ -32,7 +32,10 @@ export async function directGraphQLRequest(query, variables = {}, operationName 
           // Add CORS headers
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          // Add Apollo operation name and CSRF prevention headers
+          'x-apollo-operation-name': operationName || 'anonymous',
+          'apollo-require-preflight': 'true'
         },
         body: JSON.stringify({
           query,
