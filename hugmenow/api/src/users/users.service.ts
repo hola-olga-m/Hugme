@@ -12,8 +12,28 @@ export class UsersService {
     private postgraphileService: PostGraphileService,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return await this.postgraphileService.findAll(this.usersTable) as User[];
+  async findAll(search?: string, limit?: number, offset?: number): Promise<User[]> {
+    const users = await this.postgraphileService.findAll(this.usersTable) as User[];
+    
+    // Apply search filter if provided
+    let filteredUsers = users;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredUsers = users.filter(user => 
+        user.name.toLowerCase().includes(searchLower) ||
+        user.username.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply pagination if specified
+    if (typeof offset === 'number' && typeof limit === 'number') {
+      return filteredUsers.slice(offset, offset + limit);
+    } else if (typeof limit === 'number') {
+      return filteredUsers.slice(0, limit);
+    }
+    
+    return filteredUsers;
   }
 
   async findOne(id: string): Promise<User> {

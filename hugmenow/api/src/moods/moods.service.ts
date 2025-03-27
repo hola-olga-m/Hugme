@@ -50,18 +50,31 @@ export class MoodsService {
     return moods;
   }
 
-  async findPublic(): Promise<Mood[]> {
-    const moods = await this.postgraphileService.findWhere(this.moodsTable, { isPublic: true }) as Mood[];
+  async findPublic(limit?: number, offset?: number): Promise<Mood[]> {
+    let query = `
+      SELECT * FROM ${this.moodsTable}
+      WHERE is_public = TRUE
+      ORDER BY created_at DESC
+    `;
     
-    // Load user data for each mood
-    for (const mood of moods) {
-      if (mood.userId) {
-        try {
-          mood.user = await this.usersService.findOne(mood.userId);
-        } catch (error) {
-          // Skip if user not found
-        }
+    const queryParams = [];
+    
+    if (limit !== undefined) {
+      query += ' LIMIT $1';
+      queryParams.push(limit);
+      
+      if (offset !== undefined) {
+        query += ' OFFSET $2';
+        queryParams.push(offset);
       }
+    }
+    
+    const { rows: publicMoods } = await this.postgraphileService.query(query, queryParams);
+    
+    // Convert to Mood entities
+    const moods: Mood[] = [];
+    for (const row of publicMoods) {
+      moods.push(await this.convertToMoodEntity(row));
     }
     
     return moods;
@@ -190,9 +203,10 @@ export class MoodsService {
    * Find moods from a user's friends
    * @param userId The user ID whose friends' moods to find
    * @param limit Optional limit on the number of moods to return, default 20
+   * @param offset Optional offset for pagination
    * @returns Array of friends' recent moods
    */
-  async findFriendsMoods(userId: string, limit: number = 20): Promise<Mood[]> {
+  async findFriendsMoods(userId: string, limit: number = 20, offset?: number): Promise<Mood[]> {
     // Get the user's friends
     const friendships = await this.friendsService.findFriends(userId);
     
@@ -206,16 +220,23 @@ export class MoodsService {
     );
 
     // Query to get recent public moods from friends
-    const moodsQuery = `
+    let moodsQuery = `
       SELECT * FROM ${this.moodsTable}
       WHERE user_id = ANY($1) AND is_public = TRUE
       ORDER BY created_at DESC
       LIMIT $2
     `;
     
+    const queryParams = [friendIds, limit];
+    
+    if (offset !== undefined) {
+      moodsQuery += ' OFFSET $3';
+      queryParams.push(offset);
+    }
+    
     const { rows: friendMoods } = await this.postgraphileService.query(
       moodsQuery, 
-      [friendIds, limit]
+      queryParams
     );
 
     // Convert to Mood entities

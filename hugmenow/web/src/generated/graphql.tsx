@@ -282,7 +282,8 @@ export type QueryCheckFriendshipArgs = {
 };
 
 export type QueryFriendsMoodsArgs = {
-  limit?: InputMaybe<Scalars["Float"]["input"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 export type QueryHugArgs = {
@@ -297,8 +298,29 @@ export type QueryMoodArgs = {
   id: Scalars["ID"]["input"];
 };
 
+export type QueryPublicMoodsArgs = {
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+export type QueryReceivedHugsArgs = {
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+export type QuerySentHugsArgs = {
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+};
+
 export type QueryUserArgs = {
   id: Scalars["ID"]["input"];
+};
+
+export type QueryUsersArgs = {
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+  search: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type RegisterInput = {
@@ -647,6 +669,13 @@ export type GetUserProfileQuery = {
   };
 };
 
+export type GetUserStatsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetUserStatsQuery = {
+  __typename?: "Query";
+  userMoods: Array<{ __typename?: "Mood"; id: string; score: number }>;
+};
+
 export type GetUserMoodsCountQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetUserMoodsCountQuery = {
@@ -687,7 +716,10 @@ export type GetUserMoodsQuery = {
   }>;
 };
 
-export type GetPublicMoodsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetPublicMoodsQueryVariables = Exact<{
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+}>;
 
 export type GetPublicMoodsQuery = {
   __typename?: "Query";
@@ -707,7 +739,10 @@ export type GetPublicMoodsQuery = {
   }>;
 };
 
-export type GetFriendsMoodsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetFriendsMoodsQueryVariables = Exact<{
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+}>;
 
 export type GetFriendsMoodsQuery = {
   __typename?: "Query";
@@ -742,7 +777,10 @@ export type CreateMoodEntryMutation = {
   };
 };
 
-export type GetReceivedHugsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetReceivedHugsQueryVariables = Exact<{
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+}>;
 
 export type GetReceivedHugsQuery = {
   __typename?: "Query";
@@ -763,7 +801,10 @@ export type GetReceivedHugsQuery = {
   }>;
 };
 
-export type GetSentHugsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetSentHugsQueryVariables = Exact<{
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+}>;
 
 export type GetSentHugsQuery = {
   __typename?: "Query";
@@ -816,7 +857,11 @@ export type MarkHugAsReadMutation = {
   markHugAsRead: { __typename?: "Hug"; id: string; isRead: boolean };
 };
 
-export type GetUsersQueryVariables = Exact<{ [key: string]: never }>;
+export type GetUsersQueryVariables = Exact<{
+  search: InputMaybe<Scalars["String"]["input"]>;
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  offset: InputMaybe<Scalars["Int"]["input"]>;
+}>;
 
 export type GetUsersQuery = {
   __typename?: "Query";
@@ -1922,6 +1967,84 @@ export type GetUserProfileQueryResult = Apollo.QueryResult<
   GetUserProfileQuery,
   GetUserProfileQueryVariables
 >;
+export const GetUserStatsDocument = gql`
+  query GetUserStats {
+    userMoods {
+      id
+      score
+    }
+  }
+`;
+
+/**
+ * __useGetUserStatsQuery__
+ *
+ * To run a query within a React component, call `useGetUserStatsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserStatsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserStatsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetUserStatsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetUserStatsQuery,
+    GetUserStatsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetUserStatsQuery, GetUserStatsQueryVariables>(
+    GetUserStatsDocument,
+    options,
+  );
+}
+export function useGetUserStatsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetUserStatsQuery,
+    GetUserStatsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetUserStatsQuery, GetUserStatsQueryVariables>(
+    GetUserStatsDocument,
+    options,
+  );
+}
+export function useGetUserStatsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetUserStatsQuery,
+        GetUserStatsQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetUserStatsQuery, GetUserStatsQueryVariables>(
+    GetUserStatsDocument,
+    options,
+  );
+}
+export type GetUserStatsQueryHookResult = ReturnType<
+  typeof useGetUserStatsQuery
+>;
+export type GetUserStatsLazyQueryHookResult = ReturnType<
+  typeof useGetUserStatsLazyQuery
+>;
+export type GetUserStatsSuspenseQueryHookResult = ReturnType<
+  typeof useGetUserStatsSuspenseQuery
+>;
+export type GetUserStatsQueryResult = Apollo.QueryResult<
+  GetUserStatsQuery,
+  GetUserStatsQueryVariables
+>;
 export const GetUserMoodsCountDocument = gql`
   query GetUserMoodsCount {
     userMoods {
@@ -2309,8 +2432,8 @@ export type GetUserMoodsQueryResult = Apollo.QueryResult<
   GetUserMoodsQueryVariables
 >;
 export const GetPublicMoodsDocument = gql`
-  query GetPublicMoods {
-    publicMoods {
+  query GetPublicMoods($limit: Int, $offset: Int) {
+    publicMoods(limit: $limit, offset: $offset) {
       id
       score
       note
@@ -2337,6 +2460,8 @@ export const GetPublicMoodsDocument = gql`
  * @example
  * const { data, loading, error } = useGetPublicMoodsQuery({
  *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
@@ -2395,8 +2520,8 @@ export type GetPublicMoodsQueryResult = Apollo.QueryResult<
   GetPublicMoodsQueryVariables
 >;
 export const GetFriendsMoodsDocument = gql`
-  query GetFriendsMoods {
-    friendsMoods {
+  query GetFriendsMoods($limit: Int, $offset: Int) {
+    friendsMoods(limit: $limit, offset: $offset) {
       id
       score
       note
@@ -2423,6 +2548,8 @@ export const GetFriendsMoodsDocument = gql`
  * @example
  * const { data, loading, error } = useGetFriendsMoodsQuery({
  *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
@@ -2534,8 +2661,8 @@ export type CreateMoodEntryMutationOptions = Apollo.BaseMutationOptions<
   CreateMoodEntryMutationVariables
 >;
 export const GetReceivedHugsDocument = gql`
-  query GetReceivedHugs {
-    receivedHugs {
+  query GetReceivedHugs($limit: Int, $offset: Int) {
+    receivedHugs(limit: $limit, offset: $offset) {
       id
       type
       message
@@ -2563,6 +2690,8 @@ export const GetReceivedHugsDocument = gql`
  * @example
  * const { data, loading, error } = useGetReceivedHugsQuery({
  *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
@@ -2621,8 +2750,8 @@ export type GetReceivedHugsQueryResult = Apollo.QueryResult<
   GetReceivedHugsQueryVariables
 >;
 export const GetSentHugsDocument = gql`
-  query GetSentHugs {
-    sentHugs {
+  query GetSentHugs($limit: Int, $offset: Int) {
+    sentHugs(limit: $limit, offset: $offset) {
       id
       type
       message
@@ -2650,6 +2779,8 @@ export const GetSentHugsDocument = gql`
  * @example
  * const { data, loading, error } = useGetSentHugsQuery({
  *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
@@ -2818,8 +2949,8 @@ export type MarkHugAsReadMutationOptions = Apollo.BaseMutationOptions<
   MarkHugAsReadMutationVariables
 >;
 export const GetUsersDocument = gql`
-  query GetUsers {
-    users {
+  query GetUsers($search: String, $limit: Int, $offset: Int) {
+    users(search: $search, limit: $limit, offset: $offset) {
       id
       username
       name
@@ -2842,6 +2973,9 @@ export const GetUsersDocument = gql`
  * @example
  * const { data, loading, error } = useGetUsersQuery({
  *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */

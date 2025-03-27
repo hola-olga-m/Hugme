@@ -23,8 +23,11 @@ export class MoodsResolver {
 
   @Query(() => [Mood])
   @UseGuards(GqlAuthGuard)
-  async publicMoods(): Promise<Mood[]> {
-    return this.moodsService.findPublic();
+  async publicMoods(
+    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+  ): Promise<Mood[]> {
+    return this.moodsService.findPublic(limit, offset);
   }
 
   @Query(() => [Mood])
@@ -50,8 +53,9 @@ export class MoodsResolver {
   async friendsMoods(
     @CurrentUser() user: User,
     @Args('limit', { type: () => Number, nullable: true, defaultValue: 20 }) limit?: number,
+    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
   ): Promise<Mood[]> {
-    return this.moodsService.findFriendsMoods(user.id, limit);
+    return this.moodsService.findFriendsMoods(user.id, limit, offset);
   }
 
   @Mutation(() => Mood)

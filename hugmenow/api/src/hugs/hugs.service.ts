@@ -92,7 +92,7 @@ export class HugsService {
     return hug;
   }
 
-  async findHugsBySender(senderId: string): Promise<Hug[]> {
+  async findHugsBySender(senderId: string, limit?: number, offset?: number): Promise<Hug[]> {
     const hugs = await this.postgraphileService.findWhere(this.hugsTable, { senderId }) as Hug[];
     
     // For each hug, load the sender and recipient details
@@ -106,12 +106,21 @@ export class HugsService {
     }
     
     // Sort by createdAt DESC
-    return hugs.sort((a, b) => 
+    const sortedHugs = hugs.sort((a, b) => 
       b.createdAt.getTime() - a.createdAt.getTime()
     );
+    
+    // Apply pagination if specified
+    if (typeof offset === 'number' && typeof limit === 'number') {
+      return sortedHugs.slice(offset, offset + limit);
+    } else if (typeof limit === 'number') {
+      return sortedHugs.slice(0, limit);
+    }
+    
+    return sortedHugs;
   }
 
-  async findHugsByRecipient(recipientId: string): Promise<Hug[]> {
+  async findHugsByRecipient(recipientId: string, limit?: number, offset?: number): Promise<Hug[]> {
     const hugs = await this.postgraphileService.findWhere(this.hugsTable, { recipientId }) as Hug[];
     
     // For each hug, load the sender and recipient details
@@ -125,9 +134,18 @@ export class HugsService {
     }
     
     // Sort by createdAt DESC
-    return hugs.sort((a, b) => 
+    const sortedHugs = hugs.sort((a, b) => 
       b.createdAt.getTime() - a.createdAt.getTime()
     );
+    
+    // Apply pagination if specified
+    if (typeof offset === 'number' && typeof limit === 'number') {
+      return sortedHugs.slice(offset, offset + limit);
+    } else if (typeof limit === 'number') {
+      return sortedHugs.slice(0, limit);
+    }
+    
+    return sortedHugs;
   }
 
   async markHugAsRead(hugId: string, userId: string): Promise<Hug> {

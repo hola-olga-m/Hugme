@@ -36,14 +36,22 @@ export class HugsResolver {
   // HUG QUERIES
   @Query(() => [Hug])
   @UseGuards(GqlAuthGuard)
-  async sentHugs(@CurrentUser() user: User): Promise<Hug[]> {
-    return this.hugsService.findHugsBySender(user.id);
+  async sentHugs(
+    @CurrentUser() user: User,
+    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+  ): Promise<Hug[]> {
+    return this.hugsService.findHugsBySender(user.id, limit, offset);
   }
 
   @Query(() => [Hug])
   @UseGuards(GqlAuthGuard)
-  async receivedHugs(@CurrentUser() user: User): Promise<Hug[]> {
-    return this.hugsService.findHugsByRecipient(user.id);
+  async receivedHugs(
+    @CurrentUser() user: User,
+    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Number, nullable: true }) offset?: number,
+  ): Promise<Hug[]> {
+    return this.hugsService.findHugsByRecipient(user.id, limit, offset);
   }
 
   @Query(() => Hug)
