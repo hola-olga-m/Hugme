@@ -204,15 +204,23 @@ async function analyzeSchema() {
 }
 
 function formatType(type) {
+  if (!type) return 'Unknown';
+  
   if (type.kind === 'NON_NULL') {
-    if (type.ofType.kind === 'LIST') {
-      return `[${type.ofType.ofType.name || formatType(type.ofType.ofType)}]!`;
+    if (type.ofType && type.ofType.kind === 'LIST') {
+      if (type.ofType.ofType) {
+        return `[${type.ofType.ofType.name || formatType(type.ofType.ofType)}]!`;
+      }
+      return '[Unknown]!';
     }
-    return `${type.ofType.name || formatType(type.ofType)}!`;
+    return `${type.ofType ? (type.ofType.name || formatType(type.ofType)) : 'Unknown'}!`;
   } else if (type.kind === 'LIST') {
-    return `[${type.ofType.name || formatType(type.ofType)}]`;
+    if (type.ofType) {
+      return `[${type.ofType.name || formatType(type.ofType)}]`;
+    }
+    return '[Unknown]';
   }
-  return type.name;
+  return type.name || 'Unknown';
 }
 
 async function loginAndAnalyze() {

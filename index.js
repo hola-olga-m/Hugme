@@ -1,6 +1,7 @@
 // HugMeNow Launcher
-const { spawn } = require('child_process');
-const path = require('path');
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 // Log output from child processes
 function logOutput(name, data) {
@@ -11,6 +12,10 @@ function logOutput(name, data) {
 }
 
 console.log('Starting HugMeNow application...');
+
+// Get the directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Path to the startup script (relative to this file)
 const startupScriptPath = path.join(__dirname, 'start-hugmenow.sh');
