@@ -12,18 +12,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SendHugInput = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const hug_entity_1 = require("../entities/hug.entity");
+const external_recipient_input_1 = require("./external-recipient.input");
 let SendHugInput = class SendHugInput {
     recipientId;
+    externalRecipient;
     type;
     message;
 };
 exports.SendHugInput = SendHugInput;
 __decorate([
-    (0, graphql_1.Field)(),
+    (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], SendHugInput.prototype, "recipientId", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => external_recipient_input_1.ExternalRecipientInput, { nullable: true }),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => external_recipient_input_1.ExternalRecipientInput),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", external_recipient_input_1.ExternalRecipientInput)
+], SendHugInput.prototype, "externalRecipient", void 0);
 __decorate([
     (0, graphql_1.Field)(() => hug_entity_1.HugType),
     (0, class_validator_1.IsEnum)(hug_entity_1.HugType),

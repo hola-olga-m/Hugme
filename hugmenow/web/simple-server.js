@@ -32,6 +32,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add a ping/health check endpoint
+app.get('/ping', (req, res) => {
+  console.log('Health check ping received');
+  res.status(200).json({ status: 'ok', message: 'HugMeNow frontend server is running' });
+});
+
 // Setup API proxy
 app.use('/api', createProxyMiddleware({
   target: 'http://localhost:3002',

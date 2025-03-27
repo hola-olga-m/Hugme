@@ -133,7 +133,7 @@ export const GET_PUBLIC_MOODS = gql`
 `;
 
 export const GET_FRIENDS_MOODS = gql`
-  query GetFriendsMoods($limit: Int) {
+  query GetFriendsMoods($limit: Float) {
     friendsMoods(limit: $limit) {
       id
       score
@@ -165,8 +165,8 @@ export const CREATE_MOOD_ENTRY = gql`
 
 // Hug queries
 export const GET_RECEIVED_HUGS = gql`
-  query GetReceivedHugs($limit: Int, $offset: Int) {
-    receivedHugs(limit: $limit, offset: $offset) {
+  query GetReceivedHugs {
+    receivedHugs {
       id
       type
       message
@@ -183,8 +183,8 @@ export const GET_RECEIVED_HUGS = gql`
 `;
 
 export const GET_SENT_HUGS = gql`
-  query GetSentHugs($limit: Int, $offset: Int) {
-    sentHugs(limit: $limit, offset: $offset) {
+  query GetSentHugs {
+    sentHugs {
       id
       type
       message
@@ -201,17 +201,13 @@ export const GET_SENT_HUGS = gql`
 `;
 
 export const SEND_HUG = gql`
-  mutation SendHug($input: HugInput!) {
-    sendHug(input: $input) {
+  mutation SendHug($sendHugInput: SendHugInput!) {
+    sendHug(sendHugInput: $sendHugInput) {
       id
       type
       message
       isRead
       createdAt
-      externalRecipient {
-        type
-        contact
-      }
       sender {
         id
         username

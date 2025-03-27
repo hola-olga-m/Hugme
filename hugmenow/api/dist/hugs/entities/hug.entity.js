@@ -9,9 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Hug = exports.HugType = void 0;
+exports.Hug = exports.ExternalRecipient = exports.HugType = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const user_entity_1 = require("../../users/entities/user.entity");
+const external_recipient_input_1 = require("../dto/external-recipient.input");
 var HugType;
 (function (HugType) {
     HugType["QUICK"] = "QUICK";
@@ -20,11 +21,39 @@ var HugType;
     HugType["COMFORTING"] = "COMFORTING";
     HugType["ENCOURAGING"] = "ENCOURAGING";
     HugType["CELEBRATORY"] = "CELEBRATORY";
+    HugType["StandardHug"] = "STANDARD";
+    HugType["ComfortingHug"] = "COMFORTING";
+    HugType["EnthusiasticHug"] = "ENCOURAGING";
+    HugType["GroupHug"] = "GROUP";
+    HugType["SupportiveHug"] = "SUPPORTIVE";
+    HugType["VirtualHug"] = "VIRTUAL";
+    HugType["RelaxingHug"] = "RELAXING";
+    HugType["WelcomeHug"] = "WELCOME";
+    HugType["FriendlyHug"] = "FRIENDLY";
+    HugType["GentleHug"] = "GENTLE";
+    HugType["FamilyHug"] = "FAMILY";
+    HugType["SmilingHug"] = "SMILING";
 })(HugType || (exports.HugType = HugType = {}));
 (0, graphql_1.registerEnumType)(HugType, {
     name: 'HugType',
     description: 'The type of hug sent',
 });
+let ExternalRecipient = class ExternalRecipient {
+    type;
+    contact;
+};
+exports.ExternalRecipient = ExternalRecipient;
+__decorate([
+    (0, graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], ExternalRecipient.prototype, "type", void 0);
+__decorate([
+    (0, graphql_1.Field)(),
+    __metadata("design:type", String)
+], ExternalRecipient.prototype, "contact", void 0);
+exports.ExternalRecipient = ExternalRecipient = __decorate([
+    (0, graphql_1.ObjectType)()
+], ExternalRecipient);
 let Hug = class Hug {
     id;
     type;
@@ -33,6 +62,7 @@ let Hug = class Hug {
     senderId;
     recipient;
     recipientId;
+    externalRecipient;
     isRead;
     createdAt;
 };
@@ -58,13 +88,17 @@ __decorate([
     __metadata("design:type", String)
 ], Hug.prototype, "senderId", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => user_entity_1.User),
+    (0, graphql_1.Field)(() => user_entity_1.User, { nullable: true }),
     __metadata("design:type", user_entity_1.User)
 ], Hug.prototype, "recipient", void 0);
 __decorate([
-    (0, graphql_1.Field)(),
+    (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], Hug.prototype, "recipientId", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => ExternalRecipient, { nullable: true }),
+    __metadata("design:type", ExternalRecipient)
+], Hug.prototype, "externalRecipient", void 0);
 __decorate([
     (0, graphql_1.Field)(),
     __metadata("design:type", Boolean)

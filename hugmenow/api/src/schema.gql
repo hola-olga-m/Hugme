@@ -12,6 +12,11 @@ type AuthResponse {
   user: User!
 }
 
+input CreateFriendshipInput {
+  followMood: Boolean = false
+  recipientId: String!
+}
+
 input CreateHugRequestInput {
   isCommunityRequest: Boolean!
   message: String
@@ -29,13 +34,50 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type ExternalRecipient {
+  contact: String!
+  type: String!
+}
+
+input ExternalRecipientInput {
+  contact: String!
+  type: ExternalRecipientType!
+}
+
+"""The type of external recipient contact"""
+enum ExternalRecipientType {
+  EMAIL
+  TELEGRAM
+}
+
+type Friendship {
+  createdAt: DateTime!
+  followsMood: Boolean
+  id: ID!
+  recipient: User!
+  recipientId: String!
+  requester: User!
+  requesterId: String!
+  status: FriendshipStatus!
+  updatedAt: DateTime
+}
+
+"""The status of a friendship between two users"""
+enum FriendshipStatus {
+  ACCEPTED
+  BLOCKED
+  PENDING
+  REJECTED
+}
+
 type Hug {
   createdAt: DateTime!
+  externalRecipient: ExternalRecipient
   id: ID!
   isRead: Boolean!
   message: String
-  recipient: User!
-  recipientId: String!
+  recipient: User
+  recipientId: String
   sender: User!
   senderId: String!
   type: HugType!
@@ -67,10 +109,22 @@ enum HugRequestStatus {
 enum HugType {
   CELEBRATORY
   COMFORTING
+  ComfortingHug
   ENCOURAGING
+  EnthusiasticHug
+  FamilyHug
+  FriendlyHug
+  GentleHug
+  GroupHug
   QUICK
+  RelaxingHug
   SUPPORTIVE
+  SmilingHug
+  StandardHug
+  SupportiveHug
+  VirtualHug
   WARM
+  WelcomeHug
 }
 
 input LoginInput {
@@ -98,23 +152,32 @@ type Mutation {
   register(registerInput: RegisterInput!): AuthResponse!
   removeMood(id: ID!): Boolean!
   removeUser: Boolean!
+  respondToFriendRequest(updateFriendshipInput: UpdateFriendshipInput!): Friendship!
   respondToHugRequest(respondToRequestInput: RespondToRequestInput!): HugRequest!
+  sendFriendRequest(createFriendshipInput: CreateFriendshipInput!): Friendship!
   sendHug(sendHugInput: SendHugInput!): Hug!
   updateMood(updateMoodInput: UpdateMoodInput!): Mood!
+  updateMoodFollowing(updateFriendshipInput: UpdateFriendshipInput!): Friendship!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
 type Query {
+  checkFriendship(userId: String!): Boolean!
   communityHugRequests: [HugRequest!]!
+  friendsMoods(limit: Float = 20): [Mood!]!
   hug(id: ID!): Hug!
   hugRequest(id: ID!): HugRequest!
   me: User!
   mood(id: ID!): Mood!
+  moodFollowing: [Friendship!]!
   moodStreak: Float!
+  myFriends: [Friendship!]!
   myHugRequests: [HugRequest!]!
+  pendingFriendRequests: [Friendship!]!
   pendingHugRequests: [HugRequest!]!
   publicMoods: [Mood!]!
   receivedHugs: [Hug!]!
+  sentFriendRequests: [Friendship!]!
   sentHugs: [Hug!]!
   user(id: ID!): User!
   userMoods: [Mood!]!
@@ -136,9 +199,16 @@ input RespondToRequestInput {
 }
 
 input SendHugInput {
+  externalRecipient: ExternalRecipientInput
   message: String
-  recipientId: String!
+  recipientId: String
   type: HugType!
+}
+
+input UpdateFriendshipInput {
+  followMood: Boolean
+  friendshipId: String!
+  status: FriendshipStatus
 }
 
 input UpdateMoodInput {

@@ -13,6 +13,7 @@ const moods_resolver_1 = require("./moods.resolver");
 const moods_controller_1 = require("./moods.controller");
 const users_module_1 = require("../users/users.module");
 const auth_module_1 = require("../auth/auth.module");
+const friends_module_1 = require("../friends/friends.module");
 let MoodsModule = class MoodsModule {
 };
 exports.MoodsModule = MoodsModule;
@@ -21,6 +22,7 @@ exports.MoodsModule = MoodsModule = __decorate([
         imports: [
             users_module_1.UsersModule,
             (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
+            friends_module_1.FriendsModule,
         ],
         controllers: [moods_controller_1.MoodsController],
         providers: [moods_service_1.MoodsService, moods_resolver_1.MoodsResolver],

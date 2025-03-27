@@ -5,12 +5,14 @@ import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
 import { PostGraphileService } from '../postgraphile/postgraphile.service';
+import { FriendsService } from '../friends/friends.service';
 export declare class HugsService {
     private postgraphileService;
     private usersService;
+    private friendsService;
     private readonly hugsTable;
     private readonly hugRequestsTable;
-    constructor(postgraphileService: PostGraphileService, usersService: UsersService);
+    constructor(postgraphileService: PostGraphileService, usersService: UsersService, friendsService: FriendsService);
     sendHug(sendHugInput: SendHugInput, senderId: string): Promise<Hug>;
     findAllHugs(): Promise<Hug[]>;
     findHugById(id: string): Promise<Hug>;

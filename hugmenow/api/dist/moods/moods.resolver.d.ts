@@ -11,6 +11,7 @@ export declare class MoodsResolver {
     userMoods(user: User): Promise<Mood[]>;
     mood(id: string): Promise<Mood>;
     moodStreak(user: User): Promise<number>;
+    friendsMoods(user: User, limit?: number): Promise<Mood[]>;
     updateMood(updateMoodInput: UpdateMoodInput, user: User): Promise<Mood>;
     removeMood(id: string, user: User): Promise<boolean>;
 }

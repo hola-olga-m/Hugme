@@ -11,16 +11,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MoodsService = void 0;
 const common_1 = require("@nestjs/common");
+const mood_entity_1 = require("./entities/mood.entity");
 const users_service_1 = require("../users/users.service");
 const postgraphile_service_1 = require("../postgraphile/postgraphile.service");
+const friends_service_1 = require("../friends/friends.service");
 const uuid_1 = require("uuid");
 let MoodsService = class MoodsService {
     postgraphileService;
     usersService;
+    friendsService;
     moodsTable = 'moods';
-    constructor(postgraphileService, usersService) {
+    constructor(postgraphileService, usersService, friendsService) {
         this.postgraphileService = postgraphileService;
         this.usersService = usersService;
+        this.friendsService = friendsService;
     }
     async create(createMoodInput, userId) {
         const user = await this.usersService.findOne(userId);
@@ -125,11 +129,49 @@ let MoodsService = class MoodsService {
         }
         return streak;
     }
+    async convertToMoodEntity(row) {
+        const mood = new mood_entity_1.Mood();
+        mood.id = row.id;
+        mood.score = row.score || row.mood_rating || 0;
+        mood.note = row.note || row.mood_description || '';
+        mood.isPublic = row.is_public;
+        mood.userId = row.user_id;
+        mood.createdAt = row.created_at;
+        if (row.user_id) {
+            try {
+                mood.user = await this.usersService.findOne(row.user_id);
+            }
+            catch (error) {
+                mood.user = await this.usersService.findOne(row.user_id);
+            }
+        }
+        return mood;
+    }
+    async findFriendsMoods(userId, limit = 20) {
+        const friendships = await this.friendsService.findFriends(userId);
+        if (!friendships || friendships.length === 0) {
+            return [];
+        }
+        const friendIds = friendships.map(friendship => friendship.requesterId === userId ? friendship.recipientId : friendship.requesterId);
+        const moodsQuery = `
+      SELECT * FROM ${this.moodsTable}
+      WHERE user_id = ANY($1) AND is_public = TRUE
+      ORDER BY created_at DESC
+      LIMIT $2
+    `;
+        const { rows: friendMoods } = await this.postgraphileService.query(moodsQuery, [friendIds, limit]);
+        const moods = [];
+        for (const row of friendMoods) {
+            moods.push(await this.convertToMoodEntity(row));
+        }
+        return moods;
+    }
 };
 exports.MoodsService = MoodsService;
 exports.MoodsService = MoodsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [postgraphile_service_1.PostGraphileService,
-        users_service_1.UsersService])
+        users_service_1.UsersService,
+        friends_service_1.FriendsService])
 ], MoodsService);
 //# sourceMappingURL=moods.service.js.map

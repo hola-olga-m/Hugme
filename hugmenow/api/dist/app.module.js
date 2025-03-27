@@ -18,6 +18,7 @@ const users_module_1 = require("./users/users.module");
 const moods_module_1 = require("./moods/moods.module");
 const hugs_module_1 = require("./hugs/hugs.module");
 const auth_module_1 = require("./auth/auth.module");
+const friends_module_1 = require("./friends/friends.module");
 const postgraphile_module_1 = require("./postgraphile/postgraphile.module");
 let AppModule = class AppModule {
 };
@@ -41,6 +42,7 @@ exports.AppModule = AppModule = __decorate([
             moods_module_1.MoodsModule,
             hugs_module_1.HugsModule,
             auth_module_1.AuthModule,
+            friends_module_1.FriendsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

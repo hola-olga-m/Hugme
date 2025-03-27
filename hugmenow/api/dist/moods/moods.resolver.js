@@ -42,6 +42,9 @@ let MoodsResolver = class MoodsResolver {
     async moodStreak(user) {
         return this.moodsService.getUserMoodStreak(user.id);
     }
+    async friendsMoods(user, limit) {
+        return this.moodsService.findFriendsMoods(user.id, limit);
+    }
     async updateMood(updateMoodInput, user) {
         return this.moodsService.update(updateMoodInput.id, updateMoodInput, user.id);
     }
@@ -91,6 +94,15 @@ __decorate([
     __metadata("design:paramtypes", [user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], MoodsResolver.prototype, "moodStreak", null);
+__decorate([
+    (0, graphql_1.Query)(() => [mood_entity_1.Mood]),
+    (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, graphql_1.Args)('limit', { type: () => Number, nullable: true, defaultValue: 20 })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [user_entity_1.User, Number]),
+    __metadata("design:returntype", Promise)
+], MoodsResolver.prototype, "friendsMoods", null);
 __decorate([
     (0, graphql_1.Mutation)(() => mood_entity_1.Mood),
     (0, common_1.UseGuards)(gql_auth_guard_1.GqlAuthGuard),
