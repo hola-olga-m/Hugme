@@ -27,10 +27,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Dedicated endpoint for web application feedback tool
+app.get('/_feedback_check', (req, res) => {
+  res.status(200).send('HugMeNow Web Application is running');
+});
+
 // Simple text response for the root path (for web application feedback tool)
 app.get('/', (req, res, next) => {
-  const accepts = req.headers.accept || '';
-  if (accepts.includes('text/html') && req.query._feedback_check === 'true') {
+  // Check if this is a feedback tool request
+  if (req.query._feedback_check === 'true' || req.query.feedback_check === 'true') {
+    console.log('Serving feedback check response');
     return res.status(200).send('HugMeNow Web Application is running');
   }
   next();
@@ -38,6 +44,12 @@ app.get('/', (req, res, next) => {
 
 // Add health check endpoint
 app.get('/health', (req, res) => {
+  // For web application feedback tool
+  if (req.query._feedback_check === 'true') {
+    return res.status(200).send('HugMeNow Web Application is running');
+  }
+  
+  // Regular health check response
   res.status(200).json({
     status: 'UP',
     timestamp: new Date().toISOString(),
