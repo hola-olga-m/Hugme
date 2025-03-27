@@ -4,7 +4,7 @@ modules = ["nodejs-20", "postgresql-16"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Run HugMeNow"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -14,6 +14,10 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Frontend Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "NestJS API Server"
 
 [[workflows.workflow]]
 name = "Frontend Server"
@@ -42,6 +46,21 @@ args = "cd hugmenow/api && npm run start:dev"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && node simple-server.js"
+
+[[workflows.workflow]]
+name = "NestJS API Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/api && node simplified-server.js"
+waitForPort = 3001
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
