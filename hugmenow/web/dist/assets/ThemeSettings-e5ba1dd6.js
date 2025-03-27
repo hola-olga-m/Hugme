@@ -1,4 +1,4 @@
-import{d as a,r as b,j as e,B as p,a as z,f as D}from"./main-f424badd.js";import{u as T}from"./useTranslation-ae14bfda.js";const I=a.div`
+import{d as a,r as b,j as e,B as p,a as z,f as D}from"./main-47485e27.js";import{u as T}from"./useTranslation-833b3a1b.js";const I=a.div`
   background: white;
   border-radius: var(--border-radius-lg);
   padding: 1.5rem;
@@ -280,4 +280,4 @@ import{d as a,r as b,j as e,B as p,a as z,f as D}from"./main-f424badd.js";import
     }
   }
 `,ce=()=>{const{t:r}=T(),s=z(),{colorPalette:t,setTheme:i}=D(),[n,l]=b.useState(!1),x=c=>{i(c),l(!0),setTimeout(()=>{l(!1)},3e3)};return e.jsxs(Q,{children:[e.jsxs(oe,{children:[e.jsx(te,{onClick:()=>s(-1),"aria-label":r("navigation.back"),children:e.jsx(ee,{})}),e.jsx(ae,{children:r("theme.settings")})]}),e.jsxs(ne,{children:[e.jsx("div",{className:"info-icon",children:e.jsx(re,{})}),e.jsxs("div",{className:"info-content",children:[e.jsx("h4",{children:r("theme.howItWorks")}),e.jsx("p",{children:r("theme.colorPaletteDescription")})]})]}),e.jsx(J,{onSave:x,initialPalette:t.id}),e.jsx(ie,{visible:n,children:r("theme.paletteApplied")})]})};export{ce as default};
-//# sourceMappingURL=ThemeSettings-8d5dbec7.js.map
+//# sourceMappingURL=ThemeSettings-e5ba1dd6.js.map
