@@ -7,6 +7,7 @@ import { SendHugInput } from './dto/send-hug.input';
 import { CreateHugRequestInput } from './dto/create-hug-request.input';
 import { RespondToRequestInput } from './dto/respond-to-request.input';
 import { PostGraphileService } from '../postgraphile/postgraphile.service';
+import { FriendsService } from '../friends/friends.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class HugsService {
   constructor(
     private postgraphileService: PostGraphileService,
     private usersService: UsersService,
+    private friendsService: FriendsService,
   ) {}
 
   // HUG METHODS
@@ -26,20 +28,44 @@ export class HugsService {
       throw new NotFoundException('Sender not found');
     }
 
-    const recipient = await this.usersService.findOne(sendHugInput.recipientId);
-    if (!recipient) {
-      throw new NotFoundException('Recipient not found');
-    }
-
-    const hugData = {
+    // Prepare hug data
+    const hugData: any = {
       id: uuidv4(),
       type: sendHugInput.type,
       message: sendHugInput.message,
       senderId,
-      recipientId: sendHugInput.recipientId,
       isRead: false,
       createdAt: new Date(),
     };
+
+    // Check if sending to internal user or external recipient
+    if (sendHugInput.recipientId) {
+      // Internal user
+      const recipient = await this.usersService.findOne(sendHugInput.recipientId);
+      if (!recipient) {
+        throw new NotFoundException('Recipient not found');
+      }
+      
+      // Check if sender and recipient are friends
+      const areFriends = await this.friendsService.areFriends(senderId, sendHugInput.recipientId);
+      if (!areFriends) {
+        throw new ForbiddenException('You can only send hugs to your friends');
+      }
+      
+      hugData.recipientId = sendHugInput.recipientId;
+    } else if (sendHugInput.externalRecipient) {
+      // External recipient (email or Telegram)
+      hugData.externalRecipient = {
+        type: sendHugInput.externalRecipient.type,
+        contact: sendHugInput.externalRecipient.contact,
+      };
+      
+      // TODO: Implement actual sending of email or Telegram message
+      // This would typically be handled by a messaging service
+      console.log(`Sending ${sendHugInput.type} hug to external recipient: ${sendHugInput.externalRecipient.type}:${sendHugInput.externalRecipient.contact}`);
+    } else {
+      throw new ForbiddenException('Either recipientId or externalRecipient must be provided');
+    }
 
     return await this.postgraphileService.insert(this.hugsTable, hugData) as Hug;
   }

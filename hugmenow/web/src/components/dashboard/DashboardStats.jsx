@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@apollo/client';
 import { Icon } from '../ui/IconComponent';
 import ReceivedHugsWidget from './ReceivedHugsWidget';
+import QuickSendHugWidget from './QuickSendHugWidget';
 import { GET_USER_STATS, GET_RECEIVED_HUGS } from '../../graphql/queries';
 
 // Styled components
@@ -186,6 +187,10 @@ const DashboardStats = () => {
         ))}
       </StatsContainer>
       
+      {/* Add Quick Send Hug widget above Received Hugs */}
+      <QuickSendHugWidget />
+      
+      {/* Received Hugs widget */}
       <ReceivedHugsWidget hugs={receivedHugs} />
     </div>
   );

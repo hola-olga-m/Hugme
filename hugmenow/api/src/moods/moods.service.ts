@@ -4,6 +4,7 @@ import { CreateMoodInput } from './dto/create-mood.input';
 import { UpdateMoodInput } from './dto/update-mood.input';
 import { UsersService } from '../users/users.service';
 import { PostGraphileService } from '../postgraphile/postgraphile.service';
+import { FriendsService } from '../friends/friends.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class MoodsService {
   constructor(
     private postgraphileService: PostGraphileService,
     private usersService: UsersService,
+    private friendsService: FriendsService,
   ) {}
 
   async create(createMoodInput: CreateMoodInput, userId: string): Promise<Mood> {
@@ -154,5 +156,74 @@ export class MoodsService {
     }
 
     return streak;
+  }
+
+  /**
+   * Helper method to convert database row to Mood entity
+   * @param row Database row
+   * @returns Partial Mood entity
+   */
+  private async convertToMoodEntity(row: any): Promise<Mood> {
+    // Create a partial mood object
+    const mood = new Mood();
+    mood.id = row.id;
+    mood.score = row.score || row.mood_rating || 0;
+    mood.note = row.note || row.mood_description || '';
+    mood.isPublic = row.is_public;
+    mood.userId = row.user_id;
+    mood.createdAt = row.created_at;
+    
+    // Load user data
+    if (row.user_id) {
+      try {
+        mood.user = await this.usersService.findOne(row.user_id);
+      } catch (error) {
+        // If user not found, create a default user (will be replaced later)
+        mood.user = await this.usersService.findOne(row.user_id);
+      }
+    }
+    
+    return mood;
+  }
+
+  /**
+   * Find moods from a user's friends
+   * @param userId The user ID whose friends' moods to find
+   * @param limit Optional limit on the number of moods to return, default 20
+   * @returns Array of friends' recent moods
+   */
+  async findFriendsMoods(userId: string, limit: number = 20): Promise<Mood[]> {
+    // Get the user's friends
+    const friendships = await this.friendsService.findFriends(userId);
+    
+    if (!friendships || friendships.length === 0) {
+      return [];
+    }
+
+    // Extract friend IDs
+    const friendIds = friendships.map(friendship => 
+      friendship.requesterId === userId ? friendship.recipientId : friendship.requesterId
+    );
+
+    // Query to get recent public moods from friends
+    const moodsQuery = `
+      SELECT * FROM ${this.moodsTable}
+      WHERE user_id = ANY($1) AND is_public = TRUE
+      ORDER BY created_at DESC
+      LIMIT $2
+    `;
+    
+    const { rows: friendMoods } = await this.postgraphileService.query(
+      moodsQuery, 
+      [friendIds, limit]
+    );
+
+    // Convert to Mood entities
+    const moods: Mood[] = [];
+    for (const row of friendMoods) {
+      moods.push(await this.convertToMoodEntity(row));
+    }
+    
+    return moods;
   }
 }

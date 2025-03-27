@@ -6,6 +6,9 @@ import { useAuth } from '../context/AuthContext';
 import LoadingScreen from '../components/common/LoadingScreen';
 import PublicMoodList from '../components/PublicMoodList';
 import DashboardStats from '../components/dashboard/DashboardStats';
+import FriendMoodsWidget from '../components/dashboard/FriendMoodsWidget';
+import QuickSendHugWidget from '../components/dashboard/QuickSendHugWidget';
+import ReceivedHugsWidget from '../components/dashboard/ReceivedHugsWidget';
 import { Icon } from '../components/ui/IconComponent';
 
 // Styled components
@@ -117,6 +120,13 @@ const FeaturesGrid = styled(motion.div)`
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-top: 2.5rem;
+`;
+
+const WidgetsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin: 2.5rem 0;
 `;
 
 const FeatureCard = styled(motion.div)`
@@ -350,9 +360,50 @@ const Dashboard = () => {
           </FeatureCard>
         </FeaturesGrid>
         
-        <div style={{ marginTop: '2rem' }}>
+        {/* Widgets Section */}
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{ marginTop: '3rem', color: 'var(--gray-800)' }}
+        >
+          Your Activity Center
+        </motion.h2>
+        
+        <WidgetsContainer>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <FriendMoodsWidget />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <ReceivedHugsWidget />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <QuickSendHugWidget />
+          </motion.div>
+        </WidgetsContainer>
+        
+        <motion.div 
+          style={{ marginTop: '2rem' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
           <PublicMoodList />
-        </div>
+        </motion.div>
       </DashboardContent>
     </DashboardContainer>
   );

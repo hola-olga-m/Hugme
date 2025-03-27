@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { MoodsModule } from './moods/moods.module';
 import { HugsModule } from './hugs/hugs.module';
 import { AuthModule } from './auth/auth.module';
+import { FriendsModule } from './friends/friends.module';
 
 // Import Postgraphile module
 import { PostGraphileModule } from './postgraphile/postgraphile.module';
@@ -38,6 +39,7 @@ import { PostGraphileModule } from './postgraphile/postgraphile.module';
     MoodsModule,
     HugsModule,
     AuthModule,
+    FriendsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

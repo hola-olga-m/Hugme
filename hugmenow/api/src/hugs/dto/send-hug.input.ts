@@ -1,12 +1,21 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsUUID, IsString, IsEnum, IsOptional } from 'class-validator';
+import { IsUUID, IsString, IsEnum, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { HugType } from '../entities/hug.entity';
+import { ExternalRecipientInput } from './external-recipient.input';
 
 @InputType()
 export class SendHugInput {
-  @Field()
+  @Field({ nullable: true })
   @IsUUID()
-  recipientId: string;
+  @IsOptional()
+  recipientId?: string;
+
+  @Field(() => ExternalRecipientInput, { nullable: true })
+  @ValidateNested()
+  @Type(() => ExternalRecipientInput)
+  @IsOptional()
+  externalRecipient?: ExternalRecipientInput;
 
   @Field(() => HugType)
   @IsEnum(HugType)

@@ -44,6 +44,15 @@ export class MoodsResolver {
   async moodStreak(@CurrentUser() user: User): Promise<number> {
     return this.moodsService.getUserMoodStreak(user.id);
   }
+  
+  @Query(() => [Mood])
+  @UseGuards(GqlAuthGuard)
+  async friendsMoods(
+    @CurrentUser() user: User,
+    @Args('limit', { type: () => Number, nullable: true, defaultValue: 20 }) limit?: number,
+  ): Promise<Mood[]> {
+    return this.moodsService.findFriendsMoods(user.id, limit);
+  }
 
   @Mutation(() => Mood)
   @UseGuards(GqlAuthGuard)

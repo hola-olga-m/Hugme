@@ -132,6 +132,24 @@ export const GET_PUBLIC_MOODS = gql`
   }
 `;
 
+export const GET_FRIENDS_MOODS = gql`
+  query GetFriendsMoods($limit: Int) {
+    friendsMoods(limit: $limit) {
+      id
+      score
+      note
+      isPublic
+      createdAt
+      user {
+        id
+        username
+        name
+        avatarUrl
+      }
+    }
+  }
+`;
+
 export const CREATE_MOOD_ENTRY = gql`
   mutation CreateMoodEntry($input: MoodInput!) {
     createMoodEntry(input: $input) {
@@ -190,6 +208,10 @@ export const SEND_HUG = gql`
       message
       isRead
       createdAt
+      externalRecipient {
+        type
+        contact
+      }
       sender {
         id
         username

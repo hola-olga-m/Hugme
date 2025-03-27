@@ -7,11 +7,14 @@ import { UsersModule } from '../users/users.module';
 import { PostGraphileModule } from '../postgraphile/postgraphile.module';
 // Import AuthModule for JwtAuthGuard
 import { AuthModule } from '../auth/auth.module';
+// Import FriendsModule for friendship validation
+import { FriendsModule } from '../friends/friends.module';
 
 @Module({
   imports: [
     UsersModule,
     forwardRef(() => AuthModule), // Use forwardRef to prevent circular dependency
+    FriendsModule, // Import FriendsModule for friendship features
   ],
   controllers: [MoodsController],
   providers: [MoodsService, MoodsResolver],
