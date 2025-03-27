@@ -50,6 +50,20 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
       },
+      output: {
+        manualChunks: {
+          // Ensure key components are properly chunked
+          'animal-hug-gallery': [
+            './src/components/AnimalHugGallery/index.js',
+            './src/pages/AnimalHugGalleryDemo/index.js',
+            './src/utils/animalsHugIcons.js'
+          ],
+          'hug-icons': [
+            './src/components/HugIcon/index.js',
+            './src/utils/hugIcons.js'
+          ]
+        }
+      }
     },
   },
   resolve: {
@@ -64,6 +78,13 @@ export default defineConfig({
     exclude: [],
   },
   optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'styled-components',
+      'framer-motion'
+    ],
     esbuildOptions: {
       loader: {
         '.js': 'jsx',

@@ -1,0 +1,74 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Penguin enthusiastic hug icon - Two penguins in an energetic embrace -->
+  <g transform="translate(2, 2)">
+    <!-- Background -->
+    <circle cx="30" cy="30" r="28" fill="#E6F7FF" fill-opacity="0.3" />
+    
+    <!-- Left penguin -->
+    <g transform="translate(20, 30)">
+      <!-- Body -->
+      <path d="M0 0C-4 1 -6 6 -6 12C-6 18 -4 22 0 24C4 22 6 18 6 12C6 6 4 1 0 0Z" fill="#2D3E50" stroke="#333" stroke-width="0.3" />
+      
+      <!-- Head -->
+      <circle cx="0" cy="-6" r="6" fill="#2D3E50" stroke="#333" stroke-width="0.3" />
+      
+      <!-- Face -->
+      <path d="M0 -6C-2 -6 -4 -8 -4 -4C-4 0 -2 -1 0 -1C2 -1 4 0 4 -4C4 -8 2 -6 0 -6Z" fill="white" />
+      <circle cx="-2" cy="-7" r="1" fill="#333" /> <!-- Left eye -->
+      <circle cx="2" cy="-7" r="1" fill="#333" /> <!-- Right eye -->
+      <path d="M0 -4L0 -3L2 -3" fill="none" stroke="#FF9D00" stroke-width="1.5" stroke-linecap="round" /> <!-- Beak -->
+      
+      <!-- Arms/wings -->
+      <path d="M-6 2C-10 0 -12 6 -10 10" fill="none" stroke="#2D3E50" stroke-width="2" stroke-linecap="round" /> <!-- Left wing down -->
+      <path d="M6 2C12 -2 12 -5 10 -8" fill="none" stroke="#2D3E50" stroke-width="2" stroke-linecap="round" /> <!-- Right wing up - celebration! -->
+      
+      <!-- Belly -->
+      <ellipse cx="0" cy="6" rx="3" ry="7" fill="white" />
+    </g>
+    
+    <!-- Right penguin -->
+    <g transform="translate(40, 30)">
+      <!-- Body -->
+      <path d="M0 0C4 1 6 6 6 12C6 18 4 22 0 24C-4 22 -6 18 -6 12C-6 6 -4 1 0 0Z" fill="#2D3E50" stroke="#333" stroke-width="0.3" />
+      
+      <!-- Head -->
+      <circle cx="0" cy="-6" r="6" fill="#2D3E50" stroke="#333" stroke-width="0.3" />
+      
+      <!-- Face -->
+      <path d="M0 -6C2 -6 4 -8 4 -4C4 0 2 -1 0 -1C-2 -1 -4 0 -4 -4C-4 -8 -2 -6 0 -6Z" fill="white" />
+      <circle cx="-2" cy="-7" r="1" fill="#333" /> <!-- Left eye -->
+      <circle cx="2" cy="-7" r="1" fill="#333" /> <!-- Right eye -->
+      <path d="M0 -4L0 -3L-2 -3" fill="none" stroke="#FF9D00" stroke-width="1.5" stroke-linecap="round" /> <!-- Beak -->
+      
+      <!-- Arms/wings -->
+      <path d="M6 2C10 0 12 6 10 10" fill="none" stroke="#2D3E50" stroke-width="2" stroke-linecap="round" /> <!-- Right wing down -->
+      <path d="M-6 2C-12 -2 -12 -5 -10 -8" fill="none" stroke="#2D3E50" stroke-width="2" stroke-linecap="round" /> <!-- Left wing up - celebration! -->
+      
+      <!-- Belly -->
+      <ellipse cx="0" cy="6" rx="3" ry="7" fill="white" />
+    </g>
+    
+    <!-- Confetti / celebration elements -->
+    <g fill="#FF9D00" stroke="#333" stroke-width="0.1">
+      <circle cx="20" cy="10" r="1" />
+      <circle cx="40" cy="10" r="1" />
+      <circle cx="15" cy="15" r="1" />
+      <circle cx="45" cy="15" r="1" />
+      <circle cx="30" cy="8" r="1" />
+    </g>
+    <g fill="#5DADE2" stroke="#333" stroke-width="0.1">
+      <circle cx="25" cy="12" r="1" />
+      <circle cx="35" cy="12" r="1" />
+      <circle cx="10" cy="20" r="1" />
+      <circle cx="50" cy="20" r="1" />
+    </g>
+    <g fill="#FF6B6B" stroke="#333" stroke-width="0.1">
+      <circle cx="22" cy="18" r="1" />
+      <circle cx="38" cy="18" r="1" />
+      <circle cx="30" cy="16" r="1" />
+    </g>
+    
+    <!-- Heart between penguins -->
+    <path d="M30 20C32 18 34 19 35 20C36 21 35 23 30 27C25 23 24 21 25 20C26 19 28 18 30 20Z" fill="#FF6B6B" />
+  </g>
+</svg>

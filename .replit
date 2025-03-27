@@ -4,7 +4,7 @@ modules = ["nodejs-20", "postgresql-16"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Run HugMeNow"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && node simple-server.js"
+args = "cd hugmenow/web && npm run build && node simple-server.js"
 waitForPort = 5000
 
 [[workflows.workflow]]

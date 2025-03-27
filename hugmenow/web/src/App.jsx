@@ -134,10 +134,15 @@ const App = () => {
                     <ThemeSettings />
                   </ProtectedRoute>
                 } />
-                {/* Static demo route - always accessible */}
+                {/* Static demo routes - always accessible */}
                 <Route path="/hug-gallery" element={
                   <StaticRoute>
                     <PublicHugGallery />
+                  </StaticRoute>
+                } />
+                <Route path="/animal-hug-gallery" element={
+                  <StaticRoute>
+                    <AnimalHugGalleryDemo />
                   </StaticRoute>
                 } />
                 

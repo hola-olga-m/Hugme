@@ -3,7 +3,13 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { getHugIconByType, getHugTypeColor, getHugTypeDisplayName } from '../../utils/hugIcons';
-import { getAnimalHugIconByType, getAnimalHugTypeColor, getAnimalHugTypeDisplayName, ANIMAL_HUG_ICONS } from '../../utils/animalsHugIcons';
+import { getAnimalHugIconByType, getAnimalHugTypeColor, getAnimalHugTypeDisplayName } from '../../utils/animalsHugIcons';
+
+// Import animal hug types directly to avoid circular dependencies
+const ANIMAL_HUG_TYPES = [
+  'fox', 'bear', 'hedgehog', 'rabbit', 'penguin', 'yinyang',
+  'sloth', 'panda', 'cat', 'unicorn'
+];
 
 /**
  * Styled components for the HugIcon
@@ -101,7 +107,7 @@ const HugIcon = ({
   onClick
 }) => {
   // Check if this is an animal icon type or standard type
-  const isAnimalType = Object.keys(ANIMAL_HUG_ICONS).includes(type);
+  const isAnimalType = ANIMAL_HUG_TYPES.includes(type);
   
   // Get the icon source and color based on the type
   const iconSrc = isAnimalType 

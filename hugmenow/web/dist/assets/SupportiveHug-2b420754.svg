@@ -1,0 +1,27 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bear hug icon - Two bears in a supportive embrace -->
+  <g transform="translate(0, 0)">
+    <!-- Background circle -->
+    <circle cx="32" cy="32" r="30" fill="#FFF5E6" fill-opacity="0.3" />
+    
+    <!-- First bear (left) -->
+    <path d="M20 15C17 15 14 18 14 21C14 24 16 26 18 27C16 29 14 33 14 36C14 42 18 45 22 45C25 45 29 42 29 36C29 33 28 29 26 27C28 26 30 24 30 21C30 18 27 15 24 15C22 15 21 17 22 19C21 17 20 15 20 15Z" fill="#A67C52" stroke="#333" stroke-width="0.5" />
+    <circle cx="19" cy="22" r="1.5" fill="#333" /> <!-- Left ear -->
+    <circle cx="25" cy="22" r="1.5" fill="#333" /> <!-- Right ear -->
+    <circle cx="21" cy="30" r="1" fill="#333" /> <!-- Eye -->
+    <path d="M20 33C21 34 23 34 24 33" fill="none" stroke="#333" stroke-width="0.5" /> <!-- Smile -->
+    
+    <!-- Second bear (right) -->
+    <path d="M44 15C47 15 50 18 50 21C50 24 48 26 46 27C48 29 50 33 50 36C50 42 46 45 42 45C39 45 35 42 35 36C35 33 36 29 38 27C36 26 34 24 34 21C34 18 37 15 40 15C42 15 43 17 42 19C43 17 44 15 44 15Z" fill="#A67C52" stroke="#333" stroke-width="0.5" />
+    <circle cx="45" cy="22" r="1.5" fill="#333" /> <!-- Right ear -->
+    <circle cx="39" cy="22" r="1.5" fill="#333" /> <!-- Left ear -->
+    <circle cx="43" cy="30" r="1" fill="#333" /> <!-- Eye -->
+    <path d="M44 33C43 34 41 34 40 33" fill="none" stroke="#333" stroke-width="0.5" /> <!-- Smile -->
+    
+    <!-- Arms embracing -->
+    <path d="M22 35C24 40 30 42 32 42C34 42 40 40 42 35" fill="none" stroke="#A67C52" stroke-width="4" stroke-linecap="round" />
+    
+    <!-- Heart indicator -->
+    <path d="M32 24C34 22 36 24 37 25C38 26 36 28 32 30C28 28 26 26 27 25C28 24 30 22 32 24Z" fill="#FF5252" />
+  </g>
+</svg>
