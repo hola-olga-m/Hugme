@@ -285,3 +285,12 @@ clearCaches();
 restartApp();
 
 console.log('✅ GraphQL error fixing process completed');
+
+// Export functions for reuse in other modules
+module.exports = {
+  collectErrors,
+  fixSchemaMismatches,
+  syncSchema,
+  clearCaches,
+  restartApp
+};
