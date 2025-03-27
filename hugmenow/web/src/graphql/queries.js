@@ -1,68 +1,276 @@
 import { gql } from '@apollo/client';
 
-// User queries
-export const GET_ME = gql`
-  query me {
+// User authentication queries
+export const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      accessToken
+      user {
+        id
+        username
+        email
+        name
+        avatarUrl
+        isAnonymous
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const REGISTER = gql`
+  mutation Register($input: RegisterInput!) {
+    register(input: $input) {
+      accessToken
+      user {
+        id
+        username
+        email
+        name
+        avatarUrl
+        isAnonymous
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const ANONYMOUS_LOGIN = gql`
+  mutation AnonymousLogin($nickname: String!) {
+    anonymousLogin(nickname: $nickname) {
+      accessToken
+      user {
+        id
+        username
+        email
+        name
+        avatarUrl
+        isAnonymous
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+// User information
+export const GET_USER_PROFILE = gql`
+  query GetUserProfile {
     me {
       id
       username
       email
       name
       avatarUrl
+      bio
       isAnonymous
       createdAt
       updatedAt
+      settings {
+        theme
+        language
+        notifications
+        privacy
+      }
     }
   }
 `;
 
-export const GET_USER = gql`
-  query user($id: ID!) {
-    user(id: $id) {
-      id
-      username
-      email
-      name
-      avatarUrl
-      isAnonymous
-      createdAt
-      updatedAt
+// Dashboard stats
+export const GET_USER_STATS = gql`
+  query GetUserStats {
+    userStats {
+      moodStreak
+      totalMoodEntries
+      averageMoodScore
+      highestMoodThisMonth
+      lowestMoodThisMonth
+      hugsSent
+      hugsReceived
     }
   }
 `;
 
-export const GET_USERS = gql`
-  query users {
-    users {
-      id
-      username
-      name
-      avatarUrl
-      isAnonymous
-    }
+export const GET_MOOD_STREAK = gql`
+  query GetMoodStreak {
+    moodStreak
   }
 `;
 
 // Mood queries
 export const GET_USER_MOODS = gql`
-  query userMoods {
-    userMoods {
+  query GetUserMoods($limit: Int, $offset: Int) {
+    userMoods(limit: $limit, offset: $offset) {
       id
       score
       note
-      isPublic
+      tags
       createdAt
-      userId
+      updatedAt
     }
   }
 `;
 
 export const GET_PUBLIC_MOODS = gql`
-  query publicMoods {
-    publicMoods {
+  query GetPublicMoods($limit: Int, $offset: Int) {
+    publicMoods(limit: $limit, offset: $offset) {
       id
       score
       note
+      tags
+      createdAt
+      updatedAt
+      user {
+        id
+        username
+        name
+        avatarUrl
+      }
+    }
+  }
+`;
+
+export const CREATE_MOOD_ENTRY = gql`
+  mutation CreateMoodEntry($input: MoodInput!) {
+    createMoodEntry(input: $input) {
+      id
+      score
+      note
+      tags
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+// Hug queries
+export const GET_RECEIVED_HUGS = gql`
+  query GetReceivedHugs($limit: Int, $offset: Int) {
+    receivedHugs(limit: $limit, offset: $offset) {
+      id
+      type
+      message
+      isRead
+      createdAt
+      sender {
+        id
+        username
+        name
+        avatarUrl
+      }
+    }
+  }
+`;
+
+export const GET_SENT_HUGS = gql`
+  query GetSentHugs($limit: Int, $offset: Int) {
+    sentHugs(limit: $limit, offset: $offset) {
+      id
+      type
+      message
+      isRead
+      createdAt
+      recipient {
+        id
+        username
+        name
+        avatarUrl
+      }
+    }
+  }
+`;
+
+export const SEND_HUG = gql`
+  mutation SendHug($input: HugInput!) {
+    sendHug(input: $input) {
+      id
+      type
+      message
+      isRead
+      createdAt
+      sender {
+        id
+        username
+        name
+      }
+      recipient {
+        id
+        username
+        name
+      }
+    }
+  }
+`;
+
+export const MARK_HUG_AS_READ = gql`
+  mutation MarkHugAsRead($id: ID!) {
+    markHugAsRead(id: $id) {
+      id
+      isRead
+    }
+  }
+`;
+
+// Community feed
+export const GET_COMMUNITY_FEED = gql`
+  query GetCommunityFeed($limit: Int, $offset: Int) {
+    communityFeed(limit: $limit, offset: $offset) {
+      id
+      type
+      content
+      createdAt
+      user {
+        id
+        username
+        name
+        avatarUrl
+      }
+      ... on MoodPost {
+        score
+        tags
+      }
+      ... on HugPost {
+        hugType
+        recipient {
+          id
+          username
+          name
+          avatarUrl
+        }
+      }
+      ... on AchievementPost {
+        achievementType
+        title
+        description
+      }
+    }
+  }
+`;
+
+// User queries
+export const GET_USERS = gql`
+  query GetUsers($search: String, $limit: Int, $offset: Int) {
+    users(search: $search, limit: $limit, offset: $offset) {
+      id
+      username
+      name
+      avatarUrl
+      isAnonymous
+      createdAt
+    }
+  }
+`;
+
+// Hug requests
+export const GET_HUG_REQUESTS = gql`
+  query GetHugRequests($status: String, $limit: Int, $offset: Int) {
+    hugRequests(status: $status, limit: $limit, offset: $offset) {
+      id
+      message
+      type
+      status
       createdAt
       user {
         id
@@ -74,113 +282,28 @@ export const GET_PUBLIC_MOODS = gql`
   }
 `;
 
-export const GET_MOOD = gql`
-  query mood($id: ID!) {
-    mood(id: $id) {
-      id
-      score
-      note
-      isPublic
-      createdAt
-      userId
-    }
-  }
-`;
-
-export const GET_MOOD_STREAK = gql`
-  query moodStreak {
-    moodStreak
-  }
-`;
-
-// Hug queries
-export const GET_SENT_HUGS = gql`
-  query sentHugs {
-    sentHugs {
-      id
-      type
-      message
-      isRead
-      createdAt
-      recipient {
-        id
-        username
-        name
-        avatarUrl
-      }
-    }
-  }
-`;
-
-export const GET_RECEIVED_HUGS = gql`
-  query receivedHugs {
-    receivedHugs {
-      id
-      type
-      message
-      isRead
-      createdAt
-      sender {
-        id
-        username
-        name
-        avatarUrl
-      }
-    }
-  }
-`;
-
-export const GET_HUG = gql`
-  query hug($id: ID!) {
-    hug(id: $id) {
-      id
-      type
-      message
-      isRead
-      createdAt
-      sender {
-        id
-        username
-        name
-      }
-      recipient {
-        id
-        username
-        name
-      }
-    }
-  }
-`;
-
-// Hug Request queries
 export const GET_MY_HUG_REQUESTS = gql`
-  query myHugRequests {
-    myHugRequests {
+  query GetMyHugRequests($limit: Int, $offset: Int) {
+    myHugRequests(limit: $limit, offset: $offset) {
       id
       message
-      isCommunityRequest
+      type
       status
       createdAt
-      respondedAt
-      recipient {
-        id
-        username
-        name
-        avatarUrl
-      }
+      updatedAt
     }
   }
 `;
 
 export const GET_PENDING_HUG_REQUESTS = gql`
-  query pendingHugRequests {
-    pendingHugRequests {
+  query GetPendingHugRequests($limit: Int, $offset: Int) {
+    pendingHugRequests(limit: $limit, offset: $offset) {
       id
       message
-      isCommunityRequest
+      type
       status
       createdAt
-      requester {
+      user {
         id
         username
         name
@@ -191,14 +314,14 @@ export const GET_PENDING_HUG_REQUESTS = gql`
 `;
 
 export const GET_COMMUNITY_HUG_REQUESTS = gql`
-  query communityHugRequests {
-    communityHugRequests {
+  query GetCommunityHugRequests($limit: Int, $offset: Int) {
+    communityHugRequests(limit: $limit, offset: $offset) {
       id
       message
-      isCommunityRequest
+      type
       status
       createdAt
-      requester {
+      user {
         id
         username
         name
@@ -208,43 +331,24 @@ export const GET_COMMUNITY_HUG_REQUESTS = gql`
   }
 `;
 
-export const GET_HUG_REQUEST = gql`
-  query hugRequest($id: ID!) {
-    hugRequest(id: $id) {
+export const CREATE_HUG_REQUEST = gql`
+  mutation CreateHugRequest($input: HugRequestInput!) {
+    createHugRequest(input: $input) {
       id
       message
-      isCommunityRequest
+      type
       status
       createdAt
-      respondedAt
-      requester {
-        id
-        username
-        name
-        avatarUrl
-      }
-      recipient {
-        id
-        username
-        name
-        avatarUrl
-      }
     }
   }
 `;
 
-// Stats queries
-export const GET_USER_STATS = gql`
-  query userStats {
-    me {
+export const RESPOND_TO_HUG_REQUEST = gql`
+  mutation RespondToHugRequest($id: ID!, $accept: Boolean!) {
+    respondToHugRequest(id: $id, accept: $accept) {
       id
-      receivedHugs {
-        id
-      }
-      sentHugs {
-        id
-      }
+      status
+      updatedAt
     }
-    moodStreak
   }
 `;
