@@ -9,6 +9,8 @@ import DebugPanel from './components/common/DebugPanel';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicRoute from './components/routing/PublicRoute';
 import StaticRoute from './components/routing/StaticRoute';
+import StaticHugGallery from './pages/StaticHugGallery';
+import HumanHugGallery from './pages/HumanHugGallery'; // Import directly to avoid circular dependency
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -21,7 +23,8 @@ const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
 const HugGalleryDemo = lazy(() => import('./pages/HugGalleryDemo'));
 const PublicHugGallery = lazy(() => import('./pages/PublicHugGallery'));
 const AnimalHugGalleryDemo = lazy(() => import('./pages/AnimalHugGalleryDemo'));
-const HumanHugGalleryDemo = lazy(() => import('./pages/HumanHugGalleryDemo'));
+// Import HumanHugGalleryDemo directly to avoid circular dependency
+// const HumanHugGalleryDemo = lazy(() => import('./pages/HumanHugGalleryDemo'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -149,7 +152,7 @@ const App = () => {
                 } />
                 <Route path="/human-hug-gallery" element={
                   <StaticRoute>
-                    <HumanHugGalleryDemo />
+                    <HumanHugGallery />
                   </StaticRoute>
                 } />
                 

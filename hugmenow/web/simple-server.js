@@ -71,7 +71,25 @@ app.use('/graphql', createProxyMiddleware({
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
 
-// Serve index.html for all routes (SPA)
+// Special route for human-hug-gallery
+app.get('/human-hug-gallery', (req, res) => {
+  const specialPath = path.join(distPath, 'human-hug-gallery.html');
+  
+  // Check if the special HTML file exists
+  if (fs.existsSync(specialPath)) {
+    res.sendFile(specialPath);
+  } else {
+    // Fallback to using the general SPA route
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Not found - Build the application first with npm run build');
+    }
+  }
+});
+
+// Serve index.html for all other routes (SPA)
 app.get('*', (req, res) => {
   const indexPath = path.join(distPath, 'index.html');
   
