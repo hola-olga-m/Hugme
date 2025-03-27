@@ -14,10 +14,9 @@ const glob = require('glob');
 const { execSync } = require('child_process');
 
 // Directories to search for GraphQL operations
+// Focusing on the main GraphQL query and mutation files for efficiency
 const SEARCH_DIRS = [
-  './hugmenow/web/src/graphql',
-  './hugmenow/web/src/components',
-  './hugmenow/web/src/pages'
+  './hugmenow/web/src/graphql'
 ];
 
 function getGraphQLFiles() {

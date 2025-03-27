@@ -2,8 +2,8 @@ import { gql } from '@apollo/client';
 
 // User authentication queries
 export const LOGIN = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation Login($loginInput: LoginInput!) {
+    login(loginInput: $loginInput) {
       accessToken
       user {
         id
@@ -20,8 +20,8 @@ export const LOGIN = gql`
 `;
 
 export const REGISTER = gql`
-  mutation Register($input: RegisterInput!) {
-    register(input: $input) {
+  mutation Register($registerInput: RegisterInput!) {
+    register(registerInput: $registerInput) {
       accessToken
       user {
         id
@@ -38,8 +38,8 @@ export const REGISTER = gql`
 `;
 
 export const ANONYMOUS_LOGIN = gql`
-  mutation AnonymousLogin($nickname: String!) {
-    anonymousLogin(nickname: $nickname) {
+  mutation AnonymousLogin($anonymousLoginInput: AnonymousLoginInput!) {
+    anonymousLogin(anonymousLoginInput: $anonymousLoginInput) {
       accessToken
       user {
         id
@@ -64,16 +64,9 @@ export const GET_USER_PROFILE = gql`
       email
       name
       avatarUrl
-      bio
       isAnonymous
       createdAt
       updatedAt
-      settings {
-        theme
-        language
-        notifications
-        privacy
-      }
     }
   }
 `;
@@ -156,8 +149,8 @@ export const GET_FRIENDS_MOODS = gql`
 `;
 
 export const CREATE_MOOD_ENTRY = gql`
-  mutation CreateMoodEntry($input: MoodInput!) {
-    createMoodEntry(input: $input) {
+  mutation CreateMoodEntry($createMoodInput: CreateMoodInput!) {
+    createMood(createMoodInput: $createMoodInput) {
       id
       score
       note
@@ -226,15 +219,17 @@ export const SEND_HUG = gql`
 `;
 
 export const MARK_HUG_AS_READ = gql`
-  mutation MarkHugAsRead($id: ID!) {
-    markHugAsRead(id: $id) {
+  mutation MarkHugAsRead($hugId: ID!) {
+    markHugAsRead(hugId: $hugId) {
       id
       isRead
     }
   }
 `;
 
-// Community feed
+// Community feed API not yet implemented on server
+// This query is commented out until server-side implementation is complete
+/*
 export const GET_COMMUNITY_FEED = gql`
   query GetCommunityFeed {
     communityFeed {
@@ -268,6 +263,7 @@ export const GET_COMMUNITY_FEED = gql`
     }
   }
 `;
+*/
 
 // User queries
 export const GET_USERS = gql`
@@ -283,16 +279,17 @@ export const GET_USERS = gql`
   }
 `;
 
-// Hug requests
+// Hug requests API not yet fully implemented on server
+// Using specific queries for different request types instead
+/* 
 export const GET_HUG_REQUESTS = gql`
   query GetHugRequests($status: String) {
     hugRequests(status: $status) {
       id
       message
-      type
       status
       createdAt
-      user {
+      requester {
         id
         username
         name
@@ -301,6 +298,7 @@ export const GET_HUG_REQUESTS = gql`
     }
   }
 `;
+*/
 
 export const GET_MY_HUG_REQUESTS = gql`
   query GetMyHugRequests {

@@ -124,8 +124,8 @@ export const SEND_HUG = gql`
 `;
 
 export const MARK_HUG_AS_READ = gql`
-  mutation markHugAsRead($id: ID!) {
-    markHugAsRead(id: $id) {
+  mutation markHugAsRead($hugId: ID!) {
+    markHugAsRead(hugId: $hugId) {
       id
       isRead
     }
@@ -158,8 +158,8 @@ export const RESPOND_TO_HUG_REQUEST = gql`
 `;
 
 export const CANCEL_HUG_REQUEST = gql`
-  mutation cancelHugRequest($id: ID!) {
-    cancelHugRequest(id: $id) {
+  mutation cancelHugRequest($requestId: ID!) {
+    cancelHugRequest(requestId: $requestId) {
       id
       status
     }
