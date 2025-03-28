@@ -296,8 +296,7 @@ const FilterButton = styled.button`
 const FriendMoodsWidget = () => {
   const { loading, error, data, refetch } = useQuery(GET_FRIENDS_MOODS, {
     fetchPolicy: 'network-only',
-    pollInterval: 60000, // Poll every minute for updates
-    onError: (error) => console.error("FriendMoods query error:", error)
+    pollInterval: 60000 // Poll every minute for updates
   });
 
   const [expandedMood, setExpandedMood] = useState(null);

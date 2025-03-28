@@ -107,16 +107,22 @@ export const GET_RECEIVED_HUGS_COUNT = gql`
 
 export const GET_MOOD_STREAK = gql`
   query GetMoodStreak {
-    moodStreak
+    moodStreak {
+      currentStreak
+      longestStreak
+      lastMoodDate
+      totalMoods
+    }
   }
 `;
 
 // Mood queries
 export const GET_USER_MOODS = gql`
   query GetUserMoods {
-    userMoods {
+    moods {
       id
-      score
+      mood
+      intensity
       note
       createdAt
     }
@@ -127,7 +133,8 @@ export const GET_PUBLIC_MOODS = gql`
   query GetPublicMoods {
     publicMoods {
       id
-      score
+      mood
+      intensity
       note
       createdAt
       user {
@@ -140,11 +147,17 @@ export const GET_PUBLIC_MOODS = gql`
   }
 `;
 
+// friendsMoods is not available in the schema
+// Using User.friends + moods as a workaround 
+// This query may not fully work until backend supports it
 export const GET_FRIENDS_MOODS = gql`
   query GetFriendsMoods {
-    friendsMoods {
+    # Get public moods from all users as a temporary workaround
+    # In a real implementation, this would filter to only show friends' moods
+    publicMoods(limit: 10) {
       id
-      score
+      mood
+      intensity
       note
       createdAt
       user {
@@ -158,10 +171,11 @@ export const GET_FRIENDS_MOODS = gql`
 `;
 
 export const CREATE_MOOD_ENTRY = gql`
-  mutation CreateMoodEntry($createMoodInput: CreateMoodInput!) {
-    createMood(createMoodInput: $createMoodInput) {
+  mutation CreateMoodEntry($moodInput: MoodEntryInput!) {
+    createMoodEntry(moodInput: $moodInput) {
       id
-      score
+      mood
+      intensity
       note
       createdAt
     }
@@ -169,9 +183,10 @@ export const CREATE_MOOD_ENTRY = gql`
 `;
 
 // Hug queries
+// receivedHugs is not available in the schema - use hugs query with filters
 export const GET_RECEIVED_HUGS = gql`
   query GetReceivedHugs {
-    receivedHugs {
+    hugs(recipientId: "current") {
       id
       type
       message
@@ -187,9 +202,10 @@ export const GET_RECEIVED_HUGS = gql`
   }
 `;
 
+// sentHugs is not available in the schema - use hugs query with filters
 export const GET_SENT_HUGS = gql`
   query GetSentHugs {
-    sentHugs {
+    hugs(senderId: "current") {
       id
       type
       message
@@ -206,8 +222,8 @@ export const GET_SENT_HUGS = gql`
 `;
 
 export const SEND_HUG = gql`
-  mutation SendHug($sendHugInput: SendHugInput!) {
-    sendHug(sendHugInput: $sendHugInput) {
+  mutation SendHug($hugInput: SendHugInput!) {
+    sendHug(hugInput: $hugInput) {
       id
       type
       message

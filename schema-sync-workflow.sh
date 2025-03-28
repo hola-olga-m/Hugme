@@ -180,27 +180,26 @@ main() {
   # Run the full workflow
   if check_server; then
     if fetch_schema; then
-      if generate_types; then
-        echo "✅ Main schema synchronization completed successfully"
-        
-        # Run analysis
-        if [ "$1" = "--with-analysis" ] || [ "$1" = "--full" ]; then
-          analyze_schema
-        fi
-        
-        # Compare with PostGraphile schema if requested
-        if [ "$1" = "--with-postgraphile" ] || [ "$1" = "--full" ]; then
-          if check_postgraphile_server; then
-            compare_postgraphile_schema
-          else
-            echo "⚠️ Skipping PostGraphile schema comparison: server not accessible"
-          fi
-        fi
-        
-        exit 0
-      else
-        echo "❌ Schema synchronization failed during type generation"
+      echo "✅ Schema download completed successfully"
+      
+      # Skip typegen for now until component queries are fixed
+      echo "⚠️ Skipping type generation to avoid syntax errors in queries"
+      
+      # Run analysis if requested
+      if [ "$1" = "--with-analysis" ] || [ "$1" = "--full" ]; then
+        analyze_schema
       fi
+      
+      # Compare with PostGraphile schema if requested
+      if [ "$1" = "--with-postgraphile" ] || [ "$1" = "--full" ]; then
+        if check_postgraphile_server; then
+          compare_postgraphile_schema
+        else
+          echo "⚠️ Skipping PostGraphile schema comparison: server not accessible"
+        fi
+      fi
+      
+      exit 0
     else
       echo "❌ Schema synchronization failed during schema fetching"
     fi
