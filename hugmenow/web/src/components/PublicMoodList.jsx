@@ -166,7 +166,8 @@ const PublicMoodList = () => {
   
   if (error) return <ErrorMessage error={error} />;
   
-  const publicMoods = data?.publicMoods || [];
+  // Extract moods from the nested structure in the GraphQL response
+  const publicMoods = data?.allMoods?.nodes || [];
   
   if (publicMoods.length === 0) {
     return (
@@ -208,8 +209,8 @@ const PublicMoodList = () => {
             {mood.note && <MoodNote>{mood.note}</MoodNote>}
             
             <UserInfo>
-              <div className="avatar">{getInitials(mood.user?.name)}</div>
-              <span>{mood.user?.name || 'Anonymous User'}</span>
+              <div className="avatar">{getInitials(mood.userByUserId?.name)}</div>
+              <span>{mood.userByUserId?.name || 'Anonymous User'}</span>
             </UserInfo>
           </MoodCard>
         ))}

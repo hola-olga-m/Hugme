@@ -95,10 +95,10 @@ const EmotionButton = styled.button`
     font-size: 2.5rem;
     animation: ${props => {
       if (props.selected) {
-        switch (props.score) {
-          case 5: return bounce;
-          case 4: return wiggle;
-          case 3: return pulse;
+        switch (props.intensity) {
+          case 10: return bounce;
+          case 8: return wiggle;
+          case 6: return pulse;
           default: return 'none';
         }
       }
@@ -244,11 +244,11 @@ const SubmitButton = styled.button`
 `;
 
 const moodEmotions = [
-  { score: 5, emoji: '😄', label: 'Great', description: 'Feeling awesome!' },
-  { score: 4, emoji: '😊', label: 'Good', description: 'Feeling pretty good' },
-  { score: 3, emoji: '😐', label: 'Okay', description: 'Feeling neutral' },
-  { score: 2, emoji: '😔', label: 'Down', description: 'Feeling low' },
-  { score: 1, emoji: '😢', label: 'Bad', description: 'Feeling terrible' }
+  { intensity: 10, emoji: '😄', label: 'Great', description: 'Feeling awesome!' },
+  { intensity: 8, emoji: '😊', label: 'Good', description: 'Feeling pretty good' },
+  { intensity: 6, emoji: '😐', label: 'Okay', description: 'Feeling neutral' },
+  { intensity: 4, emoji: '😔', label: 'Down', description: 'Feeling low' },
+  { intensity: 2, emoji: '😢', label: 'Bad', description: 'Feeling terrible' }
 ];
 
 const MoodEmotionPicker = ({ onSubmit, loading = false }) => {
@@ -272,7 +272,7 @@ const MoodEmotionPicker = ({ onSubmit, loading = false }) => {
     if (!selectedMood) return;
     
     onSubmit({
-      score: selectedMood.score,
+      intensity: selectedMood.intensity,
       note: note.trim(),
       isPublic
     });
@@ -285,10 +285,10 @@ const MoodEmotionPicker = ({ onSubmit, loading = false }) => {
       <EmotionsContainer>
         {moodEmotions.map((mood) => (
           <EmotionButton
-            key={mood.score}
-            selected={selectedMood?.score === mood.score}
+            key={mood.intensity}
+            selected={selectedMood?.intensity === mood.intensity}
             onClick={() => handleSelectMood(mood)}
-            score={mood.score}
+            intensity={mood.intensity}
             title={mood.description}
           >
             <span className="emotion-icon">{mood.emoji}</span>

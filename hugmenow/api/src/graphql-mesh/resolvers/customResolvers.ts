@@ -80,7 +80,7 @@ export const resolvers = {
 
       try {
         const { rows } = await dataSources.postgresPool.query(
-          `SELECT m.id, m.score, m.note, m.user_id, m.created_at,
+          `SELECT m.id, m.intensity, m.note, m.user_id, m.created_at,
                   u.username, u.name, u.avatar_url
            FROM moods m
            JOIN users u ON m.user_id = u.id
@@ -93,7 +93,7 @@ export const resolvers = {
         // Convert snake_case to camelCase and create proper structure
         return rows.map((row: any) => ({
           id: row.id,
-          score: row.score,
+          intensity: row.intensity,
           note: row.note,
           isPublic: true,
           createdAt: row.created_at,

@@ -158,9 +158,9 @@ const ActionButton = styled.button`
 `;
 
 const FriendMoodFeed = ({ friendsOnly = true }) => {
-  // Use the Mesh SDK Query hook instead of Apollo's useQuery
+  // Use the Mesh SDK Query hook with the friendsMoods query
   // This uses the generated SDK under the hood
-  const { data, loading, error, refetch } = useMeshQuery('publicMoods', {
+  const { data, loading, error, refetch } = useMeshQuery('FriendsMoods', {
     limit: 20,
     offset: 0
   }, {
@@ -236,7 +236,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
     );
   }
 
-  const moods = data?.publicMoods || [];
+  const moods = data?.friendsMoods || [];
   const filteredMoods = filterMoods(moods);
 
   return (

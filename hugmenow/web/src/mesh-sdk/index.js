@@ -166,7 +166,19 @@ function getSdk(options = {}) {
       `);
     },
 
-    // Removed FriendsMoods function since it's redundant with PublicMoods
+    async FriendsMoods(limit = 10, offset = 0) {
+      return executeQuery(`
+        query FriendsMoods($limit: Int, $offset: Int) {
+          friendsMoods(limit: $limit, offset: $offset) {
+            ${MOOD_FRAGMENT}
+            userId
+            user {
+              ${USER_FRAGMENT}
+            }
+          }
+        }
+      `, { limit, offset });
+    },
 
     async CreateMoodEntry(moodInput) {
       return executeQuery(`

@@ -137,17 +137,17 @@ const ScoreLabels = styled.div`
   justify-content: space-between;
   padding: 5px 0;
   
-  .score-label {
+  .intensity-label {
     font-size: 0.75rem;
     color: var(--gray-500);
     text-align: right;
   }
 `;
 
-const getColorForScore = (score) => {
-  if (score >= 4) return 'var(--success-color)';
-  if (score >= 3) return 'var(--tertiary-color)';
-  if (score >= 2) return 'var(--warning-color)';
+const getColorForIntensity = (intensity) => {
+  if (intensity >= 8) return 'var(--success-color)';
+  if (intensity >= 6) return 'var(--tertiary-color)';
+  if (intensity >= 4) return 'var(--warning-color)';
   return 'var(--danger-color)';
 };
 
@@ -174,8 +174,8 @@ const MoodTrend = ({ moods, days = 7, onPointClick }) => {
     
     return sortedMoods.map((mood, index) => {
       const xPos = index * segmentWidth;
-      const yPos = ((5 - mood.score) / 4) * 100; // Score 1-5 to percentage 100-0
-      const color = getColorForScore(mood.score);
+      const yPos = ((10 - mood.intensity) / 9) * 100; // Intensity 1-10 to percentage 100-0
+      const color = getColorForIntensity(mood.intensity);
       
       return {
         mood,
@@ -258,11 +258,11 @@ const MoodTrend = ({ moods, days = 7, onPointClick }) => {
         <>
           <ChartContainer>
             <ScoreLabels>
-              <div className="score-label">5</div>
-              <div className="score-label">4</div>
-              <div className="score-label">3</div>
-              <div className="score-label">2</div>
-              <div className="score-label">1</div>
+              <div className="intensity-label">10</div>
+              <div className="intensity-label">8</div>
+              <div className="intensity-label">6</div>
+              <div className="intensity-label">4</div>
+              <div className="intensity-label">2</div>
             </ScoreLabels>
             
             <XAxis />
@@ -290,7 +290,7 @@ const MoodTrend = ({ moods, days = 7, onPointClick }) => {
                 }}
                 color={point.color}
                 onClick={() => handlePointClick(point.mood)}
-                title={`Mood: ${point.mood.score}/5 on ${formatDate(point.mood.createdAt)}`}
+                title={`Mood: ${point.mood.intensity}/10 on ${formatDate(point.mood.createdAt)}`}
               />
             ))}
           </ChartContainer>
@@ -310,19 +310,19 @@ const MoodTrend = ({ moods, days = 7, onPointClick }) => {
           <Legend>
             <LegendItem color="var(--success-color)">
               <div className="legend-color"></div>
-              <span>Good (4-5)</span>
+              <span>Good (8-10)</span>
             </LegendItem>
             <LegendItem color="var(--tertiary-color)">
               <div className="legend-color"></div>
-              <span>Okay (3)</span>
+              <span>Okay (6-7)</span>
             </LegendItem>
             <LegendItem color="var(--warning-color)">
               <div className="legend-color"></div>
-              <span>Low (2)</span>
+              <span>Low (4-5)</span>
             </LegendItem>
             <LegendItem color="var(--danger-color)">
               <div className="legend-color"></div>
-              <span>Bad (1)</span>
+              <span>Bad (1-3)</span>
             </LegendItem>
           </Legend>
         </>

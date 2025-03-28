@@ -206,7 +206,7 @@ export class PermissionsService {
   validateMoodInput = inputRule()(
     (yup) => {
       return yup.object({
-        score: yup.number().required().min(1).max(10),
+        intensity: yup.number().required().min(1).max(10),
         note: yup.string().max(500).nullable(),
         isPublic: yup.boolean().required()
       });

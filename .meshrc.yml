@@ -97,51 +97,14 @@ transforms:
           to:
             type: HugResult
 
+# Keep resolvers but remove shield middleware for now
 additionalResolvers:
   - "./mesh-resolvers.js"
 
-middleware:
-  - shield:
-      resolvers: "./shield-rules.js"
-      fallbackRule: "allow"
-      allowExternalErrors: true
-      debug: true
-      rules:
-        Query:
-          "*": true
-          userMoods: "isAuthenticated"
-          receivedHugs: "isAuthenticated"
-          sentHugs: "isAuthenticated"
-          pendingHugRequests: "isAuthenticated"
-          moodStreak: "isAuthenticated"
-          clientInfo: true
-        Mutation:
-          "*": "isAuthenticated"
-          createMoodEntry: "isAuthenticated"
-          sendHug: "isAuthenticated"
-          respondToHugRequest: "isAuthenticated"
+# Removed middleware configuration to simplify
 
-# Simplifying plugin configuration to essential ones only
-plugins:
-  # Keep only essential plugins for now
-  - name: live-query
-    options:
-      pollingInterval: 3000
-      invalidateClosedConnections: true
-      enableLiveBackwardCompatibility: true
-      includeTypes:
-        - Query.publicMoods
-        - Query.userMoods
-        - Query.receivedHugs
-        - Query.pendingHugRequests
-        - Query.friendsMoods
-        
-  # JWT Authentication plugin
-  - name: jwt-auth
-    options:
-      algorithm: HS256
-      secretKey: "{env.JWT_SECRET || 'default-dev-key'}"
-      headerName: "authorization"
+# Completely removed plugins for basic functionality
+plugins: []
 
 additionalTypeDefs: |
   type ClientInfo {

@@ -54,9 +54,9 @@ export class GraphQLSdkService implements OnModuleInit {
       getMe: async () => this.execute('query { me { id username email name avatarUrl isAnonymous createdAt } }'),
       
       // Mood operations
-      getPublicMoods: async () => this.execute('query { publicMoods { id score note isPublic createdAt user { id username name avatarUrl } } }'),
-      getUserMoods: async () => this.execute('query { userMoods { id score note isPublic createdAt } }'),
-      getMood: async (id: string) => this.execute(`query { mood(id: "${id}") { id score note isPublic createdAt user { id username name avatarUrl } } }`),
+      getPublicMoods: async () => this.execute('query { publicMoods { id intensity note isPublic createdAt user { id username name avatarUrl } } }'),
+      getUserMoods: async () => this.execute('query { userMoods { id intensity note isPublic createdAt } }'),
+      getMood: async (id: string) => this.execute(`query { mood(id: "${id}") { id intensity note isPublic createdAt user { id username name avatarUrl } } }`),
       getMoodStreak: async () => this.execute('query { moodStreak }'),
       
       // Hug operations

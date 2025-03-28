@@ -9,6 +9,7 @@ type Query {
   moodById(id: ID!): MoodEntry
   moodStreak(userId: ID): MoodStreak
   publicMoods(limit: Int, offset: Int): [PublicMood]
+  friendsMoods(limit: Int, offset: Int): [PublicMood]
   hugs(userId: ID, limit: Int, offset: Int): [Hug]
   hugById(id: ID!): Hug
   hugRequests(status: String): [HugRequest]

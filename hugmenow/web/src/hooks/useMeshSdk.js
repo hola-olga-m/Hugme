@@ -39,6 +39,11 @@ export const useMeshSdk = (options = {}) => {
   // SDK instance
   const sdk = getSDKInstance();
 
+  // Add custom method for backward compatibility if not in the SDK
+  if (!sdk.getFriendsMoods && sdk.FriendsMoods) {
+    sdk.getFriendsMoods = sdk.FriendsMoods;
+  }
+
   // Helper function to wrap SDK calls with loading state
   const executeOperation = useCallback(async (operationName, operationFn, ...args) => {
     setLoading(true);
@@ -82,7 +87,8 @@ export const useMeshSdk = (options = {}) => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [shouldRefetchOnFocus, lastOperation, enhancedSdk]);
 
-  return {
+  // Create final return object with direct method access
+  const returnObj = {
     sdk: enhancedSdk,
     loading,
     error,
@@ -91,6 +97,18 @@ export const useMeshSdk = (options = {}) => {
     refetch: lastOperation ? enhancedSdk[lastOperation] : null,
     clearError: () => setError(null)
   };
+  
+  // Add direct method access
+  Object.keys(enhancedSdk).forEach(method => {
+    returnObj[method] = enhancedSdk[method];
+  });
+  
+  // Add specific aliases for friendsMoods query for backward compatibility
+  if (enhancedSdk.FriendsMoods) {
+    returnObj.getFriendsMoods = enhancedSdk.FriendsMoods;
+  }
+  
+  return returnObj;
 };
 
 /**

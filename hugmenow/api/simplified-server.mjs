@@ -96,6 +96,7 @@ const typeDefs = gql`
     moodStreak(userId: ID): MoodStreak
     
     publicMoods(limit: Int, offset: Int): [PublicMood]
+    friendsMoods(limit: Int, offset: Int): [PublicMood]
     
     hugs(userId: ID, limit: Int, offset: Int): [Hug]
     hugById(id: ID!): Hug
@@ -634,6 +635,43 @@ const resolvers = {
       } catch (error) {
         console.error('Error getting public moods:', error);
         throw new Error('Failed to get public moods');
+      }
+    },
+    
+    // Legacy resolver - acts as alias to publicMoods for backward compatibility
+    friendsMoods: async (_, { limit = 10, offset = 0 }) => {
+      console.log('Getting friends moods (legacy endpoint), limit:', limit, 'offset:', offset);
+      
+      try {
+        // Use the same implementation as publicMoods
+        const mockFriendsMoods = [];
+        const moodTypes = ['HAPPY', 'EXCITED', 'CALM', 'PEACEFUL', 'GRATEFUL'];
+        
+        for (let i = 0; i < limit; i++) {
+          const randomMood = moodTypes[Math.floor(Math.random() * moodTypes.length)];
+          const randomIntensity = Math.floor(Math.random() * 5) + 1; // 1-5
+          const userId = 'user-friend-' + Math.random().toString(36).substring(2, 10);
+          
+          mockFriendsMoods.push({
+            id: 'mood-' + Math.random().toString(36).substring(2, 15),
+            userId,
+            user: {
+              id: userId,
+              username: 'friend_' + i,
+              name: 'Friend ' + i,
+              avatarUrl: null
+            },
+            mood: randomMood,
+            intensity: randomIntensity,
+            note: `This is a friend's ${randomMood.toLowerCase()} mood`,
+            createdAt: new Date(Date.now() - (i * 3600000)).toISOString() // i hours ago
+          });
+        }
+        
+        return mockFriendsMoods;
+      } catch (error) {
+        console.error('Error getting friends moods:', error);
+        throw new Error('Failed to get friends moods');
       }
     },
     

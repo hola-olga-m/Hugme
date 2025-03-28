@@ -129,38 +129,39 @@ module.exports = {
       };
     },
     
-    // The friendsMoods field has been replaced with publicMoods
-    // But we still provide a basic implementation for backward compatibility
+    // Enhanced friendsMoods resolver - make it a direct alias to publicMoods for backward compatibility
     friendsMoods: async (root, args, context, info) => {
       logResolver('Query.friendsMoods', args);
       try {
-        // Just delegate to the publicMoods resolver
-        return context.PostGraphileAPI.Query.allMoods({
-          first: args.limit || 10,
+        // Just delegate to publicMoods (mimic the same implementation but with a more explicit approach)
+        const result = await context.PostGraphileAPI.Query.allMoods({
+          first: args.limit || 10, 
           offset: args.offset || 0,
-          condition: {
-            isPublic: true
+          condition: { 
+            isPublic: true 
           }
-        }).then(result => {
-          const nodes = result?.nodes || [];
-          console.log(`[Mesh] Found ${nodes.length} public moods (via friendsMoods compat)`);
-          
-          // Map PostGraphile response structure to what frontend expects
-          return nodes.map(node => ({
-            id: node.id,
-            intensity: node.score, // Map score to intensity
-            note: node.note,
-            createdAt: node.createdAt,
-            user: node.userByUserId ? {
-              id: node.userByUserId.id,
-              name: node.userByUserId.name,
-              username: node.userByUserId.username,
-              avatarUrl: node.userByUserId.avatarUrl
-            } : null
-          }));
         });
+      
+        // Extract nodes from the result
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} public moods (via improved friendsMoods compat)`);
+        
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          intensity: node.score, // Map score to intensity
+          note: node.note,
+          createdAt: node.createdAt,
+          user: node.userByUserId ? {
+            id: node.userByUserId.id,
+            name: node.userByUserId.name,
+            username: node.userByUserId.username,
+            avatarUrl: node.userByUserId.avatarUrl
+          } : null
+        }));
       } catch (error) {
-        return handleError('Query.friendsMoods', error) || [];
+        console.error("[Mesh] Error in friendsMoods resolver:", error);
+        return [];
       }
     },
     // This resolver maps the publicMoods query name to allMoods with condition

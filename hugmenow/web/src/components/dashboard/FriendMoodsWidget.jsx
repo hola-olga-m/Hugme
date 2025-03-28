@@ -294,7 +294,7 @@ const FilterButton = styled.button`
 // Component
 const FriendMoodsWidget = () => {
   // Use the Mesh SDK for data fetching and mutations
-  const { getPublicMoods, sendHug } = useMeshSdk();
+  const { FriendsMoods, sendHug } = useMeshSdk();
   
   const [expandedMood, setExpandedMood] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'needSupport', 'recent'
@@ -312,11 +312,11 @@ const FriendMoodsWidget = () => {
   const fetchMoods = async () => {
     try {
       setLoading(true);
-      const publicMoods = await getPublicMoods();
-      setMoods(publicMoods || []);
+      const result = await FriendsMoods({ limit: 10, offset: 0 });
+      setMoods(result?.friendsMoods || []);
       setError(null);
     } catch (err) {
-      console.error("Error fetching public moods:", err);
+      console.error("Error fetching friends moods:", err);
       setError(err);
     } finally {
       setLoading(false);

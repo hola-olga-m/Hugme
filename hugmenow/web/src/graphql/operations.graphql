@@ -21,7 +21,7 @@ query publicMoods($first: Int, $offset: Int) {
   allMoods(first: $first, offset: $offset, condition: { isPublic: true }) {
     nodes {
       id
-      score
+      intensity
       note
       createdAt
       userByUserId {
@@ -43,7 +43,7 @@ query userMoods($userId: UUID, $first: Int, $offset: Int) {
   ) {
     nodes {
       id
-      score
+      intensity
       note
       createdAt
       isPublic
@@ -126,7 +126,7 @@ mutation createMood($input: CreateMoodInput!) {
   createMood(input: $input) {
     mood {
       id
-      score
+      intensity
       note
       createdAt
       isPublic

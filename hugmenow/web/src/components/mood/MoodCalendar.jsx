@@ -104,9 +104,9 @@ const MoodIndicator = styled.div`
     height: 6px;
     border-radius: 50%;
     background-color: ${props => {
-      if (props.moodScore >= 4) return 'var(--success-color)';
-      if (props.moodScore >= 3) return 'var(--info-color)';
-      if (props.moodScore >= 2) return 'var(--warning-color)';
+      if (props.moodIntensity >= 8) return 'var(--success-color)';
+      if (props.moodIntensity >= 6) return 'var(--info-color)';
+      if (props.moodIntensity >= 4) return 'var(--warning-color)';
       return 'var(--danger-color)';
     }};
   }
@@ -200,7 +200,7 @@ const MoodCalendar = ({ moods, onDayClick }) => {
               <span className="day-number">{day}</span>
               <MoodIndicator 
                 hasMood={!!mood} 
-                moodScore={mood?.score}
+                moodIntensity={mood?.intensity}
               />
             </CalendarDay>
           );
