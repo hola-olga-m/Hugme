@@ -1,21 +1,71 @@
 /**
- * Custom resolvers for GraphQL Mesh with Apollo integration
+ * Enhanced Custom Resolvers for GraphQL Mesh with Apollo Integration
  * 
  * This file provides resolvers for:
  * 1. Client-specific fields that don't exist in the server schema
  * 2. Virtual fields that map client field names to server field names
  * 3. Custom resolver logic for transforming data between formats
+ * 4. Enhanced data transformation and processing
  */
 
-// Helper functions for logging and error handling
+// Enhanced helper functions for logging, error handling, and performance tracking
 const logResolver = (path, args = {}) => {
-  console.log(`[Mesh] Resolving ${path}`, Object.keys(args).length ? args : '');
+  const argStr = Object.keys(args).length ? JSON.stringify(args) : '';
+  console.log(`[Mesh] Resolving ${path}${argStr ? ` with args: ${argStr}` : ''}`);
 };
 
+// Error handler with improved error categorization
 const handleError = (path, error) => {
-  console.error(`[Mesh] Error in ${path}:`, error.message);
-  // Capture error details but return a clean object for the client
+  // Determine error type for better client messages
+  const isNetworkError = error.message.includes('ECONNREFUSED') || 
+                         error.message.includes('ETIMEDOUT') ||
+                         error.message.includes('fetch failed');
+  
+  const isAuthError = error.message.includes('unauthorized') || 
+                      error.message.includes('forbidden') ||
+                      error.message.includes('not authenticated');
+  
+  const errorCategory = isNetworkError ? 'NETWORK_ERROR' : 
+                       isAuthError ? 'AUTHENTICATION_ERROR' : 'EXECUTION_ERROR';
+  
+  console.error(`[Mesh] Error in ${path} (${errorCategory}):`, error.message);
+  
+  // Return appropriate error for the client
   return null;
+};
+
+// Data transformation helper functions
+const transformMoodNode = (node) => {
+  if (!node) return null;
+  
+  // Transform returned mood data to match client expectations
+  return {
+    ...node,
+    // Add virtual fields if needed
+    user: node.user ? {
+      ...node.user,
+      // Transform profile image URL if needed
+      profileImage: node.user.profileImageUrl || node.user.profileImage || null
+    } : null
+  };
+};
+
+const transformHugNode = (node) => {
+  if (!node) return null;
+  
+  // Transform returned hug data to match client expectations
+  return {
+    ...node,
+    // Add calculated or virtual fields
+    sender: node.sender ? {
+      ...node.sender,
+      profileImage: node.sender.profileImageUrl || node.sender.profileImage || null
+    } : null,
+    recipient: node.recipient ? {
+      ...node.recipient,
+      profileImage: node.recipient.profileImageUrl || node.recipient.profileImage || null
+    } : null
+  };
 };
 
 // Export resolvers using ES module syntax
@@ -24,109 +74,112 @@ export default {
     // Client information - client-only field providing version info
     clientInfo: () => {
       logResolver('Query.clientInfo');
+      // Using environment variables for configuration
       return {
         version: process.env.CLIENT_VERSION || '1.0.0',
         buildDate: new Date().toISOString(),
         platform: process.env.CLIENT_PLATFORM || 'web',
-        deviceInfo: 'HugMeNow Web Client',
-        features: (process.env.CLIENT_FEATURES || 'mood-tracking,friend-moods').split(',')
+        deviceInfo: 'HugMeNow Enhanced Mesh Gateway',
+        features: (process.env.CLIENT_FEATURES || 'mood-tracking,friend-moods,theme-customization').split(',')
       };
     },
     
-    // Virtual field: friendsMoods -> maps to publicMoods
-    // This allows clients to use a more semantically meaningful field name
+    // Virtual field: friendsMoods -> maps to allMoods with public filter
     friendsMoods: async (root, args, context, info) => {
       logResolver('Query.friendsMoods', args);
       try {
-        // Pass all arguments through to publicMoods resolver with defaults
-        const result = await context.PostGraphileAPI.Query.publicMoods({
-          limit: args.limit || 10,
-          offset: args.offset || 0
+        // Use PostGraphile-compatible pagination parameters
+        const result = await context.PostGraphileAPI.Query.allMoods({
+          first: args.limit || 10,
+          offset: args.offset || 0,
+          // Filter to only include public moods
+          filter: {
+            isPrivate: { equalTo: false }
+          }
         });
         
-        if (Array.isArray(result)) {
-          console.log(`[Mesh] Found ${result.length} friend moods`);
-        }
-        return result || [];
+        // Extract nodes from the connection
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} friend moods`);
+        
+        // Transform data to match client expectations
+        return nodes.map(transformMoodNode);
       } catch (error) {
-        console.error('[Mesh] Error in friendsMoods:', error);
         return handleError('Query.friendsMoods', error) || [];
       }
     },
     
-    // Virtual field: userMoods -> maps to moods with parameters
-    // This allows clients to use consistent naming pattern for mood queries
+    // Virtual field: userMoods -> maps to allMoods with user filter
     userMoods: async (root, args, context, info) => {
       logResolver('Query.userMoods', args);
       try {
-        // Prepare args with defaults
-        const moodsArgs = {
-          userId: args.userId,
-          limit: args.limit || 10,
-          offset: args.offset || 0
-        };
+        // Use PostGraphile-compatible pagination and filtering
+        const result = await context.PostGraphileAPI.Query.allMoods({
+          first: args.limit || 10,
+          offset: args.offset || 0,
+          // Filter by user ID if provided
+          filter: args.userId ? {
+            userId: { equalTo: args.userId }
+          } : {}
+        });
         
-        // Call the underlying API with prepared arguments
-        const result = await context.PostGraphileAPI.Query.moods(moodsArgs);
+        // Extract nodes from the connection
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} user moods`);
         
-        if (Array.isArray(result)) {
-          console.log(`[Mesh] Found ${result.length} user moods`);
-        }
-        return result || [];
+        // Transform data to match client expectations
+        return nodes.map(transformMoodNode);
       } catch (error) {
-        console.error('[Mesh] Error in userMoods:', error);
         return handleError('Query.userMoods', error) || [];
       }
     },
     
-    // Virtual field: sentHugs -> maps to hugs with sender filter
-    // This provides a cleaner API for getting hugs sent by a user
+    // Virtual field: sentHugs -> maps to allHugs with sender filter
     sentHugs: async (root, args, context, info) => {
       logResolver('Query.sentHugs', args);
       try {
-        // Add the 'sent' type to query parameters
-        const hugsArgs = {
-          userId: args.userId,
-          limit: args.limit || 10,
+        // Use PostGraphile-compatible pagination and filtering
+        const result = await context.PostGraphileAPI.Query.allHugs({
+          first: args.limit || 10,
           offset: args.offset || 0,
-          type: 'sent'
-        };
+          // Filter to hugs sent by the specified user
+          filter: {
+            senderId: { equalTo: args.userId }
+          }
+        });
         
-        // Call the underlying API with prepared arguments
-        const result = await context.PostGraphileAPI.Query.hugs(hugsArgs);
+        // Extract nodes from the connection
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} sent hugs`);
         
-        if (Array.isArray(result)) {
-          console.log(`[Mesh] Found ${result.length} sent hugs`);
-        }
-        return result || [];
+        // Transform data to match client expectations
+        return nodes.map(transformHugNode);
       } catch (error) {
-        console.error('[Mesh] Error in sentHugs:', error);
         return handleError('Query.sentHugs', error) || [];
       }
     },
     
-    // Virtual field: receivedHugs -> maps to hugs with recipient filter
-    // This provides a cleaner API for getting hugs received by a user
+    // Virtual field: receivedHugs -> maps to allHugs with recipient filter
     receivedHugs: async (root, args, context, info) => {
       logResolver('Query.receivedHugs', args);
       try {
-        // Add the 'received' type to query parameters
-        const hugsArgs = {
-          userId: args.userId,
-          limit: args.limit || 10,
+        // Use PostGraphile-compatible pagination and filtering
+        const result = await context.PostGraphileAPI.Query.allHugs({
+          first: args.limit || 10,
           offset: args.offset || 0,
-          type: 'received'
-        };
+          // Filter to hugs received by the specified user
+          filter: {
+            recipientId: { equalTo: args.userId }
+          }
+        });
         
-        // Call the underlying API with prepared arguments
-        const result = await context.PostGraphileAPI.Query.hugs(hugsArgs);
+        // Extract nodes from the connection
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} received hugs`);
         
-        if (Array.isArray(result)) {
-          console.log(`[Mesh] Found ${result.length} received hugs`);
-        }
-        return result || [];
+        // Transform data to match client expectations
+        return nodes.map(transformHugNode);
       } catch (error) {
-        console.error('[Mesh] Error in receivedHugs:', error);
         return handleError('Query.receivedHugs', error) || [];
       }
     }
@@ -135,60 +188,58 @@ export default {
   // Add virtual fields to the Hug type
   Hug: {
     // Virtual field: fromUser -> maps to sender
-    // This adds a more semantically clear field name
     fromUser: (parent, args, context, info) => {
       logResolver('Hug.fromUser');
-      // Simply return the sender field from the parent
       return parent.sender;
     },
     
     // Virtual field: toUser -> maps to recipient
-    // This adds a more semantically clear field name
     toUser: (parent, args, context, info) => {
       logResolver('Hug.toUser');
-      // Simply return the recipient field from the parent
       return parent.recipient;
     },
     
     // Virtual field: read -> maps to isRead
-    // This provides a simpler field name
     read: (parent, args, context, info) => {
       logResolver('Hug.read');
-      // Simply return the isRead field from the parent
       return parent.isRead;
     }
   },
   
-  // Add virtual fields to the PublicMood type
-  PublicMood: {
+  // Add virtual fields to the Mood type
+  Mood: {
     // Virtual field: score -> maps to intensity
-    // This provides a more generalized field name for rating
     score: (parent, args, context, info) => {
-      logResolver('PublicMood.score');
-      // Simply return the intensity field from the parent
+      logResolver('Mood.score');
       return parent.intensity;
     }
   },
   
-  // Add custom mutations if needed
+  // Add custom mutations
   Mutation: {
-    // Example of a custom mutation that might be added in the future
-    /*
+    // Custom mutation that maps to createHug with appropriate input transformation
     sendFriendHug: async (root, args, context, info) => {
       logResolver('Mutation.sendFriendHug', args);
       try {
-        const input = {
-          toUserId: args.toUserId,
-          moodId: args.moodId,
-          message: args.message || ''
-        };
+        // Transform input to match the expected PostGraphile structure
+        const createHugResult = await context.PostGraphileAPI.Mutation.createHug({
+          input: {
+            hug: {
+              recipientId: args.toUserId,
+              moodId: args.moodId,
+              message: args.message || ''
+            }
+          }
+        });
         
-        const result = await context.PostGraphileAPI.Mutation.sendHug({ input });
-        return result;
+        // Extract and transform the created hug
+        const createdHug = createHugResult?.hug;
+        if (!createdHug) return null;
+        
+        return transformHugNode(createdHug);
       } catch (error) {
         return handleError('Mutation.sendFriendHug', error);
       }
     }
-    */
   }
 };

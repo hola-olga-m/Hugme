@@ -1,4 +1,4 @@
-# GraphQL Mesh Configuration for HugMeNow
+# Enhanced GraphQL Mesh Configuration for HugMeNow
 # This configuration integrates with Apollo Server via mesh-apollo-server.js
 
 # API source configuration
@@ -24,16 +24,17 @@ sources:
     retry:
       count: 3
       delay: 1000
+      factor: 2  # Exponential backoff
 
-# Schema transformations
+# Schema transformations - enhanced with additional plugins
 transforms:
-  # Apply consistent naming conventions
+  # Apply consistent naming conventions for better client integration
   - transform: namingConvention
     typeNames: pascalCase
     fieldNames: camelCase
     enumValues: upperCase
   
-  # Map client-side field names to server-side
+  # Map client-side field names to server-side - improved field mapping
   - transform: rename
     renames:
       # Query field mappings
@@ -42,32 +43,32 @@ transforms:
           field: friendsMoods
         to:
           type: Query
-          field: publicMoods
+          field: allMoods
       - from:
           type: Query
           field: userMoods
         to:
           type: Query
-          field: moods
+          field: allMoods
       - from:
           type: Query
           field: sentHugs
         to:
           type: Query
-          field: hugs
+          field: allHugs
       - from:
           type: Query
           field: receivedHugs
         to:
           type: Query
-          field: hugs
+          field: allHugs
       
       # Type field mappings
       - from:
-          type: PublicMood
+          type: Mood
           field: score
         to:
-          type: PublicMood
+          type: Mood
           field: intensity
       - from:
           type: Hug
@@ -87,6 +88,14 @@ transforms:
         to:
           type: Hug
           field: isRead
+      
+      # Field renaming for better client compatibility
+      - from:
+          type: User
+          field: profileImageUrl
+        to:
+          type: User
+          field: profileImage
           
   # Add field transformations for data formatting
   - transform: prefix
@@ -94,15 +103,17 @@ transforms:
     includeRootOperations: false
     types:
       - User
+      - Mood
+      - Hug
       
   # Transform timestamps to ISO format strings
   - transform: filterSchema
     filters:
       - Mood.createdAt
-      - Hug.sentAt
-      - User.lastLoginAt
+      - Hug.createdAt
+      - User.createdAt
         
-  # Add pagination to relevant connections
+  # Add pagination to relevant connections by removing unnecessary pagination fields
   - transform: filterSchema
     mode: bare
     filters:
@@ -111,39 +122,151 @@ transforms:
       - "!*Connection"
       - "!*Edge"
       - "!PageInfo"
+      
+  # NEW: Add cache control hints for Apollo Server cache
+  - transform: cacheControl
+    defaultMaxAge: 60  # Default cache time in seconds
+    rules:
+      - types:
+          - Mood
+          - Hug
+          - User
+        maxAge: 300    # 5 minutes for these entity types
+      - types: 
+          - ClientInfo
+        maxAge: 3600   # 1 hour for client info
+      - paths:
+          - Query.clientInfo
+        maxAge: 3600   # 1 hour for client info query
+      - paths:
+          - Query.allMoods
+          - Query.allHugs
+        maxAge: 30     # 30 seconds for mood and hug queries
 
-# Additional type definitions
+# Additional type definitions - Enhanced for better client integration
 additionalTypeDefs: |
-  # Client-specific fields for Query type
+  """
+  Client-specific fields for the Query type
+  Provides virtual fields that map to the PostGraphile schema
+  """
   extend type Query {
-    # Client information field - provides version info
+    """Client information field - provides version and feature flags"""
     clientInfo: ClientInfo!
     
-    # Virtual fields that map to existing schema fields with different parameters
-    friendsMoods(limit: Int, offset: Int): [PublicMood]
-    userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-    sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
-    receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
+    """
+    Virtual field mapping to allMoods with public filter
+    Retrieves moods that are publicly visible from friends
+    """
+    friendsMoods(
+      """Maximum number of items to return"""
+      limit: Int, 
+      """Number of items to skip"""
+      offset: Int
+    ): [Mood!]
+    
+    """
+    Virtual field mapping to allMoods with user filter
+    Retrieves moods that belong to a specific user
+    """
+    userMoods(
+      """Filter by specific user ID"""
+      userId: ID, 
+      """Maximum number of items to return"""
+      limit: Int, 
+      """Number of items to skip"""
+      offset: Int
+    ): [Mood!]
+    
+    """
+    Virtual field mapping to allHugs with sender filter
+    Retrieves hugs sent by a specific user
+    """
+    sentHugs(
+      """Filter by sender user ID"""
+      userId: ID!, 
+      """Maximum number of items to return"""
+      limit: Int, 
+      """Number of items to skip"""
+      offset: Int
+    ): [Hug!]
+    
+    """
+    Virtual field mapping to allHugs with recipient filter
+    Retrieves hugs received by a specific user
+    """
+    receivedHugs(
+      """Filter by recipient user ID"""
+      userId: ID!, 
+      """Maximum number of items to return"""
+      limit: Int, 
+      """Number of items to skip"""
+      offset: Int
+    ): [Hug!]
   }
   
-  # Client-specific fields for PublicMood type
-  extend type PublicMood {
+  # Client-specific mutations that map to PostGraphile mutations with different parameters
+  extend type Mutation {
+    """
+    Send a hug to a friend, mapping to createHug mutation
+    """
+    sendFriendHug(
+      """Recipient user ID"""
+      toUserId: ID!, 
+      """Related mood ID"""
+      moodId: ID!, 
+      """Optional personal message"""
+      message: String
+    ): Hug
+  }
+  
+  # Virtual fields for the Mood type
+  extend type Mood {
+    """
+    Virtual field mapping to intensity
+    Provides a more generalized field name
+    """
     score: Int
   }
   
-  # Client-specific fields for Hug type
+  # Virtual fields for the Hug type
   extend type Hug {
+    """
+    Virtual field mapping to sender
+    Provides a more semantically clear field name
+    """
     fromUser: User
+    
+    """
+    Virtual field mapping to recipient
+    Provides a more semantically clear field name
+    """
     toUser: User
+    
+    """
+    Virtual field mapping to isRead
+    Provides a simpler field name
+    """
     read: Boolean
   }
   
-  # Client-specific types
+  # Client-specific types with enhanced documentation
+  """
+  Client information for version tracking and feature detection
+  """
   type ClientInfo {
+    """Client application version"""
     version: String!
+    
+    """Build date of the client application"""
     buildDate: String!
+    
+    """Platform the client is running on (web, ios, android)"""
     platform: String
+    
+    """Additional device information"""
     deviceInfo: String
+    
+    """Enabled feature flags"""
     features: [String]
   }
 
