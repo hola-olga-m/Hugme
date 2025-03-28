@@ -152,64 +152,53 @@ const virtualResolvers = {
     publicMoods: async (_, args, context) => {
       console.log('[Enhanced Gateway] Resolving Query.publicMoods');
       
-      // For development, return some mock data
-      return [
-        {
-          id: "1",
-          mood: "Happy",
-          intensity: 8,
-          createdAt: new Date().toISOString(),
-          user: {
-            id: "1",
-            username: "demouser"
-          }
-        },
-        {
-          id: "2",
-          mood: "Excited",
-          intensity: 9,
-          createdAt: new Date().toISOString(),
-          user: {
-            id: "1",
-            username: "demouser"
-          }
-        }
-      ];
-      
-      /* 
-      // This functionality would be used once we have actual data
+      // Use real data from PostGraphile
       const result = await executeGraphQL(`
         query GetPublicMoods($limit: Int, $offset: Int) {
           allMoods(
-            filter: { isPrivate: { equalTo: false } }
+            condition: { isPublic: true }
             first: $limit
             offset: $offset
           ) {
             nodes {
               id
-              mood
-              intensity
+              score
+              note
+              isPublic
               createdAt
               userId
               userByUserId {
                 id
                 username
+                avatarUrl
               }
             }
           }
         }
-      `, {
-        limit: args.limit || 10,
-        offset: args.offset || 0
-      }, context.token);
+      `, 
+      { 
+        limit: args.limit || 10, 
+        offset: args.offset || 0 
+      }, 
+      context.token);
       
-      // Transform the response to match our schema
-      const moods = result.data?.allMoods?.nodes || [];
-      return moods.map(mood => ({
-        ...mood,
-        user: mood.userByUserId
-      }));
-      */
+      // Transform PostGraphile's response to match our schema
+      if (result && result.allMoods && result.allMoods.nodes) {
+        return result.allMoods.nodes.map(mood => ({
+          id: mood.id,
+          mood: "Happy", // Default mood since PostGraphile doesn't have this field
+          intensity: mood.score, // Map score to intensity
+          message: mood.note || "",
+          createdAt: mood.createdAt,
+          user: {
+            id: mood.userByUserId?.id || "unknown",
+            username: mood.userByUserId?.username || "unknown",
+            avatar: mood.userByUserId?.avatarUrl || ""
+          }
+        }));
+      }
+      
+      return [];
     },
     
     moodStreak: async (_, args, context) => {

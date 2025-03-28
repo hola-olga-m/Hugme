@@ -213,9 +213,7 @@ const resolvers = {
       ).then(data => {
         // Transform the response from allMoods.nodes to match our PublicMood type
         const moods = data?.allMoods?.nodes || [];
-        // Filter to only include public moods
-        const publicMoods = moods.filter(mood => mood.isPublic === true);
-        return publicMoods.map(mood => ({
+        return moods.map(mood => ({
           id: mood.id,
           intensity: mood.score, // Map score to intensity
           emoji: "😊", // Default emoji since we don't have mood field
@@ -310,9 +308,7 @@ const resolvers = {
       ).then(data => {
         // Transform the response from allMoods.nodes to match our PublicMood type
         const moods = data?.allMoods?.nodes || [];
-        // Filter to only include public moods
-        const publicMoods = moods.filter(mood => mood.isPublic === true);
-        return publicMoods.map(mood => ({
+        return moods.map(mood => ({
           id: mood.id,
           intensity: mood.score, // Map score to intensity
           emoji: "😊", // Default emoji since we don't have mood field

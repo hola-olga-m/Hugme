@@ -89,26 +89,12 @@ export DISABLE_CACHE=$([ "$ENABLE_CACHE" = "false" ] && echo "true" || echo "fal
 export CACHE_TTL=$CACHE_TTL
 export USE_MIDDLEWARE=$USE_MIDDLEWARE
 
-# Check if GraphQL Mesh config exists
-if [ ! -f ".meshrc.yml" ]; then
-  echo "❌ Error: .meshrc.yml configuration file not found!"
+# Check if the gateway file exists
+if [ ! -f "apollo-mesh-gateway.js" ]; then
+  echo "❌ Error: apollo-mesh-gateway.js file not found!"
   exit 1
 fi
 
-# Choose the appropriate server implementation based on available files
-if [ -f "enhanced-mesh-apollo.mjs" ]; then
-  # Start the Enhanced Apollo Mesh Gateway using ESM
-  echo "🌐 Starting Enhanced ESM Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
-  exec node --experimental-json-modules enhanced-mesh-apollo.mjs
-elif [ -f "mesh-apollo-server.js" ]; then
-  # Try the alternative ESM version if available
-  echo "🌐 Starting ESM Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
-  exec node --experimental-json-modules mesh-apollo-server.js
-elif [ -f "apollo-mesh-gateway.js" ]; then
-  # Fall back to original implementation if enhanced is not available
-  echo "🌐 Starting Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
-  exec node apollo-mesh-gateway.js
-else
-  echo "❌ Error: No compatible Apollo Mesh server implementation found!"
-  exit 1
-fi
+# Use the simplified implementation that doesn't depend on GraphQL Mesh
+echo "🌐 Starting Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
+exec node apollo-mesh-gateway.js
