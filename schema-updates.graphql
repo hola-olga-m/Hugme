@@ -1,4 +1,3 @@
-
 # Schema extensions to fix the GraphQL errors
 
 type Query {
@@ -13,52 +12,52 @@ type Query {
 
   # Add pagination to friendsMoods query
   friendsMoods(limit: Int, offset: Int): [Mood!]!
-  
+
   # Add friendship check
   checkFriendship(userId: ID!): Boolean!
-  
+
   # Add community hug requests
   communityHugRequests: [HugRequest!]!
-  
+
   # Add single hug query
   hug(id: ID!): Hug!
-  
+
   # Add hug request query
   hugRequest(id: ID!): HugRequest!
-  
+
   # Add user profile query
   me: User!
-  
+
   # Add single mood query
   mood(id: ID!): Mood!
-  
+
   # Add mood following query
   moodFollowing: [Friendship!]!
-  
+
   # Add mood streak query
   moodStreak: Int!
-  
+
   # Add friends list query
   myFriends: [Friendship!]!
-  
+
   # Add personal hug requests query
   myHugRequests: [HugRequest!]!
-  
+
   # Add pending friend requests query
   pendingFriendRequests: [Friendship!]!
-  
+
   # Add pending hug requests query
   pendingHugRequests: [HugRequest!]!
-  
+
   # Add sent friend requests query
   sentFriendRequests: [Friendship!]!
-  
+
   # Add sent hugs query with pagination
   sentHugs(limit: Int, offset: Int): [Hug!]!
-  
+
   # Add user query by ID
   user(id: ID!): User!
-  
+
   # Add user moods query
   userMoods: [Mood!]!
 }

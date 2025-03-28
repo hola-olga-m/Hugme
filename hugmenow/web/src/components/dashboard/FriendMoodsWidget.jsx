@@ -332,7 +332,7 @@ const FriendMoodsWidget = () => {
       .split(' ')
       .map(part => part[0])
       .join('')
-      .toUpperCase()
+      .toUpperCase
       .substring(0, 2);
   };
 
@@ -344,7 +344,7 @@ const FriendMoodsWidget = () => {
 
   // Handle sending a hug to a friend
   const handleSendHug = async (event, mood) => {
-    event.stopPropagation(); // Prevent card expansion
+    event.stopPropagation; // Prevent card expansion
 
     if (sendingHug) return; // Prevent multiple clicks
 
@@ -369,7 +369,7 @@ const FriendMoodsWidget = () => {
 
         // Refetch moods after a short delay to show updated state
         setTimeout(() => {
-          refetch();
+          refetch;
         }, 1000);
       }
     } catch (err) {
@@ -402,7 +402,7 @@ const FriendMoodsWidget = () => {
       return <EmptyState>No friend moods yet. Add friends to see their moods here!</EmptyState>;
     }
 
-    const filteredMoods = getFilteredMoods();
+    const filteredMoods = getFilteredMoods;
 
     if (filteredMoods.length === 0) {
       return <EmptyState>No moods match the current filter.</EmptyState>;
@@ -545,7 +545,7 @@ const FriendMoodsWidget = () => {
         </FilterButton>
       </FilterControls>
 
-      {renderMoods()}
+      {renderMoods}
 
       {/* Toast notification when hug is sent */}
       <AnimatePresence>

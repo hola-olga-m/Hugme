@@ -162,7 +162,7 @@ export const GET_FRIENDS_MOODS = gql`
   query GetFriendsMoods {
     # Get public moods from all users as a temporary workaround
     # In a real implementation, this would filter to only show friends' moods
-    publicMoods(limit: 10) {
+    publicMoods {
       id
       mood
       intensity
