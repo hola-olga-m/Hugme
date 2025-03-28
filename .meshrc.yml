@@ -5,41 +5,75 @@ sources:
         endpoint: http://localhost:3003/postgraphile/graphql
         batch: true
         batchingOptions:
-          maxBatchSize: 10
-          delay: 50
+          maxBatchSize: 15      # Increased from 10 to 15 for better throughput
+          delay: 30             # Reduced from 50ms to 30ms for faster response
         retry: 3
-        timeout: 10000
+        retryOptions:           # Enhanced retry options
+          retryStrategy: 'incremental'
+          maxRetryDelay: 2000
+          initialDelay: 100
+        timeout: 12000          # Increased from 10000ms to 12000ms
+        multipart: true         # Support for multipart requests (file uploads)
         operationHeaders:
           Authorization: "{context.headers.authorization}"
           'x-client-version': "{context.headers['x-client-version'] || '1.0.0'}"
           'x-client-platform': "{context.headers['x-client-platform'] || 'web'}"
+          'x-request-id': "{context.headers['x-request-id'] || generateId()}"
+          'x-mesh-source': "mesh-gateway"
         schemaHeaders:
           Authorization: "{context.headers.authorization}"
           'x-request-type': 'schema'
+          'x-mesh-internal': 'true'
 
 transforms:
+  # Step 1: Apply naming convention transformations
   - namingConvention:
-      typeNames: pascalCase
-      fieldNames: camelCase
-      enumValues: upperCase
+      typeNames: pascalCase      # User_Data → UserData
+      fieldNames: camelCase      # user_name → userName
+      enumValues: upperCase      # pending → PENDING
+      transformUnderscore: true  # Remove all underscores
   
+  # Step 2: Add namespace prefix to avoid conflicts 
+  # Core types are exempt to maintain a clean API
   - prefix:
       includeRootOperations: false
       value: HMN
       ignore:
+        # Main business domain entities don't get prefixed
         - User
         - Mood
         - Hug
         - HugRequest
         - Friendship
+        - MoodStreak
+        # Input types used directly by client don't get prefixed
+        - MoodInput
+        - HugInput
+        - HugRequestInput
+        # Auth types are kept clean for better DX
+        - AuthPayload
+        - LoginInput
+        - RegisterInput
     
+  # Step 3: Filter out internal schema elements for security and cleaner API
   - filterSchema:
+      # More comprehensive filtering approach
       filters:
-        - Query.!(_*|metadata|schema|clientInfo)
-        - Mutation.!(_*|metadata|deleteNode|registerUser)
+        # Remove internal queries and system metadata
+        - Query.!(_*|metadata|schema|introspection|clientInfo|pgAdmin*|nodeId*|node*)
+        # Remove internal mutations and node deletion
+        - Mutation.!(_*|metadata|deleteNode|delete*|register*|removeAll*)
+        # Remove dangerous types that could expose database internals
+        - Type.!(*Connection|*Edge|*Payload|Node|PageInfo)
+        # Keep only the fields needed from User type
+        - User.!(nodeId|firstName|lastName|__typename)
+        # Automatically strip nodeId from all objects
+        - "*.!(nodeId)"
 
+  # Step 4: Field and type renaming for better client API naming
   - rename:
       renames:
+        # Field renames to match client expectations
         - from: 
             type: Mood
             field: score
@@ -52,6 +86,22 @@ transforms:
             type: Hug
             field: isRead
           to: read
+        - from:
+            type: User
+            field: avatarUrl
+          to: profileImage
+        - from:
+            type: HugRequest
+            field: createdAt
+          to: requestedAt
+        
+        # Type renames for better semantics
+        - from:
+            type: CreateMoodPayload
+          to: MoodResult
+        - from:
+            type: CreateHugPayload
+          to: HugResult
 
 additionalResolvers:
   - ./mesh-resolvers.js
@@ -78,35 +128,49 @@ middleware:
           respondToHugRequest: "isAuthenticated"
 
 cache:
-  enabled: true
-  ttl: 60 # 1 minute default TTL
-  embedded: true
-  # Different TTL values for different operations
-  operations:
-    - field: 'Query.publicMoods'
-      ttl: 120 # 2 minutes for public data
-    - field: 'Query.userMoods'
-      ttl: 60  # 1 minute for user-specific data
-    - field: 'Query.moodStreak'
-      ttl: 300 # 5 minutes for rarely changing data
-  # Skip cache for these operations
-  excludedOperations:
-    - 'Mutation.*'
+  type: inmemory
+  options:
+    # Default TTL settings
+    ttl: 60 # 1 minute default TTL
+    
+    # Operation-specific TTL values
+    ttls:
+      - path: 'Query.publicMoods'
+        ttl: 120 # 2 minutes for public data
+      - path: 'Query.userMoods'
+        ttl: 60  # 1 minute for user-specific data
+      - path: 'Query.moodStreak'
+        ttl: 300 # 5 minutes for rarely changing data
+      - path: 'Query.clientInfo'
+        ttl: 86400 # 24 hours for static info
+      - path: 'Query.communityHugRequests'
+        ttl: 180 # 3 minutes for community data
+    
+    # Opt-out specific operations from caching
+    ignorePaths:
+      - 'Mutation.*'            # Never cache mutations
+      - 'Query.receivedHugs'    # Real-time data, no caching
+      - 'Query.pendingHugRequests' # Status changes frequently
 
 plugins:
-  - liveQuery:
+  # LiveQuery setup for real-time reactivity
+  - name: liveQuery
+    options:
       pollingInterval: 3000
       invalidateClosedConnections: true
       enableLiveBackwardCompatibility: true
-      localStorage:
-        enabled: true
-        path: ./.mesh-cache
-      # Automatically mark these fields as live queries
       includeTypes:
-        - 'Query.publicMoods'
-        - 'Query.userMoods'
-        - 'Query.receivedHugs'
-        - 'Query.pendingHugRequests'
+        - Query.publicMoods
+        - Query.userMoods
+        - Query.receivedHugs
+        - Query.pendingHugRequests
+  
+  # Plugin for JWT authentication
+  - name: jwtAuth
+    options:
+      algorithm: HS256
+      secretKey: "{env.JWT_SECRET || 'default-dev-key'}"
+      headerName: authorization
 
 additionalTypeDefs: |
   type ClientInfo {
@@ -179,13 +243,36 @@ additionalTypeDefs: |
 sdl:
   generate: true
   filepath: ./schema.graphql
+  # Additional SDL output formats for documentation
+  additionalOutputs:
+    - type: introspection
+      path: ./schema-introspection.json
+    - type: typescriptDefinitions
+      path: ./schema.d.ts
 
-# Generate TypeScript SDK
+# Generate TypeScript SDK with enhanced options
 sdk:
   generate: true
   path: ./hugmenow/web/src/mesh-sdk
+  # Include operations from multiple files
   operations:
     - ./hugmenow/web/src/graphql/operations.graphql
+    - ./hugmenow/web/src/graphql/queries/*.graphql
+    - ./hugmenow/web/src/graphql/mutations/*.graphql
+  # SDK generation options
+  options:
+    typescript:
+      reactHooks: true           # Generate React hooks
+      scalars:                    # Custom scalar type mappings
+        Date: Date
+        UUID: string
+        JSON: Record<string, any>
+      unmaskErrors: true          # Don't mask errors in development
+      dedupeFragments: true       # Remove duplicate fragments
+      preResolveTypes: true       # Pre-resolve types for better performance
+      skipTypename: false         # Include __typename for better caching
+      documentMode: 'documentNode' # Use documentNode for better performance
+      pureMagicComments: true     # Add /* @__PURE__ */ comments for better treeshaking
 
 serve:
   browser: false
