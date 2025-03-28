@@ -6,8 +6,12 @@
  */
 
 import { ApolloServer, gql } from 'apollo-server-express';
-import { execute, parse, subscribe } from 'graphql';
+// Use our unified GraphQL version instead of the direct import
+import { execute, parse, subscribe, getGraphQLVersion } from './graphql-resolver.js';
 import fetch from 'node-fetch';
+
+// Log the GraphQL version we're using
+console.log('Using GraphQL version:', getGraphQLVersion());
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SERVICE_PORTS, SERVICE_ENDPOINTS, CLIENT_INFO } from './gateway-config.js';
 import { applyShield } from './shield-rules.js';

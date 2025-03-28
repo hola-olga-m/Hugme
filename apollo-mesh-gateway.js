@@ -15,7 +15,8 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/use/ws';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { PubSub } from 'graphql-subscriptions';
-import { GraphQLError } from 'graphql';
+// Use our unified GraphQL version instead of the built-in one
+import { GraphQLError, execute, parse, subscribe } from './graphql-resolver.js';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import bodyParser from 'body-parser';

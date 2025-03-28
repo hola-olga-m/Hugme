@@ -13,8 +13,12 @@ sources:
     introspection:
       pollingInterval: 10000  # Check for schema changes every 10 seconds
       handleFieldConflicts: true
-    # Better subscription support 
-    subscriptions: false
+    # Enable WebSocket subscriptions
+    subscriptions: 
+      url: ${env.WS_ENDPOINT}
+      useSSE: false
+      eventSourceOptions:
+        withCredentials: true
     # Add batch execution
     batch: true
     # Add operation name handling
@@ -202,6 +206,39 @@ additionalTypeDefs: |
     ): Hug
   }
   
+  # Define subscription type for real-time updates
+  type Subscription {
+    """
+    Subscribe to new mood creation events
+    Real-time notifications when a user creates a mood
+    """
+    newMood: Mood!
+    
+    """
+    Subscribe to new hug events
+    Real-time notifications when any hug is sent
+    """
+    newHug: Hug!
+    
+    """
+    Subscribe to hugs received by a specific user
+    Real-time notifications when a specific user receives a hug
+    """
+    newHugReceived(
+      """User ID to filter hugs for"""
+      userId: ID!
+    ): Hug!
+    
+    """
+    Subscribe to new moods from friends
+    Real-time notifications when a friend creates a mood
+    """
+    newFriendMood(
+      """User ID whose friends to monitor"""
+      userId: ID!
+    ): Mood!
+  }
+  
   # Virtual fields for the Mood type
   extend type Mood {
     """
@@ -288,3 +325,5 @@ logger:
   level: info
   format: colorized
   timestamp: true
+
+# Note: We need to handle GraphQL version conflicts differently

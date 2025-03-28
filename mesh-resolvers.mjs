@@ -6,7 +6,28 @@
  * 2. Virtual fields that map client field names to server field names
  * 3. Custom resolver logic for transforming data between formats
  * 4. Enhanced data transformation and processing
+ * 5. Real-time subscription handlers for live updates
  */
+
+// Import the unified GraphQL version
+import { getGraphQLVersion } from './graphql-resolver.js';
+// Import PubSub for GraphQL subscriptions
+import { PubSub } from 'graphql-subscriptions';
+
+// Create a PubSub instance for handling subscription events
+export const pubsub = new PubSub();
+
+// Define subscription event types (constants)
+export const EVENTS = {
+  NEW_MOOD: 'NEW_MOOD',
+  NEW_HUG: 'NEW_HUG',
+  NEW_HUG_RECEIVED: 'NEW_HUG_RECEIVED',
+  NEW_FRIEND_MOOD: 'NEW_FRIEND_MOOD'
+};
+
+// Log the GraphQL version being used
+console.log('[mesh-resolvers.mjs] Using GraphQL version:', getGraphQLVersion());
+console.log('[mesh-resolvers.mjs] Setting up PubSub for subscriptions');
 
 // Enhanced helper functions for logging, error handling, and performance tracking
 const logResolver = (path, args = {}) => {

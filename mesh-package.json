@@ -1,1 +1,6 @@
-{"type": "module"}
+{
+  "type": "module",
+  "resolutions": {
+    "graphql": "16.10.0"
+  }
+}

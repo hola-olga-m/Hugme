@@ -9,10 +9,16 @@
  * only that the subscription is established and messages are flowing.
  */
 
-import { createClient } from 'graphql-ws';
 import WebSocket from 'ws';
 import fetch from 'node-fetch';
 import chalk from 'chalk';
+// Import our unified GraphQL version
+import { getGraphQLVersion } from './graphql-resolver.js';
+// Using the older subscriptions-transport-ws for better compatibility
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+
+// Log the GraphQL version we're using
+console.log('Using GraphQL version:', getGraphQLVersion());
 
 // Get the port from the environment variable, default to 5003
 const PORT = process.env.GATEWAY_PORT || '5003';
@@ -28,25 +34,44 @@ const TEST_TOKEN = 'Bearer test-token-for-development-only';
 const USER_ID_1 = '550e8400-e29b-41d4-a716-446655440000'; // Sample sender
 const USER_ID_2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // Sample recipient
 
-// Create WebSocket client for subscriptions
-const wsClient = createClient({
-  url: APOLLO_MESH_WS_ENDPOINT,
-  webSocketImpl: WebSocket,
-  connectionParams: () => {
-    console.log(chalk.blue(`Setting connection parameters with token: ${TEST_TOKEN ? 'Present' : 'Not present'}`));
-    return {
+// Create WebSocket client for subscriptions using subscriptions-transport-ws for better compatibility
+const wsClient = new SubscriptionClient(
+  APOLLO_MESH_WS_ENDPOINT,
+  {
+    reconnect: true,
+    reconnectionAttempts: 5,
+    timeout: 30000,
+    connectionParams: {
       authorization: TEST_TOKEN
-    };
+    },
+    lazy: false
   },
-  retryAttempts: 5,
-  retryWait: (retries) => retries * 1000, // Exponential backoff
-  shouldRetry: (error) => {
-    console.log(chalk.yellow(`Checking if we should retry: ${error.message}`));
-    return true; // Always retry
-  },
-  onNonLazyError: (error) => {
-    console.error(chalk.red('Non-lazy WebSocket error:'), error);
-  }
+  WebSocket
+);
+
+// Log connection state changes
+wsClient.onConnecting(() => {
+  console.log(chalk.yellow('WebSocket connecting...'));
+});
+
+wsClient.onConnected(() => {
+  console.log(chalk.green('WebSocket connected!'));
+});
+
+wsClient.onReconnecting(() => {
+  console.log(chalk.yellow('WebSocket reconnecting...'));
+});
+
+wsClient.onReconnected(() => {
+  console.log(chalk.green('WebSocket reconnected!'));
+});
+
+wsClient.onDisconnected(() => {
+  console.log(chalk.red('WebSocket disconnected'));
+});
+
+wsClient.onError((error) => {
+  console.error(chalk.red('WebSocket error:'), error);
 });
 
 /**
@@ -104,7 +129,7 @@ function subscribe(query, variables = {}, onNext) {
     // Implement a retry mechanism
     let attempts = 0;
     const maxAttempts = 3;
-    let unsubscribe;
+    let subscription;
     
     const attemptSubscribe = () => {
       try {
@@ -112,36 +137,36 @@ function subscribe(query, variables = {}, onNext) {
           console.log(chalk.yellow(`Retrying subscription (attempt ${attempts} of ${maxAttempts})...`));
         }
         
-        // Create the subscription
-        unsubscribe = wsClient.subscribe(
-          { query, variables },
-          {
-            next: (result) => {
-              console.log(chalk.green('✓ Subscription event received:'), JSON.stringify(result, null, 2));
-              if (!firstResponseReceived) {
-                firstResponseReceived = true;
-                resolve({ success: true, data: result });
-              }
-              if (onNext) onNext(result);
-            },
-            error: (error) => {
-              console.error(chalk.red('✗ Subscription error:'), error);
-              
-              if (attempts < maxAttempts) {
-                attempts++;
-                console.log(chalk.yellow(`Waiting 1 second before retry...`));
-                setTimeout(attemptSubscribe, 1000);
-              } else if (!firstResponseReceived) {
-                console.error(chalk.red(`Giving up after ${maxAttempts} attempts`));
-                firstResponseReceived = true;
-                resolve({ success: false, error });
-              }
-            },
-            complete: () => {
-              console.log(chalk.yellow('Subscription completed'));
+        // Create the subscription using the request method for subscriptions-transport-ws
+        subscription = wsClient.request({
+          query,
+          variables
+        }).subscribe({
+          next: (result) => {
+            console.log(chalk.green('✓ Subscription event received:'), JSON.stringify(result, null, 2));
+            if (!firstResponseReceived) {
+              firstResponseReceived = true;
+              resolve({ success: true, data: result });
             }
+            if (onNext) onNext(result);
+          },
+          error: (error) => {
+            console.error(chalk.red('✗ Subscription error:'), error);
+            
+            if (attempts < maxAttempts) {
+              attempts++;
+              console.log(chalk.yellow(`Waiting 1 second before retry...`));
+              setTimeout(attemptSubscribe, 1000);
+            } else if (!firstResponseReceived) {
+              console.error(chalk.red(`Giving up after ${maxAttempts} attempts`));
+              firstResponseReceived = true;
+              resolve({ success: false, error });
+            }
+          },
+          complete: () => {
+            console.log(chalk.yellow('Subscription completed'));
           }
-        );
+        });
       } catch (error) {
         console.error(chalk.red('Exception setting up subscription:'), error);
         
@@ -171,9 +196,9 @@ function subscribe(query, variables = {}, onNext) {
     
     // Return the unsubscribe function if needed later
     return () => {
-      if (unsubscribe) {
+      if (subscription) {
         try {
-          unsubscribe();
+          subscription.unsubscribe();
         } catch (e) {
           console.error('Error unsubscribing:', e);
         }
@@ -386,7 +411,7 @@ async function runTests() {
     console.error(chalk.red('Error running subscription tests:'), error);
   } finally {
     // Close the WebSocket connection
-    await wsClient.dispose();
+    wsClient.close();
     process.exit(0);
   }
 }
