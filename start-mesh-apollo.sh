@@ -36,13 +36,6 @@ export UPSTREAM_SERVICE=$UPSTREAM_SERVICE
 # Copy the required mesh configuration files
 cp .meshrc.yml ./mesh-apollo.yml 2>/dev/null || true
 
-# Update resolvers path in the mesh config
-sed -i 's|./mesh-resolvers.js|./mesh-resolvers.cjs|g' mesh-apollo-server.cjs 2>/dev/null || true
-
-# Make the scripts executable
-chmod +x mesh-apollo-server.cjs
-chmod +x mesh-resolvers.cjs
-
-# Start the Mesh Apollo Server using CommonJS modules
+# Start the Mesh Apollo Server using ES modules
 echo "🌐 Starting Mesh Apollo Server on http://0.0.0.0:$PORT/graphql..."
-exec node mesh-apollo-server.cjs
+exec node mesh-apollo-server.mjs

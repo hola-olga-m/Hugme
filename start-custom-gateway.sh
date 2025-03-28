@@ -4,16 +4,40 @@
 # This script starts a custom GraphQL gateway that provides field compatibility
 # between client and server schemas
 
-# Service Names (from gateway-config.js)
-SERVICE_NAME="CustomGraphQLGateway"
-UPSTREAM_SERVICE="PostGraphileAPI"
+# Load configuration from gateway-config.js if possible
+if [ -f ./gateway-config.js ]; then
+  echo "🔍 Loading configuration from gateway-config.js..."
+  
+  # Extract service names from the configuration file
+  CUSTOM_GATEWAY_SERVICE=$(grep -o "CUSTOM_GATEWAY: '[^']*'" ./gateway-config.js | cut -d "'" -f 2)
+  POSTGRAPHILE_SERVICE=$(grep -o "POSTGRAPHILE: '[^']*'" ./gateway-config.js | cut -d "'" -f 2)
+  
+  # Extract ports from the configuration file
+  CUSTOM_GATEWAY_PORT=$(grep -o "CUSTOM_GATEWAY: [0-9]*" ./gateway-config.js | grep -o "[0-9]*")
+  POSTGRAPHILE_PORT=$(grep -o "POSTGRAPHILE: [0-9]*" ./gateway-config.js | grep -o "[0-9]*")
+  
+  # Extract endpoint from configuration file
+  POSTGRAPHILE_ENDPOINT=$(grep -o "POSTGRAPHILE: \`[^}]*\`" ./gateway-config.js | head -1 | cut -d '`' -f 2)
+  
+  # Default configuration from extracted values
+  PORT="${PORT:-$CUSTOM_GATEWAY_PORT}"
+  API_ENDPOINT="${API_ENDPOINT:-$POSTGRAPHILE_ENDPOINT}"
+  SERVICE_NAME="${SERVICE_NAME:-$CUSTOM_GATEWAY_SERVICE}"
+  UPSTREAM_SERVICE="${UPSTREAM_SERVICE:-$POSTGRAPHILE_SERVICE}"
+else
+  echo "⚠️ gateway-config.js not found, using default configuration..."
+  
+  # Default configuration
+  PORT="${PORT:-5002}"
+  API_ENDPOINT="${API_ENDPOINT:-http://localhost:3003/graphql}"
+  SERVICE_NAME="${SERVICE_NAME:-CustomGraphQLGateway}"
+  UPSTREAM_SERVICE="${UPSTREAM_SERVICE:-PostGraphile}"
+fi
 
-# Configuration (from gateway-config.js)
-PORT=5002  # CustomGraphQLGateway port
-API_ENDPOINT="http://localhost:3003/graphql"  # PostGraphileAPI endpoint
-CLIENT_VERSION="1.0.0"
-CLIENT_PLATFORM="web"
-CLIENT_FEATURES="mood-tracking,friend-moods,theme-support,streak-tracking"
+# Client configuration
+CLIENT_VERSION="${CLIENT_VERSION:-1.0.0}"
+CLIENT_PLATFORM="${CLIENT_PLATFORM:-web}"
+CLIENT_FEATURES="${CLIENT_FEATURES:-mood-tracking,friend-moods,theme-support,streak-tracking}"
 
 echo "🚀 Starting ${SERVICE_NAME}..."
 

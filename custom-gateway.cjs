@@ -13,7 +13,7 @@ const https = require('https');
 
 // Configuration
 const PORT = process.env.PORT || 5000;
-const API_ENDPOINT = process.env.API_ENDPOINT || 'http://localhost:3002/graphql';
+const API_ENDPOINT = process.env.API_ENDPOINT || 'http://localhost:3003/postgraphile/graphql';
 const AUTH_TOKEN = process.env.GRAPHQL_AUTH_TOKEN || '';
 
 console.log(`Starting gateway on port ${PORT}, connecting to API at ${API_ENDPOINT}`);

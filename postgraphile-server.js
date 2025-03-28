@@ -48,10 +48,14 @@ app.get('/postgraphile/status', (req, res) => {
   });
 });
 
-// Start server
+// Get service information
 const PORT = process.env.POSTGRAPHILE_PORT || 3003;
+const SERVICE_NAME = process.env.SERVICE_NAME || 'PostGraphile';
+
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`PostGraphile server running on http://0.0.0.0:${PORT}`);
-  console.log(`GraphQL endpoint: http://0.0.0.0:${PORT}/postgraphile/graphql`);
-  console.log(`GraphiQL interface: http://0.0.0.0:${PORT}/postgraphile/graphiql`);
+  console.log(`🚀 ${SERVICE_NAME} server running on http://0.0.0.0:${PORT}`);
+  console.log(`📊 GraphQL endpoint: http://0.0.0.0:${PORT}/postgraphile/graphql`);
+  console.log(`🔎 GraphiQL interface: http://0.0.0.0:${PORT}/postgraphile/graphiql`);
+  console.log(`✅ Status endpoint: http://0.0.0.0:${PORT}/postgraphile/status`);
 });

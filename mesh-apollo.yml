@@ -149,7 +149,7 @@ additionalTypeDefs: |
 
 # Additional resolvers
 additionalResolvers:
-  - ./mesh-resolvers.cjs
+  - ./mesh-resolvers.mjs
 
 # Cache configuration for better performance
 cache:

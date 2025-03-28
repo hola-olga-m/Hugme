@@ -11,6 +11,7 @@ export const SERVICE_NAMES = {
   CUSTOM_GATEWAY: 'CustomGraphQLGateway',
   SIMPLE_GATEWAY: 'SimpleGraphQLGateway',
   MESH_APOLLO: 'GraphQLMeshApollo',
+  APOLLO_MESH: 'ApolloMeshGateway',
   HUGMENOW_APP: 'HugMeNowApp'
 };
 
@@ -20,6 +21,7 @@ export const SERVICE_PORTS = {
   CUSTOM_GATEWAY: 5002, 
   SIMPLE_GATEWAY: 5000,
   MESH_APOLLO: 5001,
+  APOLLO_MESH: 5003,
   HUGMENOW_APP: 3000
 };
 
@@ -29,6 +31,7 @@ export const SERVICE_ENDPOINTS = {
   CUSTOM_GATEWAY: `http://localhost:${SERVICE_PORTS.CUSTOM_GATEWAY}/graphql`,
   SIMPLE_GATEWAY: `http://localhost:${SERVICE_PORTS.SIMPLE_GATEWAY}/graphql`,
   MESH_APOLLO: `http://localhost:${SERVICE_PORTS.MESH_APOLLO}/graphql`,
+  APOLLO_MESH: `http://localhost:${SERVICE_PORTS.APOLLO_MESH}/graphql`,
   HUGMENOW_APP: `http://localhost:${SERVICE_PORTS.HUGMENOW_APP}`
 };
 
