@@ -57,8 +57,15 @@ export function useMeshSdk(options = {}) {
   
   const getFriendsMoods = useCallback(async () => {
     try {
+      // Since there's no specific friendsMoods field in the schema,
+      // we use publicMoods as a proxy for friends' moods
       const result = await client.FriendsMoods();
-      return result.publicMoods; // Currently using publicMoods as a stand-in
+      
+      // The data is returned as publicMoods, but the component expects an array
+      if (result && result.publicMoods) {
+        return result.publicMoods;
+      }
+      return [];
     } catch (error) {
       console.error('Error fetching friends moods:', error);
       return [];
