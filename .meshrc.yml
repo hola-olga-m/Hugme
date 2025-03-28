@@ -4,10 +4,18 @@ sources:
       graphql:
         endpoint: http://localhost:3003/postgraphile/graphql
         batch: true
+        batchingOptions:
+          maxBatchSize: 10
+          delay: 50
+        retry: 3
+        timeout: 10000
         operationHeaders:
           Authorization: "{context.headers.authorization}"
+          'x-client-version': "{context.headers['x-client-version'] || '1.0.0'}"
+          'x-client-platform': "{context.headers['x-client-platform'] || 'web'}"
         schemaHeaders:
           Authorization: "{context.headers.authorization}"
+          'x-request-type': 'schema'
 
 transforms:
   - namingConvention:
@@ -51,6 +59,9 @@ additionalResolvers:
 middleware:
   - shield:
       resolvers: ./shield-rules.js
+      fallbackRule: "allow"
+      allowExternalErrors: true
+      debug: true
       rules:
         Query: 
           "*": true
@@ -58,8 +69,29 @@ middleware:
           receivedHugs: "isAuthenticated"
           sentHugs: "isAuthenticated"
           pendingHugRequests: "isAuthenticated"
+          moodStreak: "isAuthenticated"
+          clientInfo: true
         Mutation:
           "*": "isAuthenticated"
+          createMoodEntry: "isAuthenticated"
+          sendHug: "isAuthenticated"
+          respondToHugRequest: "isAuthenticated"
+
+cache:
+  enabled: true
+  ttl: 60 # 1 minute default TTL
+  embedded: true
+  # Different TTL values for different operations
+  operations:
+    - field: 'Query.publicMoods'
+      ttl: 120 # 2 minutes for public data
+    - field: 'Query.userMoods'
+      ttl: 60  # 1 minute for user-specific data
+    - field: 'Query.moodStreak'
+      ttl: 300 # 5 minutes for rarely changing data
+  # Skip cache for these operations
+  excludedOperations:
+    - 'Mutation.*'
 
 plugins:
   - liveQuery:
@@ -68,6 +100,13 @@ plugins:
       enableLiveBackwardCompatibility: true
       localStorage:
         enabled: true
+        path: ./.mesh-cache
+      # Automatically mark these fields as live queries
+      includeTypes:
+        - 'Query.publicMoods'
+        - 'Query.userMoods'
+        - 'Query.receivedHugs'
+        - 'Query.pendingHugRequests'
 
 additionalTypeDefs: |
   type ClientInfo {
@@ -151,7 +190,48 @@ sdk:
 serve:
   browser: false
   playground: true
+  playgroundTitle: "HugMeNow API Gateway"
+  playgroundTabs:
+    - name: "Get Public Moods"
+      query: |
+        query GetPublicMoods {
+          publicMoods(limit: 5) {
+            id
+            intensity
+            note
+            createdAt
+            user {
+              id
+              name
+              username
+            }
+          }
+        }
+    - name: "User Authentication"
+      query: |
+        mutation Login($email: String!, $password: String!) {
+          login(loginInput: { email: $email, password: $password }) {
+            user {
+              id
+              name
+              username
+            }
+            accessToken
+          }
+        }
+      variables: |
+        {
+          "email": "demo@example.com",
+          "password": "password123"
+        }
   cors:
     origin: "*"
     credentials: true
+    methods: ["GET", "POST", "OPTIONS"]
+    allowedHeaders: ["Content-Type", "Authorization", "x-client-version", "x-client-platform"]
   port: 4000
+  hostname: "0.0.0.0"
+  tracing: true
+  introspection: true
+  errorOptions:
+    maskError: process.env.NODE_ENV !== 'development'
