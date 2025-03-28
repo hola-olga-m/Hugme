@@ -388,9 +388,39 @@ async function startServer() {
     // Create Yoga server with @live directive support
     const yoga = createYoga({
       schema: schemaWithResolvers,
-      context: ({ request }) => ({
-        headers: request.headers
-      }),
+      context: ({ request }) => {
+        const authHeader = request.headers.get('authorization');
+        console.log(chalk.blue('🔑 Authorization header:', authHeader || 'none'));
+        
+        // Check for mock authentication token
+        const isMockAuth = authHeader && authHeader.includes('mock-auth-token-for-testing');
+        console.log(chalk.blue('🔐 Using mock auth:', isMockAuth));
+        
+        // Create mock user if using mock auth token
+        const mockUser = isMockAuth ? {
+          id: 'mock-user-123',
+          username: 'mockuser',
+          email: 'mock@example.com',
+          authenticated: true
+        } : null;
+        
+        // If using mock auth, create a complete context
+        if (isMockAuth) {
+          console.log(chalk.yellow('⚠️ Using mock authentication for testing'));
+          return {
+            headers: request.headers,
+            request: request,
+            user: mockUser,
+            mockAuth: true
+          };
+        }
+        
+        // Regular context for non-mock requests
+        return {
+          headers: request.headers,
+          request: request
+        };
+      },
       plugins: [
         // Simple live query plugin that re-executes queries with @live directive
         {

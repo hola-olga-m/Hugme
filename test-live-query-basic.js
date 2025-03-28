@@ -32,6 +32,7 @@ async function executeGraphQL(query, variables = {}, withAuth = false) {
   // Add mock auth token if requested
   if (withAuth) {
     headers['Authorization'] = `Bearer ${MOCK_TOKEN}`;
+    console.log(chalk.yellow('🔑 Using mock authentication token'));
   }
   
   try {
@@ -81,12 +82,21 @@ async function testPublicMoodsLiveQuery() {
         }
       }
     }
-  `);
+  `, {}, true); // Use mock authentication
   
   // Watch for initial response
   const liveQueryResult = await liveQueryPromise;
-  console.log(chalk.green('📊 Initial public moods:'), 
-    liveQueryResult.data?.publicMoods?.length || 0);
+  
+  if (liveQueryResult.data?.publicMoods) {
+    console.log(chalk.green('📊 Initial public moods:'), 
+      liveQueryResult.data.publicMoods.length);
+      
+    liveQueryResult.data.publicMoods.forEach(mood => {
+      console.log(chalk.green(`  - ${mood.mood} (${mood.intensity}): ${mood.message}`));
+    });
+  } else {
+    console.log(chalk.green('📊 Initial public moods:'), 0);
+  }
     
   // In a real app, this would keep updating as new moods come in
   console.log(chalk.yellow('ℹ️ In a real app, this query would continue to refresh'), 
@@ -110,7 +120,7 @@ async function testClientInfoQuery() {
         features
       }
     }
-  `);
+  `, {}, true); // Use mock authentication
   
   if (clientInfoResult.data?.clientInfo) {
     console.log(chalk.green('✅ Client info:'), {

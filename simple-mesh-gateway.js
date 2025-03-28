@@ -8,7 +8,7 @@
 import express from 'express';
 import { createYoga } from 'graphql-yoga';
 import { getMesh } from '@graphql-mesh/runtime';
-import { parseConfig } from '@graphql-mesh/config';
+import { processConfig } from '@graphql-mesh/config';
 import { SERVICE_PORTS } from './gateway-config.js';
 import { resolvers } from './mesh-resolvers.mjs';
 import cors from 'cors';
@@ -37,7 +37,7 @@ async function startServer() {
     // Load mesh configuration from .meshrc.yml
     console.log(chalk.green('📦 Loading GraphQL Mesh configuration...'));
     // Parse the mesh config from the current directory
-    const meshConfig = await parseConfig({
+    const meshConfig = await processConfig({
       dir: process.cwd()
     });
     
@@ -67,12 +67,23 @@ async function startServer() {
     // Create a custom executor that handles mock data
     const createExecutor = (originalExecute) => {
       return async (document, variables, context, operationName) => {
+        // For debugging
+        console.log(chalk.blue('🔍 Executing GraphQL operation:'));
+        console.log(chalk.blue('  - Operation name:', operationName));
+        console.log(chalk.blue('  - Context mock auth:', context?.mockAuth || false));
+        
         // Check if using mock authentication
         if (context?.mockAuth) {
+          console.log(chalk.yellow('✅ Mock authentication detected!'));
           const operationText = document.loc?.source?.body || '';
+          console.log(chalk.blue('  - Operation text (first 100 chars):', operationText.substring(0, 100)));
           
           // Handle mock operations based on query/mutation type
-          if (operationText.includes('userMoods') && variables?.userId === 'mock-user-123') {
+          
+          // Mock userMoods query
+          if (operationText.includes('userMoods') && 
+              (variables?.userId === 'mock-user-123' || 
+               operationText.includes('userId: "mock-user-123"'))) {
             console.log(chalk.yellow('📝 Mock Auth: Intercepting userMoods query'));
             console.log(chalk.green('📊 Mock Auth: Returning mock data for userMoods query'));
             return {
@@ -85,7 +96,11 @@ async function startServer() {
                     message: 'This is a mock mood for testing',
                     isPublic: true,
                     createdAt: new Date().toISOString(),
-                    userId: 'mock-user-123'
+                    userId: 'mock-user-123',
+                    user: {
+                      id: 'mock-user-123',
+                      username: 'mockuser'
+                    }
                   },
                   {
                     id: 'mock-mood-2', 
@@ -94,17 +109,117 @@ async function startServer() {
                     message: 'Testing with mock data',
                     isPublic: false,
                     createdAt: new Date(Date.now() - 86400000).toISOString(),
-                    userId: 'mock-user-123'
+                    userId: 'mock-user-123',
+                    user: {
+                      id: 'mock-user-123',
+                      username: 'mockuser'
+                    }
                   }
                 ]
               }
             };
           }
           
+          // Mock publicMoods query
+          if (operationText.includes('publicMoods')) {
+            console.log(chalk.yellow('📝 Mock Auth: Intercepting publicMoods query'));
+            return {
+              data: {
+                publicMoods: [
+                  {
+                    id: 'mock-public-mood-1',
+                    mood: 'relaxed',
+                    intensity: 6,
+                    message: 'Public mood for testing',
+                    isPublic: true,
+                    createdAt: new Date().toISOString(),
+                    userId: 'mock-user-123',
+                    user: {
+                      id: 'mock-user-123',
+                      username: 'mockuser'
+                    }
+                  },
+                  {
+                    id: 'mock-public-mood-2',
+                    mood: 'grateful',
+                    intensity: 7,
+                    message: 'Another public mood',
+                    isPublic: true,
+                    createdAt: new Date(Date.now() - 43200000).toISOString(),
+                    userId: 'mock-user-789',
+                    user: {
+                      id: 'mock-user-789',
+                      username: 'testuser'
+                    }
+                  }
+                ]
+              }
+            };
+          }
+          
+          // Mock receivedHugs query
+          if (operationText.includes('receivedHugs') && 
+              (variables?.userId === 'mock-user-123' || 
+               operationText.includes('userId: "mock-user-123"'))) {
+            console.log(chalk.yellow('📝 Mock Auth: Intercepting receivedHugs query'));
+            return {
+              data: {
+                receivedHugs: [
+                  {
+                    id: 'mock-hug-1',
+                    message: 'Sending you a virtual hug!',
+                    createdAt: new Date().toISOString(),
+                    senderId: 'mock-user-456',
+                    recipientId: 'mock-user-123',
+                    moodId: 'mock-mood-1',
+                    isRead: false,
+                    fromUser: {
+                      id: 'mock-user-456',
+                      username: 'hugger'
+                    },
+                    toUser: {
+                      id: 'mock-user-123',
+                      username: 'mockuser'
+                    }
+                  }
+                ]
+              }
+            };
+          }
+          
+          // Mock clientInfo query
+          if (operationText.includes('clientInfo')) {
+            console.log(chalk.yellow('📝 Mock Auth: Intercepting clientInfo query'));
+            return {
+              data: {
+                clientInfo: {
+                  version: '2.0.0',
+                  buildDate: new Date().toISOString(),
+                  platform: 'web',
+                  features: [
+                    'mood-tracking',
+                    'friend-moods',
+                    'theme-customization',
+                    'mood-streaks',
+                    'notifications',
+                    'live-queries'
+                  ]
+                }
+              }
+            };
+          }
+          
+          // Mock createMood mutation
           if (operationText.includes('createMood') && 
-              variables?.input?.mood?.userId === 'mock-user-123') {
+              (variables?.input?.mood?.userId === 'mock-user-123' || 
+               operationText.includes('userId: "mock-user-123"'))) {
             console.log(chalk.yellow('📝 Mock Auth: Intercepting createMood mutation'));
-            const { mood } = variables.input;
+            const mood = variables?.input?.mood || {
+              mood: 'happy',
+              intensity: 8,
+              message: 'Default mock mood message',
+              isPublic: true
+            };
             return {
               data: {
                 createMood: {
@@ -113,9 +228,41 @@ async function startServer() {
                     mood: mood.mood,
                     intensity: mood.intensity,
                     message: mood.message,
-                    isPublic: mood.isPublic,
+                    isPublic: mood.isPublic || false,
                     createdAt: new Date().toISOString(),
                     userId: 'mock-user-123'
+                  }
+                }
+              }
+            };
+          }
+          
+          // Mock sendFriendHug mutation
+          if (operationText.includes('sendFriendHug') || operationText.includes('sendHug')) {
+            console.log(chalk.yellow('📝 Mock Auth: Intercepting sendFriendHug mutation'));
+            
+            // Extract variables either from variables object or from operation text
+            const toUserId = variables?.toUserId || 'user-456';
+            const moodId = variables?.moodId || 'mock-mood-1';
+            const message = variables?.message || 'Sending you a virtual hug!';
+            
+            return {
+              data: {
+                sendFriendHug: {
+                  id: `mock-hug-${Date.now()}`,
+                  message: message,
+                  createdAt: new Date().toISOString(),
+                  moodId: moodId,
+                  senderId: 'mock-user-123',
+                  recipientId: toUserId,
+                  isRead: false,
+                  fromUser: {
+                    id: 'mock-user-123',
+                    username: 'mockuser'
+                  },
+                  toUser: {
+                    id: toUserId,
+                    username: 'recipient'
                   }
                 }
               }
@@ -138,9 +285,11 @@ async function startServer() {
       context: async (req) => {
         // Get authorization header
         const authHeader = req.request.headers.get('authorization');
+        console.log(chalk.blue('🔑 Authorization header:', authHeader || 'none'));
         
         // Check for mock authentication token
         const isMockAuth = authHeader && authHeader.includes('mock-auth-token-for-testing');
+        console.log(chalk.blue('🔐 Using mock auth:', isMockAuth));
         
         // Create mock user if using mock auth token
         const mockUser = isMockAuth ? {
@@ -217,7 +366,7 @@ query PublicMoods @live {
       console.log(chalk.green(`✅ Simple Mesh Gateway running at http://0.0.0.0:${PORT}/graphql`));
       console.log(chalk.cyan('📱 GraphiQL playground available at the same URL'));
       console.log(chalk.yellow('📡 Live Query support enabled - use @live directive on queries'));
-      console.log(chalk.green('⚡ Schema available at http://0.0.0.0:${PORT}/schema.graphql'));
+      console.log(chalk.green(`⚡ Schema available at http://0.0.0.0:${PORT}/schema.graphql`));
     });
     
   } catch (error) {

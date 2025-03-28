@@ -23,6 +23,6 @@ export CLIENT_VERSION="2.0.0"
 export CLIENT_PLATFORM="web"
 export CLIENT_FEATURES="mood-tracking,friend-moods,theme-customization,mood-streaks,notifications,live-queries"
 
-# Start the Live Query Gateway
+# Start the Live Query Gateway instead (simpler implementation)
 echo "🌐 Starting gateway on http://0.0.0.0:5006/graphql..."
 node live-query-gateway.js

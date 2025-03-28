@@ -35,25 +35,37 @@ async function executeWithMockAuth(query, variables = {}) {
       console.dir(variables, { depth: null, colors: true });
     }
     
+    console.log(chalk.magenta('📤 Sending request to:', GATEWAY_URL));
+    console.log(chalk.magenta('🔑 Using auth token:', MOCK_TOKEN));
+    
+    const requestBody = JSON.stringify({ query, variables });
+    console.log(chalk.magenta('📦 Request body:'), requestBody.substring(0, 100) + (requestBody.length > 100 ? '...' : ''));
+    
     const response = await fetch(GATEWAY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${MOCK_TOKEN}`
       },
-      body: JSON.stringify({ query, variables }),
+      body: requestBody,
     });
+    
+    console.log(chalk.magenta('📥 Response status:'), response.status, response.statusText);
+    console.log(chalk.magenta('📥 Response headers:'), Object.fromEntries([...response.headers.entries()]));
     
     const result = await response.json();
     
     if (result.errors) {
-      console.error(chalk.red('❌ GraphQL Error:'), result.errors);
+      console.error(chalk.red('❌ GraphQL Error:'), JSON.stringify(result.errors, null, 2));
     } else {
       console.log(chalk.green('✅ Success!'));
     }
     
     console.log(chalk.cyan('📊 Response data:'));
     console.dir(result.data, { depth: null, colors: true });
+    
+    console.log(chalk.cyan('📊 Full response:'));
+    console.dir(result, { depth: null, colors: true });
     
     return result;
   } catch (error) {
@@ -122,7 +134,29 @@ async function runMockAuthDemo() {
     }
   });
   
-  // 4. Demo live query (note: this won't actually wait for updates in this demo)
+  // 4. Query received hugs with mock auth
+  await executeWithMockAuth(`
+    query ReceivedHugs($userId: ID!, $limit: Int!) {
+      receivedHugs(userId: $userId, limit: $limit) {
+        id
+        message
+        createdAt
+        fromUser {
+          id
+          username
+        }
+        toUser {
+          id
+          username
+        }
+      }
+    }
+  `, {
+    userId: MOCK_USER.id,
+    limit: 5
+  });
+  
+  // 5. Demo live query (note: this won't actually wait for updates in this demo)
   // In a real application, a WebSocket connection would be maintained
   await executeWithMockAuth(`
     query LiveUserMoods($userId: ID!, $limit: Int!) @live {
@@ -142,6 +176,7 @@ async function runMockAuthDemo() {
   console.log(chalk.yellow('============='));
   console.log(chalk.yellow('- Demonstrated using mock authentication token for testing'));
   console.log(chalk.yellow('- Showed how to query user-specific data with mock auth'));
+  console.log(chalk.yellow('- Queried received hugs with mock authentication'));
   console.log(chalk.yellow('- Demonstrated mock mutations (create mood)'));
   console.log(chalk.yellow('- Showed how to use @live directive with mock authentication'));
   
