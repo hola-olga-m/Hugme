@@ -84,38 +84,46 @@ const isWithinRateLimit = rule()(async (parent, args, context) => {
 const permissions = shield({
   Query: {
     // Public queries
-    hello: allow,
     clientInfo: allow,
     publicMoods: canViewPublicContent,
     friendsMoods: canViewPublicContent,
     
+    // PostGraphile base queries
+    allMoods: canViewPublicContent,
+    allHugs: isAuthenticated,
+    allUsers: isAuthenticated,
+    userById: isAuthenticated,
+    userByUsername: isAuthenticated, 
+    userByEmail: isAuthenticated,
+    moodById: and(isAuthenticated, canViewPrivateContent),
+    hugById: isAuthenticated,
+    
     // Authenticated queries
     currentUser: isAuthenticated,
-    users: isAdmin,
-    user: isAuthenticated,
-    userByUsername: isAuthenticated,
-    moods: and(isAuthenticated, canViewPrivateContent),
-    moodById: and(isAuthenticated, canViewPrivateContent),
     moodStreak: isAuthenticated,
-    hugs: isAuthenticated,
-    hugById: isAuthenticated,
-    hugRequests: isAuthenticated,
     userMoods: and(isAuthenticated, canViewPrivateContent),
     sentHugs: isAuthenticated,
-    receivedHugs: isAuthenticated
+    receivedHugs: isAuthenticated,
+    
+    // Auth operations as queries (for convenience)
+    login: allow,
+    register: and(canViewPublicContent, isWithinRateLimit)
   },
   Mutation: {
+    // PostGraphile base mutations
+    createUser: allow,
+    updateUser: and(isAuthenticated, isOwner),
+    createMood: and(isAuthenticated, isWithinRateLimit),
+    updateMood: and(isAuthenticated, isOwner, isWithinRateLimit),
+    createHug: and(isAuthenticated, isWithinRateLimit),
+    updateHug: and(isAuthenticated, isOwner),
+    
     // Public mutations
     login: allow,
     register: and(canViewPublicContent, isWithinRateLimit),
     
     // Authenticated mutations
-    createMood: and(isAuthenticated, isWithinRateLimit),
-    updateMood: and(isAuthenticated, isOwner, isWithinRateLimit),
-    deleteMood: and(isAuthenticated, isOwner),
-    sendHug: and(isAuthenticated, isWithinRateLimit),
     markHugAsRead: and(isAuthenticated, isOwner),
-    createHugRequest: and(isAuthenticated, isWithinRateLimit),
     updateProfile: and(isAuthenticated, isOwner),
     sendFriendHug: and(isAuthenticated, isWithinRateLimit)
   },
@@ -125,13 +133,16 @@ const permissions = shield({
     profileImage: allow,
     bio: allow
   },
+  Mood: {
+    note: and(isAuthenticated, or(isAdmin, isOwner))
+  },
   MoodEntry: {
     note: and(isAuthenticated, or(isAdmin, isOwner))
   }
 }, {
   allowExternalErrors: true,
   debug: true,
-  fallbackRule: deny
+  fallbackRule: allow // Less restrictive for development
 });
 
 // Apply shield to a schema

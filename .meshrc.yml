@@ -123,25 +123,8 @@ transforms:
       - "!*Edge"
       - "!PageInfo"
       
-  # NEW: Add cache control hints for Apollo Server cache
-  - transform: cacheControl
-    defaultMaxAge: 60  # Default cache time in seconds
-    rules:
-      - types:
-          - Mood
-          - Hug
-          - User
-        maxAge: 300    # 5 minutes for these entity types
-      - types: 
-          - ClientInfo
-        maxAge: 3600   # 1 hour for client info
-      - paths:
-          - Query.clientInfo
-        maxAge: 3600   # 1 hour for client info query
-      - paths:
-          - Query.allMoods
-          - Query.allHugs
-        maxAge: 30     # 30 seconds for mood and hug queries
+  # Cache control is handled in the Apollo Server configuration
+  # instead of via a transform
 
 # Additional type definitions - Enhanced for better client integration
 additionalTypeDefs: |

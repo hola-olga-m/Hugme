@@ -56,26 +56,9 @@ async function executeGraphQL(query, variables = {}, token = null) {
 
 // Virtual type definitions for client-specific fields
 const virtualTypeDefs = gql`
-  extend type Query {
-    # Client-specific fields and aliases
-    clientInfo: ClientInfo!
-    friendsMoods: [PublicMood]
-    userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-    sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
-    receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
-  }
-  
-  extend type Mutation {
-    # Client-specific mutations
-    sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug
-  }
-  
-  type ClientInfo {
-    version: String!
-    buildDate: String!
-    platform: String
-    deviceInfo: String
-    features: [String]
+  # Empty schema extension - we've moved everything to the base schema
+  type _EmptyType {
+    _empty: String
   }
 `;
 
@@ -166,6 +149,119 @@ const virtualResolvers = {
       return result.data?.allMoods?.nodes || [];
     },
     
+    publicMoods: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Query.publicMoods');
+      
+      // For development, return some mock data
+      return [
+        {
+          id: "1",
+          mood: "Happy",
+          intensity: 8,
+          createdAt: new Date().toISOString(),
+          user: {
+            id: "1",
+            username: "demouser"
+          }
+        },
+        {
+          id: "2",
+          mood: "Excited",
+          intensity: 9,
+          createdAt: new Date().toISOString(),
+          user: {
+            id: "1",
+            username: "demouser"
+          }
+        }
+      ];
+      
+      /* 
+      // This functionality would be used once we have actual data
+      const result = await executeGraphQL(`
+        query GetPublicMoods($limit: Int, $offset: Int) {
+          allMoods(
+            filter: { isPrivate: { equalTo: false } }
+            first: $limit
+            offset: $offset
+          ) {
+            nodes {
+              id
+              mood
+              intensity
+              createdAt
+              userId
+              userByUserId {
+                id
+                username
+              }
+            }
+          }
+        }
+      `, {
+        limit: args.limit || 10,
+        offset: args.offset || 0
+      }, context.token);
+      
+      // Transform the response to match our schema
+      const moods = result.data?.allMoods?.nodes || [];
+      return moods.map(mood => ({
+        ...mood,
+        user: mood.userByUserId
+      }));
+      */
+    },
+    
+    moodStreak: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Query.moodStreak', args);
+      // For this demo, we'll return mock data since we don't have a real streak calculation
+      // In production, this would call an actual API endpoint
+      return {
+        userId: args.userId,
+        currentStreak: 3,
+        longestStreak: 7,
+        lastMoodDate: new Date().toISOString()
+      };
+    },
+    
+    currentUser: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Query.currentUser');
+      if (!context.user || !context.token) {
+        return null;
+      }
+      
+      // We'd normally fetch user data from the API here
+      // For now we'll return the context user
+      return context.user;
+    },
+    
+    login: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Query.login');
+      // In a real implementation, this would validate credentials and return a token
+      return {
+        token: "sample_token",
+        user: {
+          id: "1",
+          username: "demouser",
+          email: args.email
+        }
+      };
+    },
+    
+    register: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Query.register');
+      // In a real implementation, this would create a user and return a token
+      return {
+        token: "sample_token",
+        user: {
+          id: "1",
+          username: args.username,
+          email: args.email
+        }
+      };
+    },
+    
+    // These were in the original virtualResolvers
     sentHugs: async (_, args, context) => {
       console.log('[Enhanced Gateway] Resolving Query.sentHugs -> hugs (sent)', args);
       const result = await executeGraphQL(`
@@ -274,17 +370,99 @@ const virtualResolvers = {
   },
   
   Mutation: {
+    login: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.login');
+      // In a real implementation, this would validate credentials and return a token
+      return {
+        token: "sample_token",
+        user: {
+          id: "1",
+          username: "demouser",
+          email: args.email
+        }
+      };
+    },
+    
+    register: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.register');
+      // In a real implementation, this would create a user and return a token
+      return {
+        token: "sample_token",
+        user: {
+          id: "1",
+          username: args.username,
+          email: args.email
+        }
+      };
+    },
+    
+    markHugAsRead: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.markHugAsRead', args);
+      const result = await executeGraphQL(`
+        mutation MarkHugAsRead($id: ID!) {
+          updateHug(input: {
+            id: $id
+            patch: {
+              isRead: true
+            }
+          }) {
+            hug {
+              id
+              isRead
+              message
+              createdAt
+              sender {
+                id
+                username
+              }
+              recipient {
+                id
+                username
+              }
+            }
+          }
+        }
+      `, {
+        id: args.id
+      }, context.token);
+      
+      return result.data?.updateHug?.hug || null;
+    },
+    
+    updateProfile: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.updateProfile', args);
+      if (!context.user || !context.user.id) {
+        throw new Error("User not authenticated");
+      }
+      
+      const result = await executeGraphQL(`
+        mutation UpdateUser($id: ID!, $input: UserPatch!) {
+          updateUser(input: {
+            id: $id
+            patch: $input
+          }) {
+            user {
+              id
+              username
+              email
+              bio
+              profileImage
+            }
+          }
+        }
+      `, {
+        id: context.user.id,
+        input: args.input
+      }, context.token);
+      
+      return result.data?.updateUser?.user || null;
+    },
+    
     sendFriendHug: async (_, args, context) => {
       console.log('[Enhanced Gateway] Resolving Mutation.sendFriendHug -> sendHug', args);
       const result = await executeGraphQL(`
-        mutation SendHug($input: HugInput!) {
-          createHug(input: {
-            hug: {
-              recipientId: $input.toUserId
-              moodId: $input.moodId
-              message: $input.message
-            }
-          }) {
+        mutation SendHug($input: CreateHugInput!) {
+          createHug(input: $input) {
             hug {
               id
               message
@@ -310,9 +488,11 @@ const virtualResolvers = {
         }
       `, {
         input: {
-          toUserId: args.toUserId,
-          moodId: args.moodId,
-          message: args.message
+          hug: {
+            recipientId: args.toUserId,
+            moodId: args.moodId,
+            message: args.message
+          }
         }
       }, context.token);
       
@@ -369,29 +549,39 @@ async function startServer() {
       // Use a minimal schema as fallback
       remoteSchema = gql`
         type Query {
-          hello: String
-          users: [User]
-          currentUser: User
-          user(id: ID!): User
+          allMoods: MoodsConnection
+          allHugs: HugsConnection
+          allUsers: UsersConnection
+          userById(id: ID!): User
           userByUsername(username: String!): User
-          moods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-          moodById(id: ID!): MoodEntry
-          moodStreak(userId: ID): MoodStreak
-          publicMoods(limit: Int, offset: Int): [PublicMood]
-          hugs(userId: ID, type: String, limit: Int, offset: Int): [Hug]
+          userByEmail(email: String!): User
+          moodById(id: ID!): Mood
           hugById(id: ID!): Hug
-          hugRequests(userId: ID): [HugRequest]
+          # Add virtual fields here to match the resolvers
+          sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
+          receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
+          friendsMoods: [PublicMood]
+          userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
+          publicMoods(limit: Int, offset: Int): [PublicMood]
+          moodStreak(userId: ID): MoodStreak
+          currentUser: User
+          clientInfo: ClientInfo!
+          login(email: String!, password: String!): AuthPayload
+          register(username: String!, email: String!, password: String!): AuthPayload
         }
         
         type Mutation {
+          createUser(input: CreateUserInput!): CreateUserPayload
+          updateUser(input: UpdateUserInput!): UpdateUserPayload
+          createMood(input: CreateMoodInput!): CreateMoodPayload
+          updateMood(input: UpdateMoodInput!): UpdateMoodPayload
+          createHug(input: CreateHugInput!): CreateHugPayload
+          updateHug(input: UpdateHugInput!): UpdateHugPayload
+          # Add virtual mutation fields to match resolvers
+          sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug
           login(email: String!, password: String!): AuthPayload
           register(username: String!, email: String!, password: String!): AuthPayload
-          createMood(input: MoodInput!): MoodEntry
-          updateMood(id: ID!, input: MoodInput!): MoodEntry
-          deleteMood(id: ID!): Boolean
-          sendHug(input: HugInput!): Hug
           markHugAsRead(id: ID!): Hug
-          createHugRequest(input: HugRequestInput!): HugRequest
           updateProfile(input: ProfileInput!): User
         }
         
@@ -401,16 +591,178 @@ async function startServer() {
           email: String
           profileImage: String
           bio: String
-          createdAt: String
+          createdAt: Datetime
+          moods(first: Int, offset: Int): MoodsConnection
+          sentHugs(first: Int, offset: Int): HugsConnection
+          receivedHugs(first: Int, offset: Int): HugsConnection
         }
         
+        type Mood {
+          id: ID!
+          mood: String!
+          intensity: Int!
+          note: String
+          isPrivate: Boolean
+          createdAt: Datetime
+          userId: ID
+          user: User
+          hugs(first: Int, offset: Int): HugsConnection
+        }
+        
+        type Hug {
+          id: ID!
+          message: String
+          isRead: Boolean
+          createdAt: Datetime
+          senderId: ID
+          recipientId: ID
+          moodId: ID
+          sender: User
+          recipient: User
+          mood: Mood
+        }
+        
+        type MoodsConnection {
+          nodes: [Mood]
+          edges: [MoodsEdge]
+          pageInfo: PageInfo
+        }
+        
+        type MoodsEdge {
+          cursor: Cursor
+          node: Mood
+        }
+        
+        type HugsConnection {
+          nodes: [Hug]
+          edges: [HugsEdge]
+          pageInfo: PageInfo
+        }
+        
+        type HugsEdge {
+          cursor: Cursor
+          node: Hug
+        }
+        
+        type UsersConnection {
+          nodes: [User]
+          edges: [UsersEdge]
+          pageInfo: PageInfo
+        }
+        
+        type UsersEdge {
+          cursor: Cursor
+          node: User
+        }
+        
+        type PageInfo {
+          hasNextPage: Boolean!
+          hasPreviousPage: Boolean!
+          startCursor: Cursor
+          endCursor: Cursor
+        }
+        
+        type CreateUserPayload {
+          user: User
+        }
+        
+        type CreateMoodPayload {
+          mood: Mood
+        }
+        
+        type CreateHugPayload {
+          hug: Hug
+        }
+        
+        type UpdateUserPayload {
+          user: User
+        }
+        
+        type UpdateMoodPayload {
+          mood: Mood
+        }
+        
+        type UpdateHugPayload {
+          hug: Hug
+        }
+        
+        input CreateUserInput {
+          user: UserInput!
+        }
+        
+        input UserInput {
+          username: String!
+          email: String!
+          password: String!
+          profileImage: String
+          bio: String
+        }
+        
+        input CreateMoodInput {
+          mood: MoodInput!
+        }
+        
+        input MoodInput {
+          mood: String!
+          intensity: Int!
+          note: String
+          isPrivate: Boolean
+          userId: ID
+        }
+        
+        input CreateHugInput {
+          hug: HugInput!
+        }
+        
+        input HugInput {
+          message: String
+          recipientId: ID!
+          moodId: ID!
+        }
+        
+        input UpdateUserInput {
+          id: ID!
+          patch: UserPatch!
+        }
+        
+        input UserPatch {
+          username: String
+          email: String
+          profileImage: String
+          bio: String
+          password: String
+        }
+        
+        input UpdateMoodInput {
+          id: ID!
+          patch: MoodPatch!
+        }
+        
+        input MoodPatch {
+          mood: String
+          intensity: Int
+          note: String
+          isPrivate: Boolean
+        }
+        
+        input UpdateHugInput {
+          id: ID!
+          patch: HugPatch!
+        }
+        
+        input HugPatch {
+          isRead: Boolean
+          message: String
+        }
+        
+        # Custom client-specific types
         type MoodEntry {
           id: ID!
           mood: String!
           intensity: Int!
           note: String
           isPrivate: Boolean
-          createdAt: String!
+          createdAt: String
           user: User
         }
         
@@ -418,27 +770,8 @@ async function startServer() {
           id: ID!
           mood: String!
           intensity: Int!
-          createdAt: String!
+          createdAt: String
           user: User
-          score: Int
-        }
-        
-        type Hug {
-          id: ID!
-          message: String
-          isRead: Boolean
-          createdAt: String!
-          sender: User
-          recipient: User
-          mood: MoodEntry
-        }
-        
-        type HugRequest {
-          id: ID!
-          status: String!
-          createdAt: String!
-          fromUser: User
-          toUser: User
         }
         
         type MoodStreak {
@@ -452,22 +785,13 @@ async function startServer() {
           token: String!
           user: User!
         }
-        
-        input MoodInput {
-          mood: String!
-          intensity: Int!
-          note: String
-          isPrivate: Boolean
-        }
-        
-        input HugInput {
-          toUserId: ID!
-          moodId: ID!
-          message: String
-        }
-        
-        input HugRequestInput {
-          toUserId: ID!
+
+        type ClientInfo {
+          version: String!
+          buildDate: String!
+          platform: String
+          deviceInfo: String
+          features: [String]
         }
         
         input ProfileInput {
@@ -476,11 +800,275 @@ async function startServer() {
           email: String
           profileImage: String
         }
+
+        scalar Datetime
+        scalar Cursor
       `;
     }
     
     // Create the merged schema with virtual fields
     console.log('Merging schema with virtual type defs...');
+    
+    // We'll always use our local schema definition to ensure it has all our custom fields
+    console.log('Using local schema definition for consistency...');
+    remoteSchema = gql`
+      type Query {
+        allMoods: MoodsConnection
+        allHugs: HugsConnection
+        allUsers: UsersConnection
+        userById(id: ID!): User
+        userByUsername(username: String!): User
+        userByEmail(email: String!): User
+        moodById(id: ID!): Mood
+        hugById(id: ID!): Hug
+        # Add virtual fields here to match the resolvers
+        sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
+        receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
+        friendsMoods: [PublicMood]
+        userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
+        publicMoods(limit: Int, offset: Int): [PublicMood]
+        moodStreak(userId: ID): MoodStreak
+        currentUser: User
+        clientInfo: ClientInfo!
+        login(email: String!, password: String!): AuthPayload
+        register(username: String!, email: String!, password: String!): AuthPayload
+      }
+      
+      type Mutation {
+        createUser(input: CreateUserInput!): CreateUserPayload
+        updateUser(input: UpdateUserInput!): UpdateUserPayload
+        createMood(input: CreateMoodInput!): CreateMoodPayload
+        updateMood(input: UpdateMoodInput!): UpdateMoodPayload
+        createHug(input: CreateHugInput!): CreateHugPayload
+        updateHug(input: UpdateHugInput!): UpdateHugPayload
+        # Add virtual mutation fields to match resolvers
+        sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug
+        login(email: String!, password: String!): AuthPayload
+        register(username: String!, email: String!, password: String!): AuthPayload
+        markHugAsRead(id: ID!): Hug
+        updateProfile(input: ProfileInput!): User
+      }
+      
+      type User {
+        id: ID!
+        username: String!
+        email: String
+        profileImage: String
+        bio: String
+        createdAt: Datetime
+        moods(first: Int, offset: Int): MoodsConnection
+        sentHugs(first: Int, offset: Int): HugsConnection
+        receivedHugs(first: Int, offset: Int): HugsConnection
+      }
+      
+      type Mood {
+        id: ID!
+        mood: String!
+        intensity: Int!
+        note: String
+        isPrivate: Boolean
+        createdAt: Datetime
+        userId: ID
+        user: User
+        hugs(first: Int, offset: Int): HugsConnection
+      }
+      
+      type Hug {
+        id: ID!
+        message: String
+        isRead: Boolean
+        createdAt: Datetime
+        senderId: ID
+        recipientId: ID
+        moodId: ID
+        sender: User
+        recipient: User
+        mood: Mood
+      }
+      
+      type MoodsConnection {
+        nodes: [Mood]
+        edges: [MoodsEdge]
+        pageInfo: PageInfo
+      }
+      
+      type MoodsEdge {
+        cursor: Cursor
+        node: Mood
+      }
+      
+      type HugsConnection {
+        nodes: [Hug]
+        edges: [HugsEdge]
+        pageInfo: PageInfo
+      }
+      
+      type HugsEdge {
+        cursor: Cursor
+        node: Hug
+      }
+      
+      type UsersConnection {
+        nodes: [User]
+        edges: [UsersEdge]
+        pageInfo: PageInfo
+      }
+      
+      type UsersEdge {
+        cursor: Cursor
+        node: User
+      }
+      
+      type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: Cursor
+        endCursor: Cursor
+      }
+      
+      type CreateUserPayload {
+        user: User
+      }
+      
+      type CreateMoodPayload {
+        mood: Mood
+      }
+      
+      type CreateHugPayload {
+        hug: Hug
+      }
+      
+      type UpdateUserPayload {
+        user: User
+      }
+      
+      type UpdateMoodPayload {
+        mood: Mood
+      }
+      
+      type UpdateHugPayload {
+        hug: Hug
+      }
+      
+      input CreateUserInput {
+        user: UserInput!
+      }
+      
+      input UserInput {
+        username: String!
+        email: String!
+        password: String!
+        profileImage: String
+        bio: String
+      }
+      
+      input CreateMoodInput {
+        mood: MoodInput!
+      }
+      
+      input MoodInput {
+        mood: String!
+        intensity: Int!
+        note: String
+        isPrivate: Boolean
+        userId: ID
+      }
+      
+      input CreateHugInput {
+        hug: HugInput!
+      }
+      
+      input HugInput {
+        message: String
+        recipientId: ID!
+        moodId: ID!
+      }
+      
+      input UpdateUserInput {
+        id: ID!
+        patch: UserPatch!
+      }
+      
+      input UserPatch {
+        username: String
+        email: String
+        profileImage: String
+        bio: String
+        password: String
+      }
+      
+      input UpdateMoodInput {
+        id: ID!
+        patch: MoodPatch!
+      }
+      
+      input MoodPatch {
+        mood: String
+        intensity: Int
+        note: String
+        isPrivate: Boolean
+      }
+      
+      input UpdateHugInput {
+        id: ID!
+        patch: HugPatch!
+      }
+      
+      input HugPatch {
+        isRead: Boolean
+        message: String
+      }
+      
+      # Custom client-specific types
+      type MoodEntry {
+        id: ID!
+        mood: String!
+        intensity: Int!
+        note: String
+        isPrivate: Boolean
+        createdAt: String
+        user: User
+      }
+      
+      type PublicMood {
+        id: ID!
+        mood: String!
+        intensity: Int!
+        createdAt: String
+        user: User
+      }
+      
+      type MoodStreak {
+        userId: ID!
+        currentStreak: Int!
+        longestStreak: Int!
+        lastMoodDate: String
+      }
+      
+      type AuthPayload {
+        token: String!
+        user: User!
+      }
+
+      type ClientInfo {
+        version: String!
+        buildDate: String!
+        platform: String
+        deviceInfo: String
+        features: [String]
+      }
+      
+      input ProfileInput {
+        username: String
+        bio: String
+        email: String
+        profileImage: String
+      }
+
+      scalar Datetime
+      scalar Cursor
+    `;
+    
     const virtualSchema = makeExecutableSchema({
       typeDefs: [remoteSchema, virtualTypeDefs],
       resolvers: virtualResolvers

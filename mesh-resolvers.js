@@ -68,8 +68,8 @@ const transformHugNode = (node) => {
   };
 };
 
-// Export resolvers using ES module syntax
-export default {
+// Export resolvers as CommonJS module
+module.exports = {
   Query: {
     // Client information - client-only field providing version info
     clientInfo: () => {

@@ -38,7 +38,7 @@ else
   
   # Default configuration
   PORT="${PORT:-5003}"
-  GRAPHQL_API_ENDPOINT="${GRAPHQL_API_ENDPOINT:-http://localhost:3003/graphql}"
+  GRAPHQL_API_ENDPOINT="${GRAPHQL_API_ENDPOINT:-http://localhost:3003/postgraphile/graphql}"
   SERVICE_NAME="${SERVICE_NAME:-ApolloMeshGateway}"
   UPSTREAM_SERVICE="${UPSTREAM_SERVICE:-PostGraphile}"
 fi
@@ -96,12 +96,12 @@ if [ ! -f ".meshrc.yml" ]; then
 fi
 
 # Choose the appropriate server implementation based on available files
-if [ -f "enhanced-mesh-apollo.js" ]; then
-  # Start the Enhanced Apollo Mesh Gateway
-  echo "🌐 Starting Enhanced Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
-  exec node enhanced-mesh-apollo.js
+if [ -f "enhanced-mesh-apollo.mjs" ]; then
+  # Start the Enhanced Apollo Mesh Gateway using ESM
+  echo "🌐 Starting Enhanced ESM Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
+  exec node --experimental-json-modules enhanced-mesh-apollo.mjs
 elif [ -f "mesh-apollo-server.js" ]; then
-  # Try the ESM version if available
+  # Try the alternative ESM version if available
   echo "🌐 Starting ESM Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
   exec node --experimental-json-modules mesh-apollo-server.js
 elif [ -f "apollo-mesh-gateway.js" ]; then
