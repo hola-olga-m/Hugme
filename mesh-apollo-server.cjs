@@ -1,19 +1,16 @@
 /**
- * GraphQL Mesh + Apollo Server Integration
+ * GraphQL Mesh + Apollo Server Integration (CommonJS version)
  * This file configures Apollo Server to work with GraphQL Mesh
- * Using a simplified approach that avoids WebSocket issues
+ * Using a simplified approach that avoids WebSocket and ESM issues
  */
 
-import { getMesh } from '@graphql-mesh/runtime';
-import { loadConfig } from '@graphql-mesh/config';
-import { ApolloServer } from 'apollo-server';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-
-// Getting current file's directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { getMesh } = require('@graphql-mesh/runtime');
+const { processConfig } = require('@graphql-mesh/config');
+const { ApolloServer } = require('apollo-server');
+const path = require('path');
+const fs = require('fs');
+const { print } = require('graphql');
+const yaml = require('js-yaml');
 
 // Port configuration - use environment variable or default
 const PORT = process.env.PORT || 5001;
@@ -47,10 +44,16 @@ async function main() {
     // Load and parse Mesh configuration from .meshrc.yml
     console.log('📂 Loading Mesh configuration from .meshrc.yml...');
     
-    // Use the loadConfig helper to automatically locate and parse the config
-    const meshConfig = await loadConfig({
-      dir: __dirname,
-      configName: '.meshrc.yml',
+    // Directly load the configuration from file
+    const configFile = path.join(__dirname, '.meshrc.yml');
+    const configContent = fs.readFileSync(configFile, 'utf8');
+    const rawConfig = yaml.load(configContent);
+    
+    // Process the config
+    const meshConfig = await processConfig({
+      config: rawConfig,
+      rootDir: __dirname,
+      cwd: __dirname,
       // Provide runtime values to the mesh configuration
       additionalEnv: {
         API_ENDPOINT,
@@ -63,6 +66,14 @@ async function main() {
     // Initialize the GraphQL Mesh instance
     console.log('⚙️ Initializing GraphQL Mesh...');
     const { schema, contextBuilder } = await getMesh(meshConfig);
+    
+    // Load resolvers
+    const customResolversPath = path.join(__dirname, 'mesh-resolvers.cjs');
+    let customResolvers = {};
+    if (fs.existsSync(customResolversPath)) {
+      console.log('📂 Loading custom resolvers...');
+      customResolvers = require('./mesh-resolvers.cjs');
+    }
     
     // Create Apollo Server with the Mesh schema
     console.log('🚀 Creating Apollo Server with Mesh schema...');
