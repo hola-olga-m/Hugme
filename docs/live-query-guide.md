@@ -14,6 +14,16 @@ Live Queries allow you to receive real-time updates to your query results withou
 2. **Automatic Updates**: Receive updates when mutations affect query results
 3. **No Subscription Management**: No need to manually create, manage, and cancel subscriptions
 4. **Works with Existing Queries**: Reuse your existing query code - just add the `@live` directive
+5. **Easier Testing**: Mock authentication simplifies testing user-specific data
+
+## How It Works
+
+Behind the scenes, Live Queries use a combination of:
+
+1. GraphQL directives (`@live`) to identify queries that should receive real-time updates
+2. A special execution mechanism that keeps track of these queries
+3. Smart caching to detect when data has changed and needs to be refreshed
+4. WebSockets or Server-Sent Events (SSE) to push updates to clients
 
 ## Using Live Queries
 
@@ -110,3 +120,40 @@ The following endpoints support the `@live` directive:
 - `userMoods`: Get real-time updates on a user's moods
 - `receivedHugs`: Get real-time updates when a user receives new hugs
 - `sentHugs`: Get real-time updates on hugs sent by a user
+
+## Testing with Mock Authentication
+
+The HugMeNow Live Query Gateway includes support for mock authentication, which simplifies testing user-specific endpoints and functionality without requiring a real user account. This is especially useful for:
+
+1. **Automated Tests**: Run integration tests without needing to create real user accounts
+2. **Development**: Test user-specific features locally without logging in
+3. **Demo Purposes**: Demonstrate user-specific features without requiring login
+
+### How to Use Mock Authentication
+
+1. Add a special mock authentication token to your requests:
+
+```javascript
+// JavaScript example with Apollo Client
+const client = new ApolloClient({
+  uri: 'http://localhost:5006/graphql',
+  headers: {
+    authorization: 'Bearer mock-auth-token-for-testing'
+  }
+});
+```
+
+2. Use queries and mutations as normal, and the gateway will automatically:
+   - Create a mock user context
+   - Simulate user-specific responses
+   - Process mutations with mock data
+
+### Mock Testing Limitations
+
+While mock authentication is useful for testing, there are some limitations:
+
+1. **Persistence**: Mock data is not stored in the database
+2. **Relationships**: Mock objects may not have all relationships populated
+3. **Validation**: Some database-level validations might be bypassed
+
+For production-grade testing, you should use real authentication and test against a proper test database.

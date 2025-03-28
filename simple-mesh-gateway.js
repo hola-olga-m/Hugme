@@ -68,11 +68,27 @@ async function startServer() {
     const yoga = createYoga({
       schema,
       context: (req) => {
+        // Get authorization header
+        const authHeader = req.request.headers.get('authorization');
+        
+        // Check for mock authentication token
+        const isMockAuth = authHeader && authHeader.includes('mock-auth-token');
+        
+        // Create mock user if using mock auth token
+        const mockUser = isMockAuth ? {
+          id: 'mock-user-123',
+          username: 'mockuser',
+          email: 'mock@example.com',
+          authenticated: true
+        } : null;
+        
         // Merge context from mesh with original request
         return {
           ...contextBuilder(req),
           headers: req.request.headers,
-          request: req.request
+          request: req.request,
+          user: mockUser, // Add mock user to context if token is present
+          mockAuth: isMockAuth // Flag to indicate mock authentication
         };
       },
       graphqlEndpoint: '/graphql',

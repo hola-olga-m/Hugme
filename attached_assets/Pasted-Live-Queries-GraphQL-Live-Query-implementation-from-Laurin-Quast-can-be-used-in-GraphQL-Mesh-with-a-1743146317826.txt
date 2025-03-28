@@ -155,3 +155,47 @@ plugins:
 ```
 
 This tells the server which queries should be refreshed when specific mutations occur.
+
+## Testing Live Queries with Mock Authentication
+
+For testing purposes, the HugMeNow implementation includes support for mock authentication:
+
+```javascript
+// Create Apollo client with mock authentication
+const client = new ApolloClient({
+  uri: 'http://localhost:5006/graphql',
+  cache: new InMemoryCache(),
+  headers: {
+    authorization: 'Bearer mock-auth-token-for-testing'
+  }
+});
+
+// Use live queries with mock auth
+const { loading, data, error } = useQuery(gql`
+  query MyMoods @live {
+    userMoods(userId: "mock-user-123", limit: 5) {
+      id
+      mood
+      intensity
+      message
+    }
+  }
+`);
+```
+
+### How Mock Authentication Works
+
+1. The gateway detects the special `mock-auth-token-for-testing` token
+2. It creates a mock user context with predefined user data
+3. Queries that need authentication can now be tested without real users
+4. Mutations with mock authentication return simulated responses
+
+This makes it easy to:
+- Run automated tests without real user accounts
+- Test user-specific features during development
+- Demonstrate authenticated features in demos
+
+For comprehensive testing, use the provided test script:
+```bash
+bash run-live-query-basic-tests.sh
+```
