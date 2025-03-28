@@ -46,6 +46,10 @@ localPort = 5004
 externalPort = 6800
 
 [[ports]]
+localPort = 5006
+externalPort = 8000
+
+[[ports]]
 localPort = 5173
 externalPort = 80
 
@@ -84,6 +88,10 @@ args = "CustomGraphQLGateway"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "EnhancedGraphQLGateway"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "SimpleMeshGateway"
 
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
@@ -228,3 +236,18 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-enhanced-gateway.sh"
 waitForPort = 5004
+
+[[workflows.workflow]]
+name = "SimpleMeshGateway"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-simple-mesh-gateway.sh"
+waitForPort = 5006

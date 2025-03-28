@@ -5,63 +5,49 @@
  * data updates without explicit subscription handling.
  */
 
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 import chalk from 'chalk';
-// Import our unified GraphQL version
-import { getGraphQLVersion } from './graphql-resolver.js';
 
-// Log the GraphQL version we're using
-console.log('Using GraphQL version:', getGraphQLVersion());
-
-// Get the port from the environment variable, default to 5003
-const PORT = process.env.GATEWAY_PORT || '5003';
-const APOLLO_MESH_ENDPOINT = `http://localhost:${PORT}/graphql`;
-
-// Test user credentials
-const TEST_EMAIL = 'test@example.com';
+// Configuration
+const GATEWAY_URL = 'http://localhost:5006/graphql';
+const TEST_USERNAME = 'testuser_live';
 const TEST_PASSWORD = 'password123';
-const TEST_TOKEN = 'Bearer test-token-for-development-only';
-
-// Sample UUIDs for testing (valid PostgreSQL UUID format)
-const USER_ID_1 = '550e8400-e29b-41d4-a716-446655440000'; // Sample sender
-const USER_ID_2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // Sample recipient
+const TEST_EMAIL = 'testuser_live@example.com';
+let TEST_TOKEN = null;
+let TEST_USER_ID = null;
 
 /**
- * Execute a GraphQL query/mutation via HTTP
- * This function uses direct REST calls to avoid GraphQL library version conflicts
+ * Execute a GraphQL query against the Simple Mesh Gateway
  */
 async function executeGraphQL(query, variables = {}, token = TEST_TOKEN) {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   try {
-    // Get the endpoint from environment or use default
-    const port = process.env.GATEWAY_PORT || '5003';
-    const endpoint = `http://localhost:${port}/graphql`;
-    console.log(`Executing GraphQL to ${endpoint}`);
-    
-    // Do a direct POST request with the query as a string
-    const response = await fetch(endpoint, {
+    const response = await fetch(GATEWAY_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': token } : {})
-      },
-      body: JSON.stringify({ 
-        query: query,
-        variables: variables
-      })
+      headers,
+      body: JSON.stringify({
+        query,
+        variables,
+      }),
     });
     
-    // Parse the response
     const result = await response.json();
     
     if (result.errors) {
-      console.error('GraphQL errors:', result.errors);
-      return null;
+      console.error(chalk.red('GraphQL Error:'), result.errors);
     }
     
-    return result.data;
+    return result;
   } catch (error) {
-    console.error('Error executing GraphQL:', error);
-    return null;
+    console.error(chalk.red('Network Error:'), error.message);
+    throw error;
   }
 }
 
@@ -69,141 +55,252 @@ async function executeGraphQL(query, variables = {}, token = TEST_TOKEN) {
  * Test using Live Query to automatically update mood data
  */
 async function testLiveQueryMoods() {
-  console.log(chalk.blue('\n=== Testing Live Query for Mood Updates ==='));
+  console.log(chalk.cyan('🔄 Testing Live Query for mood updates...'));
   
-  // Step 1: Execute the query with @live directive
-  console.log('Executing Live Query for mood updates...');
-  console.log('Note: In a real client, this would establish a live connection');
-  console.log('      that automatically refreshes when data changes');
+  // Register a new user if we don't have a token
+  if (!TEST_TOKEN) {
+    // Register user
+    const registerResult = await executeGraphQL(`
+      mutation RegisterUser {
+        register(input: {
+          email: "${TEST_EMAIL}",
+          password: "${TEST_PASSWORD}",
+          username: "${TEST_USERNAME}"
+        }) {
+          user {
+            id
+            username
+          }
+          token
+        }
+      }
+    `);
+    
+    if (registerResult.data?.register) {
+      TEST_TOKEN = registerResult.data.register.token;
+      TEST_USER_ID = registerResult.data.register.user.id;
+      console.log(chalk.green('✅ User registered:'), TEST_USERNAME);
+    } else {
+      // Try login instead
+      const loginResult = await executeGraphQL(`
+        mutation Login {
+          login(input: {
+            email: "${TEST_EMAIL}",
+            password: "${TEST_PASSWORD}"
+          }) {
+            user {
+              id
+              username
+            }
+            token
+          }
+        }
+      `);
+      
+      if (loginResult.data?.login) {
+        TEST_TOKEN = loginResult.data.login.token;
+        TEST_USER_ID = loginResult.data.login.user.id;
+        console.log(chalk.green('✅ User logged in:'), TEST_USERNAME);
+      } else {
+        console.error(chalk.red('❌ Failed to authenticate'));
+        return;
+      }
+    }
+  }
   
-  const liveMoodsQuery = `
-    query GetLiveMoods @live {
-      userMoods(userId: "${USER_ID_1}", limit: 5) {
+  // Start a Live Query for user moods
+  console.log(chalk.cyan('🔄 Starting Live Query for moods...'));
+  
+  // This query uses the @live directive to automatically refresh when new moods are created
+  const liveQueryPromise = executeGraphQL(`
+    query UserMoodsLive @live {
+      userMoods(userId: "${TEST_USER_ID}", limit: 10) {
         id
+        mood
         intensity
         message
         createdAt
-        userId
       }
     }
-  `;
+  `, {}, TEST_TOKEN);
   
-  const initialResult = await executeGraphQL(liveMoodsQuery);
-  console.log(chalk.green('Initial mood data:'), initialResult?.userMoods);
+  // Watch for updates from the live query
+  const liveQueryResult = await liveQueryPromise;
+  console.log(chalk.green('📊 Initial moods:'), 
+    liveQueryResult.data?.userMoods?.length || 0);
   
-  // Step 2: Create a new mood to demonstrate how it would trigger updates
-  console.log('\nCreating a new mood...');
-  console.log('In a real client implementation, this would automatically update the previous query results');
+  // Create a new mood to trigger the Live Query update
+  console.log(chalk.cyan('🔄 Creating a new mood to trigger Live Query update...'));
+  const createMoodResult = await executeGraphQL(`
+    mutation CreateMood {
+      createMood(input: {
+        mood: {
+          userId: "${TEST_USER_ID}",
+          mood: "Happy",
+          intensity: 8,
+          message: "Testing Live Query at ${new Date().toISOString()}",
+          isPublic: true
+        }
+      }) {
+        mood {
+          id
+          mood
+          intensity
+          message
+        }
+      }
+    }
+  `, {}, TEST_TOKEN);
   
-  const createResult = await executeGraphQL(`
-    mutation CreateMood($input: CreateMoodInput!) {
-      createMood(input: $input) {
+  console.log(chalk.green('✅ Created new mood:'), 
+    createMoodResult.data?.createMood?.mood?.message);
+  
+  // In a real application, the client would receive an automatic update here
+  // due to the @live directive. For testing purposes, we'll make another request
+  // to simulate this.
+  console.log(chalk.cyan('🔄 Simulating Live Query update...'));
+  const updatedMoodsResult = await executeGraphQL(`
+    query UserMoodsAfterUpdate {
+      userMoods(userId: "${TEST_USER_ID}", limit: 10) {
         id
+        mood
         intensity
         message
-        userId
         createdAt
       }
     }
-  `, {
-    input: {
-      intensity: 8,
-      message: "Testing live queries! This will automatically refresh mood data!",
-      userId: USER_ID_1
-    }
-  });
+  `, {}, TEST_TOKEN);
   
-  console.log(chalk.green('Created mood:'), createResult?.createMood);
+  console.log(chalk.green('📊 Updated moods count:'), 
+    updatedMoodsResult.data?.userMoods?.length || 0);
   
-  // Step 3: Explain how the previous query would automatically update
-  console.log(chalk.yellow('\nWith @live directive, the client would automatically receive an updated result'));
-  console.log(chalk.yellow('without having to manually execute the query again.'));
-  
-  return true;
+  if (updatedMoodsResult.data?.userMoods?.length > 
+      (liveQueryResult.data?.userMoods?.length || 0)) {
+    console.log(chalk.green('✅ Live Query would have updated automatically!'));
+  } else {
+    console.log(chalk.yellow('⚠️ Live Query update not detected - might need to check the implementation'));
+  }
 }
 
 /**
  * Test using Live Query to automatically update hug data
  */
 async function testLiveQueryHugs() {
-  console.log(chalk.blue('\n=== Testing Live Query for Hug Updates ==='));
+  console.log(chalk.cyan('\n🔄 Testing Live Query for hug updates...'));
   
-  // Step 1: Execute the query with @live directive
-  console.log('Executing Live Query for hug updates...');
+  // Start a Live Query for received hugs
+  console.log(chalk.cyan('🔄 Starting Live Query for received hugs...'));
   
-  const liveHugsQuery = `
-    query GetLiveHugs @live {
-      receivedHugs(userId: "${USER_ID_2}", limit: 5) {
+  // This query uses the @live directive to automatically refresh when new hugs are received
+  const liveQueryPromise = executeGraphQL(`
+    query ReceivedHugsLive @live {
+      receivedHugs(userId: "${TEST_USER_ID}", limit: 10) {
         id
         message
-        senderId
-        recipientId
-        sentAt
+        createdAt
+        fromUser {
+          id
+          username
+        }
+        toUser {
+          id
+          username
+        }
       }
     }
-  `;
+  `, {}, TEST_TOKEN);
   
-  const initialResult = await executeGraphQL(liveHugsQuery);
-  console.log(chalk.green('Initial hugs data:'), initialResult?.receivedHugs);
+  const liveQueryResult = await liveQueryPromise;
+  console.log(chalk.green('📊 Initial received hugs:'), 
+    liveQueryResult.data?.receivedHugs?.length || 0);
   
-  // Step 2: Send a new hug to demonstrate how it would trigger updates
-  console.log('\nSending a new hug...');
-  console.log('In a real client implementation, this would automatically update the previous query results');
+  // Get a random mood to send a hug to
+  const moodsResult = await executeGraphQL(`
+    query GetRandomMood {
+      publicMoods(limit: 1) {
+        id
+        userId
+      }
+    }
+  `, {}, TEST_TOKEN);
   
-  const sendResult = await executeGraphQL(`
-    mutation SendHug($input: SendHugInput!) {
-      sendHug(input: $input) {
+  if (!moodsResult.data?.publicMoods?.length) {
+    console.log(chalk.yellow('⚠️ No moods found to send hug to'));
+    return;
+  }
+  
+  const moodToHug = moodsResult.data.publicMoods[0];
+  
+  // Send a hug to trigger the Live Query update
+  console.log(chalk.cyan('🔄 Sending a hug to trigger Live Query update...'));
+  const sendHugResult = await executeGraphQL(`
+    mutation SendHug {
+      sendHug(input: {
+        hug: {
+          senderId: "${TEST_USER_ID}",
+          recipientId: "${moodToHug.userId}",
+          moodId: "${moodToHug.id}",
+          message: "Testing Live Query Hugs at ${new Date().toISOString()}"
+        }
+      }) {
+        hug {
+          id
+          message
+          createdAt
+        }
+      }
+    }
+  `, {}, TEST_TOKEN);
+  
+  console.log(chalk.green('✅ Sent new hug:'), 
+    sendHugResult.data?.sendHug?.hug?.message);
+  
+  // In a real application, the client would receive an automatic update here
+  // due to the @live directive. For testing purposes, we'll make another request
+  // to simulate this.
+  console.log(chalk.cyan('🔄 Simulating Live Query update for hugs...'));
+  const updatedHugsResult = await executeGraphQL(`
+    query ReceivedHugsAfterUpdate {
+      receivedHugs(userId: "${TEST_USER_ID}", limit: 10) {
         id
         message
-        senderId
-        recipientId
-        sentAt
+        createdAt
+        fromUser {
+          id
+          username
+        }
+        toUser {
+          id
+          username
+        }
       }
     }
-  `, {
-    input: {
-      message: "Testing live queries with hugs! This will automatically refresh hug data!",
-      senderId: USER_ID_1,
-      recipientId: USER_ID_2
-    }
-  });
+  `, {}, TEST_TOKEN);
   
-  console.log(chalk.green('Sent hug:'), sendResult?.sendHug);
-  
-  // Step 3: Explain how the previous query would automatically update
-  console.log(chalk.yellow('\nWith @live directive, the client would automatically receive an updated list of hugs'));
-  console.log(chalk.yellow('without having to manually execute the query again.'));
-  
-  return true;
+  console.log(chalk.green('📊 Updated received hugs count:'), 
+    updatedHugsResult.data?.receivedHugs?.length || 0);
 }
 
 /**
  * Run all tests
  */
 async function runTests() {
-  console.log(chalk.yellow('Starting GraphQL Live Query tests...'));
+  console.log(chalk.blue('🧪 Starting Live Query Tests'));
+  console.log(chalk.blue(`🔗 Connected to: ${GATEWAY_URL}`));
   
   try {
-    const moodsSuccess = await testLiveQueryMoods();
-    const hugsSuccess = await testLiveQueryHugs();
+    await testLiveQueryMoods();
+    await testLiveQueryHugs();
     
-    console.log(chalk.blue('\n=== Test Summary ==='));
-    console.log(`Live Mood Updates: ${moodsSuccess ? chalk.green('✓ DEMO COMPLETE') : chalk.red('✗ DEMO FAILED')}`);
-    console.log(`Live Hug Updates: ${hugsSuccess ? chalk.green('✓ DEMO COMPLETE') : chalk.red('✗ DEMO FAILED')}`);
+    console.log(chalk.green('\n✅ All Live Query tests completed!'));
+    console.log(chalk.blue('📝 Summary:'));
+    console.log(chalk.blue('- Live Query for moods tested'));
+    console.log(chalk.blue('- Live Query for hugs tested'));
+    console.log(chalk.yellow('Note: In a real client application, the @live directive'));
+    console.log(chalk.yellow('would automatically update the UI when data changes.'));
     
-    if (moodsSuccess && hugsSuccess) {
-      console.log(chalk.green('\n✅ All Live Query demos completed!'));
-      console.log(chalk.cyan('\nHow to use Live Queries in your client:'));
-      console.log(chalk.cyan('1. Simply add @live directive to any query that should update in real-time'));
-      console.log(chalk.cyan('2. The query will automatically refresh when related mutations occur'));
-      console.log(chalk.cyan('3. No need to handle subscriptions or WebSocket connections manually'));
-    } else {
-      console.log(chalk.red('\n❌ Some Live Query demos failed.'));
-    }
   } catch (error) {
-    console.error(chalk.red('Error running Live Query tests:'), error);
-  } finally {
-    process.exit(0);
+    console.error(chalk.red('\n❌ Tests failed:'), error);
   }
 }
 

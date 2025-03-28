@@ -1,34 +1,24 @@
 # Enhanced GraphQL Mesh Configuration for HugMeNow
-# This configuration integrates with Apollo Server via mesh-apollo-server.js
+# This configuration integrates with GraphQL Mesh and supports Live Queries
 
-# API source configuration
+# API source configuration - Using GraphQL handler with more defensive settings
 sources:
   - name: PostGraphileAPI
     handler: graphql
     # Use environment variable for endpoint
-    endpoint: ${env.API_ENDPOINT}
+    endpoint: http://localhost:3003/postgraphile/graphql
     operationHeaders:
       Authorization: '{context.headers.authorization}'
-    # Better introspection options
+    # Better schema handling to avoid GraphQL version conflicts
+    schemaHeaders:
+      Accept: application/json
+    # Introspection options
     introspection:
-      pollingInterval: 10000  # Check for schema changes every 10 seconds
       handleFieldConflicts: true
-    # Enable WebSocket subscriptions
-    subscriptions: 
-      url: ${env.WS_ENDPOINT}
-      useSSE: false
-      eventSourceOptions:
-        withCredentials: true
-    # Add batch execution
+    # Batch execution for better performance
     batch: true
-    # Add operation name handling
-    useGETForQueries: false
     # Timeout settings
     timeout: 30000
-    retry:
-      count: 3
-      delay: 1000
-      factor: 2  # Exponential backoff
 
 # Schema transformations - enhanced with additional plugins
 transforms:
