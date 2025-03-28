@@ -1,0 +1,64 @@
+ThemeContext.jsx:190 ThemeContext - Initializing ThemeProvider: Object
+ThemeContext.jsx:190 ThemeContext - Reading color palette from localStorage: Object
+ThemeContext.jsx:190 ThemeContext - Using default color palette: Object
+ThemeContext.jsx:190 ThemeContext - Reading dark mode preference: Object
+ThemeContext.jsx:190 ThemeContext - Using system dark mode preference: Object
+ThemeContext.jsx:190 ThemeContext - Reading animation preference: Object
+ThemeContext.jsx:190 ThemeContext - Using default animation preference: Object
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: Object
+ThemeContext.jsx:190 ThemeContext - Initializing ThemeProvider: Object
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: Object
+ProtectedRoute.jsx:27 ProtectedRoute: Not authenticated, redirecting to login
+PublicRoute.jsx:11 PublicRoute - Loading: false
+PublicRoute.jsx:17 PublicRoute - Auth state: Object
+PublicRoute.jsx:32 PublicRoute - Not authenticated, rendering children
+PublicRoute.jsx:11 PublicRoute - Loading: false
+PublicRoute.jsx:17 PublicRoute - Auth state: Object
+PublicRoute.jsx:32 PublicRoute - Not authenticated, rendering children
+invariant.js:35 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+Login.jsx:371 Starting regular login with email: olga.v.matusevich@gmail.com
+PublicRoute.jsx:11 PublicRoute - Loading: true
+AuthContext.jsx:64 REST login error: Error: HTTP error 404: Not Found
+    at $r (api.js:47:13)
+    at async login (AuthContext.jsx:56:24)
+    at async A (Login.jsx:373:7)
+login @ AuthContext.jsx:64
+PublicRoute.jsx:11 PublicRoute - Loading: true
+Login.jsx:378 Regular login successful, setting redirect flag
+Login.jsx:382 Navigating to dashboard after login
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: Object
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: Object
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+ProtectedRoute.jsx:11 ProtectedRoute Component - Auth State: Object
+ProtectedRoute.jsx:32 ProtectedRoute: User is authenticated, rendering protected content
+Dashboard.jsx:299 Dashboard detected redirect flag from login
+Dashboard.jsx:309 Dashboard fully loaded after login redirect
+client.js:14 [GraphQL error]: Message: Field "moodStreak" of type "MoodStreak" must have a selection of subfields. Did you mean "moodStreak { ... }"?, Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+client.js:14 [GraphQL error]: Message: Cannot query field "userMoods" on type "Query". Did you mean "moods" or "users"?, Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+client.js:14 [GraphQL error]: Message: Cannot query field "sentHugs" on type "Query". Did you mean "hugs"?, Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+client.js:14 [GraphQL error]: Message: Cannot query field "receivedHugs" on type "Query"., Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+client.js:14 [GraphQL error]: Message: Cannot query field "friendsMoods" on type "Query"., Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+client.js:14 [GraphQL error]: Message: Cannot query field "score" on type "PublicMood". Did you mean "note"?, Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
+client.js:14 [GraphQL error]: Message: Cannot query field "receivedHugs" on type "Query"., Location: undefined, Path: undefined
+(anonymous) @ client.js:14
+client.js:21 [Network error]: ServerError: Response not successful: Received status code 400
+(anonymous) @ client.js:21
