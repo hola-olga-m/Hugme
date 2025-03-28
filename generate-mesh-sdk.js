@@ -228,6 +228,60 @@ export {
  * Create the SDK index file with query implementations
  */
 async function createSdkIndexFile(filePath) {
+  // Instead of importing fragments, define them in-line for direct use
+  const USER_FRAGMENT = `
+    id
+    username
+    email
+    name
+    avatarUrl
+    isAnonymous
+    createdAt
+    updatedAt
+  `;
+
+  const MOOD_FRAGMENT = `
+    id
+    mood
+    intensity
+    note
+    createdAt
+  `;
+
+  const HUG_FRAGMENT = `
+    id
+    type
+    message
+    isRead
+    createdAt
+  `;
+
+  const HUG_REQUEST_FRAGMENT = `
+    id
+    message
+    isCommunityRequest
+    status
+    createdAt
+    respondedAt
+  `;
+
+  const FRIENDSHIP_FRAGMENT = `
+    id
+    requesterId
+    recipientId
+    status
+    followsMood
+    createdAt
+    updatedAt
+  `;
+
+  const MOOD_STREAK_FRAGMENT = `
+    currentStreak
+    longestStreak
+    lastMoodDate
+    totalMoods
+  `;
+  
   const indexContent = `// SDK Implementation
 import { USER_FRAGMENT, MOOD_FRAGMENT, HUG_FRAGMENT, HUG_REQUEST_FRAGMENT, FRIENDSHIP_FRAGMENT, MOOD_STREAK_FRAGMENT } from './gql-fragments.js';
 
@@ -407,23 +461,8 @@ export function getSdk(options = {}) {
       return executeQuery(query, variables);
     },
     
-    /**
-     * Get friends' moods
-     */
-    async FriendsMoods(variables = { limit: 10, offset: 0 }) {
-      const query = \`
-        query FriendsMoods($userId: ID!, $limit: Int, $offset: Int) {
-          friendsMoods(userId: $userId, limit: $limit, offset: $offset) {
-            ${MOOD_FRAGMENT}
-            user {
-              ${USER_FRAGMENT}
-            }
-          }
-        }
-      \`;
-      
-      return executeQuery(query, variables);
-    },
+    // FriendsMoods function has been removed because friendsMoods query no longer exists
+    // Use PublicMoods instead to fetch community/public moods
     
     /**
      * Get friendships

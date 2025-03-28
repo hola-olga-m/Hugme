@@ -106,7 +106,7 @@ async function main() {
           invalidations: [
             {
               field: 'Mutation.createMood',
-              invalidate: ['Query.userMoods', 'Query.friendsMoods']
+              invalidate: ['Query.userMoods', 'Query.publicMoods']
             },
             {
               field: 'Mutation.sendHug',

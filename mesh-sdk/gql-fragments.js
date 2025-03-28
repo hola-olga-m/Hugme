@@ -1,7 +1,3 @@
-/**
- * GraphQL fragments for commonly used types
- */
-
 // User fields
 const USER_FRAGMENT = `
   id
@@ -21,7 +17,6 @@ const MOOD_FRAGMENT = `
   intensity
   note
   createdAt
-  userId
 `;
 
 // Hug fields
