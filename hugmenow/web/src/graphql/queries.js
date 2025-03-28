@@ -107,12 +107,7 @@ export const GET_RECEIVED_HUGS_COUNT = gql`
 
 export const GET_MOOD_STREAK = gql`
   query GetMoodStreak {
-    moodStreak {
-      currentStreak
-      longestStreak
-      lastMoodDate
-      totalMoods
-    }
+    moodStreak { count currentStreak longestStreak }
   }
 `;
 

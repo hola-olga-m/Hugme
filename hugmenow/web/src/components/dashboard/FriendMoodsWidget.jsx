@@ -163,13 +163,13 @@ const MoodScore = styled.span`
   font-weight: 600;
   font-size: 0.875rem;
   background-color: ${props => {
-    if (props.score >= 8) return '#4cd964';
-    if (props.score >= 5) return '#ffcc00';
+    if (props.intensity >= 8) return '#4cd964';
+    if (props.intensity >= 5) return '#ffcc00';
     return '#ff3b30';
   }};
   color: ${props => {
-    if (props.score >= 8) return '#006400';
-    if (props.score >= 5) return '#664d00';
+    if (props.intensity >= 8) return '#006400';
+    if (props.intensity >= 5) return '#664d00';
     return '#fff';
   }};
 `;
@@ -460,7 +460,7 @@ const FriendMoodsWidget = () => {
               <MoodContent>
                 <MoodHeader>
                   <UserName>{mood.user.name || mood.user.username}</UserName>
-                  <MoodScore score={mood.intensity}>{mood.intensity}/10</MoodScore>
+                  <MoodScore intensity={mood.intensity}>{mood.intensity}/10</MoodScore>
                 </MoodHeader>
                 <MoodNote>
                   {mood.note || "No description provided."}

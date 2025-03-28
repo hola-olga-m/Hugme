@@ -21,6 +21,8 @@ const MOOD_FRAGMENT = `
   intensity
   note
   createdAt
+  userId
+  isPublic
 `;
 
 // Hug fields
