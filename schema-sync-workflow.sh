@@ -74,7 +74,7 @@ fetch_schema() {
   return 0
 }
 
-# Function to generate TypeScript types with GraphQL Code Generator
+# Function to generate TypeScript types (now skips traditional codegen)
 generate_types() {
   # Check if schema file exists
   if [ ! -f "$SCHEMA_PATH" ]; then
@@ -82,13 +82,8 @@ generate_types() {
     return 1
   fi
   
-  # Run GraphQL Code Generator with auto-yes
-  echo "y" | npx graphql-codegen --config codegen.yml
-  
-  if [ $? -ne 0 ]; then
-    echo "❌ Generating TypeScript types failed"
-    return 1
-  fi
+  # Skip traditional GraphQL Code Generator as we're now using Mesh SDK
+  echo "ℹ️ Skipping traditional GraphQL codegen in favor of Mesh SDK"
   
   return 0
 }
@@ -231,9 +226,8 @@ main() {
     if fetch_schema; then
       echo "✅ Schema download completed successfully"
       
-      # Generate types using GraphQL Codegen
-      echo "🔄 Generating GraphQL types using codegen.yml..."
-      npx graphql-codegen
+      # Removed traditional GraphQL Codegen step as we're now using Mesh SDK exclusively
+      echo "🔄 Skipping traditional GraphQL Codegen step..."
       
       # Generate Mesh SDK
       generate_mesh_sdk

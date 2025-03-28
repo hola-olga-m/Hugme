@@ -72,12 +72,6 @@ generate:
         limit: Int
         offset: Int
     - type: Query
-      path: publicMoods
-      name: PublicMoods
-      arguments:
-        limit: Int = 10
-        offset: Int = 0
-    - type: Query
       path: moodStreak
       name: MoodStreak
       arguments:
@@ -226,10 +220,10 @@ additionalTypeDefs: |
     clientInfo: ClientInfo!
     
     """
-    Virtual field mapping to allMoods with public filter
-    Retrieves moods that are publicly visible from friends
+    Public moods from all users
+    Retrieves moods that are publicly visible
     """
-    friendsMoods(
+    publicMoods(
       """Maximum number of items to return"""
       limit: Int, 
       """Number of items to skip"""
