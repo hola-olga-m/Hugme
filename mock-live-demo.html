@@ -3,114 +3,453 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HugMeNow Live Query Demo (Mock)</title>
+  <title>HugMeNow Live Query Demo (Enhanced)</title>
   <style>
+    :root {
+      --primary-color: #4CAF50;
+      --primary-hover: #45a049;
+      --background-color: #fff;
+      --card-bg: #f9f9f9;
+      --text-color: #333;
+      --secondary-text: #666;
+      --border-color: #ddd;
+      --shadow-color: rgba(0,0,0,0.1);
+      --highlight-bg: #d4edda;
+      --highlight-color: #155724;
+      --status-active-bg: #d4edda;
+      --status-active-color: #155724;
+      --status-inactive-bg: #fff3cd;
+      --status-inactive-color: #856404;
+      --header-color: #2c3e50;
+      --control-bg: #f5f5f5;
+      --hug-color: #e91e63;
+      --streak-color: #ff9800;
+    }
+    
+    body.dark-theme {
+      --primary-color: #66bb6a;
+      --primary-hover: #81c784;
+      --background-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-color: #eee;
+      --secondary-text: #aaa;
+      --border-color: #333;
+      --shadow-color: rgba(0,0,0,0.3);
+      --highlight-bg: #1b5e20;
+      --highlight-color: #a5d6a7;
+      --status-active-bg: #1b5e20;
+      --status-active-color: #a5d6a7;
+      --status-inactive-bg: #4d3800;
+      --status-inactive-color: #ffe082;
+      --header-color: #81c784;
+      --control-bg: #2d2d2d;
+      --hug-color: #f48fb1;
+      --streak-color: #ffb74d;
+    }
+    
     body {
       font-family: Arial, sans-serif;
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 20px;
       line-height: 1.6;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
     }
+    
+    h1, h2, h3 {
+      color: var(--header-color);
+    }
+    
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary-color);
+    }
+    
+    .app-title {
+      margin: 0;
+    }
+    
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 20px;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 15px;
+    }
+    
+    .user-details h3 {
+      margin: 0 0 5px 0;
+    }
+    
+    .user-stats {
+      display: flex;
+      gap: 15px;
+      margin-top: 5px;
+    }
+    
+    .stat {
+      display: flex;
+      align-items: center;
+    }
+    
+    .stat-icon {
+      margin-right: 5px;
+    }
+    
+    .streak {
+      color: var(--streak-color);
+      font-weight: bold;
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom: 3px solid var(--primary-color);
+      font-weight: bold;
+    }
+    
     .mood-card {
-      border: 1px solid #ccc;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 15px;
-      background-color: #f9f9f9;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 4px var(--shadow-color);
+      transition: all 0.2s ease;
+      position: relative;
     }
+    
+    .mood-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow-color);
+    }
+    
+    .mood-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .mood-user {
+      display: flex;
+      align-items: center;
+    }
+    
+    .mood-user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+    
+    .mood-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
     .mood-score {
       font-size: 24px;
       font-weight: bold;
       margin-right: 10px;
     }
+    
     .mood-note {
       font-style: italic;
     }
+    
     .mood-date {
-      color: #666;
+      color: var(--secondary-text);
       font-size: 0.9em;
       margin-top: 10px;
     }
+    
+    .mood-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .mood-tag {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      background-color: var(--primary-color);
+      color: white;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    
     .controls {
       margin-bottom: 20px;
       padding: 15px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      background-color: #f5f5f5;
+      background-color: var(--control-bg);
     }
+    
+    .control-section {
+      margin-bottom: 15px;
+    }
+    
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
     button {
       padding: 8px 16px;
-      background-color: #4CAF50;
+      background-color: var(--primary-color);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       margin-right: 10px;
+      transition: background-color 0.2s ease;
     }
+    
     button:hover {
-      background-color: #45a049;
+      background-color: var(--primary-hover);
     }
+    
+    button.secondary {
+      background-color: var(--secondary-text);
+    }
+    
+    button.secondary:hover {
+      background-color: #555;
+    }
+    
+    button.hug-btn {
+      background-color: var(--hug-color);
+    }
+    
+    button.hug-btn:hover {
+      background-color: #d81b60;
+    }
+    
     input, select {
       padding: 8px;
       margin-right: 10px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border-color);
       border-radius: 4px;
+      background-color: var(--background-color);
+      color: var(--text-color);
     }
+    
     .status {
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 4px;
       font-weight: bold;
     }
+    
     .status.live {
-      background-color: #d4edda;
-      color: #155724;
+      background-color: var(--status-active-bg);
+      color: var(--status-active-color);
     }
+    
     .status.polling {
-      background-color: #fff3cd;
-      color: #856404;
+      background-color: var(--status-inactive-bg);
+      color: var(--status-inactive-color);
     }
+    
     .log {
-      background-color: #f8f9fa;
+      background-color: var(--card-bg);
       padding: 10px;
-      border: 1px solid #eee;
+      border: 1px solid var(--border-color);
       border-radius: 4px;
       margin-top: 20px;
       height: 150px;
       overflow-y: auto;
       font-family: monospace;
     }
+    
     .log-entry {
       margin-bottom: 5px;
       padding-bottom: 5px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px var(--shadow-color);
+    }
+    
+    .stat-card h3 {
+      margin-top: 0;
+      color: var(--primary-color);
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 4px;
+      box-shadow: 0 4px 8px var(--shadow-color);
+      z-index: 1000;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .new-item {
+      animation: fadeIn 0.5s ease-out;
     }
   </style>
 </head>
 <body>
-  <h1>HugMeNow Live Query Demo (Mock)</h1>
+  <div class="notification" id="notification">New mood added!</div>
+  
+  <div class="app-header">
+    <h1 class="app-title">HugMeNow Live Query Demo</h1>
+    <div class="theme-toggle">
+      <button onclick="toggleTheme()">Toggle Dark Mode</button>
+    </div>
+  </div>
+  
+  <div class="user-info">
+    <div class="user-avatar">JS</div>
+    <div class="user-details">
+      <h3>Jane Smith</h3>
+      <p>User since March 2025</p>
+      <div class="user-stats">
+        <div class="stat">
+          <span class="stat-icon">🔥</span>
+          <span class="streak" id="user-streak">5 day streak</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">👥</span>
+          <span>12 friends</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">🤗</span>
+          <span id="hug-count">8 hugs received</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('my-moods')">My Moods</div>
+    <div class="tab" onclick="switchTab('friend-moods')">Friend Moods</div>
+    <div class="tab" onclick="switchTab('analytics')">Mood Analytics</div>
+  </div>
   
   <div class="controls">
-    <h2>Create New Mood</h2>
-    <div>
-      <label for="mood-score">Score (1-5):</label>
-      <select id="mood-score">
-        <option value="1">1 - Very bad</option>
-        <option value="2">2 - Bad</option>
-        <option value="3" selected>3 - Neutral</option>
-        <option value="4">4 - Good</option>
-        <option value="5">5 - Excellent</option>
-      </select>
-      
-      <label for="mood-note">Note:</label>
-      <input type="text" id="mood-note" placeholder="How are you feeling?">
-      
-      <label for="is-public">Public:</label>
-      <input type="checkbox" id="is-public" checked>
-      
-      <button onclick="createMood()">Add Mood</button>
+    <div class="control-section">
+      <h2>Create New Mood</h2>
+      <div>
+        <label for="mood-score">Score (1-5):</label>
+        <select id="mood-score">
+          <option value="1">1 - Very bad</option>
+          <option value="2">2 - Bad</option>
+          <option value="3" selected>3 - Neutral</option>
+          <option value="4">4 - Good</option>
+          <option value="5">5 - Excellent</option>
+        </select>
+        
+        <label for="mood-note">Note:</label>
+        <input type="text" id="mood-note" placeholder="How are you feeling?">
+        
+        <label for="is-public">Public:</label>
+        <input type="checkbox" id="is-public" checked>
+        
+        <button onclick="createMood()">Add Mood</button>
+      </div>
+    </div>
+    
+    <div class="control-section" id="filters-section">
+      <h3>Filters</h3>
+      <div class="filters">
+        <button onclick="applyFilter('all')" class="filter-btn active">All</button>
+        <button onclick="applyFilter('today')" class="filter-btn">Today</button>
+        <button onclick="applyFilter('week')" class="filter-btn">This Week</button>
+        <button onclick="applyFilter('score-high')" class="filter-btn">High Scores (4-5)</button>
+        <button onclick="applyFilter('score-low')" class="filter-btn">Low Scores (1-2)</button>
+      </div>
     </div>
   </div>
 
@@ -118,7 +457,48 @@
   <button onclick="toggleLiveQuery()">Toggle Live Query</button>
   <button onclick="refreshData()">Refresh Now</button>
 
-  <div id="moods-container"></div>
+  <div id="tab-content-my-moods" class="tab-content active">
+    <div id="moods-container"></div>
+  </div>
+  
+  <div id="tab-content-friend-moods" class="tab-content" style="display:none;">
+    <div id="friend-moods-container"></div>
+  </div>
+  
+  <div id="tab-content-analytics" class="tab-content" style="display:none;">
+    <div class="stats-container">
+      <div class="stat-card">
+        <h3>Mood Average</h3>
+        <div class="stat-value" id="mood-average">3.7</div>
+        <p>Your average mood over time</p>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Total Moods</h3>
+        <div class="stat-value" id="mood-count">42</div>
+        <p>Number of moods recorded</p>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Current Streak</h3>
+        <div class="stat-value" id="streak-count">5</div>
+        <p>Days in a row you've logged moods</p>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Hugs Received</h3>
+        <div class="stat-value" id="hugs-received">8</div>
+        <p>Support from your friends</p>
+      </div>
+    </div>
+    
+    <div class="mood-card">
+      <h3>Trend Analysis</h3>
+      <p>Your mood has been <strong>improving</strong> over the past week. Keep up the good work!</p>
+      <p>Most common mood: <strong>4 - Good</strong> (15 times)</p>
+      <p>Try to log your mood at consistent times for better tracking.</p>
+    </div>
+  </div>
   
   <h3>Activity Log</h3>
   <div class="log" id="log"></div>
