@@ -65,6 +65,10 @@ args = "CustomGraphQLGateway"
 task = "workflow.run"
 args = "GraphQLMeshApollo"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "SimpleGraphQLGateway"
+
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
 author = "agent"
@@ -177,4 +181,19 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash start-mesh-apollo.sh"
+waitForPort = 5001
+
+[[workflows.workflow]]
+name = "SimpleGraphQLGateway"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-simple-gateway.sh"
 waitForPort = 5000

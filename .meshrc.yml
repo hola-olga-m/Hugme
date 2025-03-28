@@ -3,20 +3,18 @@
 
 # API source configuration
 sources:
-  - name: HugMeNowAPI
+  - name: PostGraphileAPI
     handler: 
       graphql:
-        endpoint: http://localhost:3002/graphql
+        endpoint: http://localhost:5000/graphql
         operationHeaders:
           Authorization: '{context.headers.authorization}'
-        schemaHeaders:
-          Authorization: '{env.GRAPHQL_AUTH_TOKEN}'
         # Better introspection options
         introspection:
           pollingInterval: 10000  # Check for schema changes every 10 seconds
           handleFieldConflicts: true
         # Better subscription support
-        subscriptions: true
+        subscriptions: false
         # Add batch execution
         batch: true
         # Add operation name handling
@@ -140,5 +138,5 @@ serve:
   cors:
     origin: '*'
     credentials: true
-  port: 5000
+  port: 5001
   host: "0.0.0.0"

@@ -1,19 +1,12 @@
 // @ts-nocheck
 import { GraphQLResolveInfo, SelectionSetNode, FieldNode } from 'graphql';
-import type { GetMeshOptions } from '@graphql-mesh/runtime';
-import type { YamlConfig } from '@graphql-mesh/types';
-import { defaultImportFn, handleImport } from '@graphql-mesh/utils';
-import { PubSub } from '@graphql-mesh/utils';
-import { DefaultLogger } from '@graphql-mesh/utils';
-import type { MeshResolvedSource } from '@graphql-mesh/runtime';
-import type { MeshTransform, MeshPlugin } from '@graphql-mesh/types';
-import { parse } from 'graphql';
+import { findAndParseConfig } from '@graphql-mesh/cli';
 import { createMeshHTTPHandler, MeshHTTPHandler } from '@graphql-mesh/http';
 import { getMesh, type ExecuteMeshFn, type SubscribeMeshFn, type MeshContext as BaseMeshContext, type MeshInstance } from '@graphql-mesh/runtime';
 import { MeshStore, FsStoreStorageAdapter } from '@graphql-mesh/store';
 import { path as pathModule } from '@graphql-mesh/cross-helpers';
 import type { ImportFn } from '@graphql-mesh/types';
-import type { HugMeNowApiTypes } from './sources/HugMeNowAPI/types';
+import type { PostGraphileApiTypes } from './sources/PostGraphileAPI/types';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -49,10 +42,6 @@ export type Query = {
   hugById?: Maybe<Hug>;
   hugRequests?: Maybe<Array<Maybe<HugRequest>>>;
   clientInfo: ClientInfo;
-  friendsMoods?: Maybe<Array<Maybe<PublicMood>>>;
-  userMoods?: Maybe<Array<Maybe<MoodEntry>>>;
-  sentHugs?: Maybe<Array<Maybe<Hug>>>;
-  receivedHugs?: Maybe<Array<Maybe<Hug>>>;
 };
 
 
@@ -103,27 +92,6 @@ export type QueryhugByIdArgs = {
 
 export type QueryhugRequestsArgs = {
   status?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryuserMoodsArgs = {
-  userId?: InputMaybe<Scalars['ID']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QuerysentHugsArgs = {
-  userId?: InputMaybe<Scalars['ID']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryreceivedHugsArgs = {
-  userId?: InputMaybe<Scalars['ID']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Mutation = {
@@ -213,9 +181,6 @@ export type Hug = {
   message?: Maybe<Scalars['String']['output']>;
   isRead?: Maybe<Scalars['Boolean']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
-  fromUser?: Maybe<User>;
-  toUser?: Maybe<User>;
-  read?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type MoodStreak = {
@@ -233,7 +198,6 @@ export type PublicMood = {
   intensity?: Maybe<Scalars['Int']['output']>;
   note?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
-  score?: Maybe<Scalars['Int']['output']>;
 };
 
 export type HugRequest = {
@@ -289,6 +253,7 @@ export type AnonymousLoginInput = {
   deviceId?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Client-specific types */
 export type ClientInfo = {
   version: Scalars['String']['output'];
   buildDate: Scalars['String']['output'];
@@ -441,10 +406,6 @@ export type QueryResolvers<ContextType = MeshContext, ParentType extends Resolve
   hugById?: Resolver<Maybe<ResolversTypes['Hug']>, ParentType, ContextType, RequireFields<QueryhugByIdArgs, 'id'>>;
   hugRequests?: Resolver<Maybe<Array<Maybe<ResolversTypes['HugRequest']>>>, ParentType, ContextType, Partial<QueryhugRequestsArgs>>;
   clientInfo?: Resolver<ResolversTypes['ClientInfo'], ParentType, ContextType>;
-  friendsMoods?: Resolver<Maybe<Array<Maybe<ResolversTypes['PublicMood']>>>, ParentType, ContextType>;
-  userMoods?: Resolver<Maybe<Array<Maybe<ResolversTypes['MoodEntry']>>>, ParentType, ContextType, Partial<QueryuserMoodsArgs>>;
-  sentHugs?: Resolver<Maybe<Array<Maybe<ResolversTypes['Hug']>>>, ParentType, ContextType, Partial<QuerysentHugsArgs>>;
-  receivedHugs?: Resolver<Maybe<Array<Maybe<ResolversTypes['Hug']>>>, ParentType, ContextType, Partial<QueryreceivedHugsArgs>>;
 }>;
 
 export type MutationResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
@@ -495,9 +456,6 @@ export type HugResolvers<ContextType = MeshContext, ParentType extends Resolvers
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   isRead?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  fromUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  toUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  read?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -517,7 +475,6 @@ export type PublicMoodResolvers<ContextType = MeshContext, ParentType extends Re
   intensity?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   note?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  score?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -560,7 +517,7 @@ export type Resolvers<ContextType = MeshContext> = ResolversObject<{
 }>;
 
 
-export type MeshContext = HugMeNowApiTypes.Context & BaseMeshContext;
+export type MeshContext = PostGraphileApiTypes.Context & BaseMeshContext;
 
 
 import { fileURLToPath } from '@graphql-mesh/utils';
@@ -569,9 +526,6 @@ const baseDir = pathModule.join(pathModule.dirname(fileURLToPath(import.meta.url
 const importFn: ImportFn = <T>(moduleId: string) => {
   const relativeModuleId = (pathModule.isAbsolute(moduleId) ? pathModule.relative(baseDir, moduleId) : moduleId).split('\\').join('/').replace(baseDir + '/', '');
   switch(relativeModuleId) {
-    case ".mesh/sources/HugMeNowAPI/introspectionSchema":
-      return import("./sources/HugMeNowAPI/introspectionSchema") as T;
-    
     default:
       return Promise.reject(new Error(`Cannot find module '${relativeModuleId}'.`));
   }
@@ -586,100 +540,24 @@ const rootStore = new MeshStore('.mesh', new FsStoreStorageAdapter({
   validate: false
 });
 
-export const rawServeConfig: YamlConfig.Config['serve'] = {"endpoint":"/graphql","playground":true,"cors":{"origin":"*"},"port":5000,"host":"0.0.0.0"} as any
-export async function getMeshOptions(): Promise<GetMeshOptions> {
-const pubsub = new PubSub();
-const sourcesStore = rootStore.child('sources');
-const logger = new DefaultLogger("");
-const MeshCache = await import("@graphql-mesh/cache-localforage").then(handleImport);
-  const cache = new MeshCache({
-      ...{},
-      importFn,
-      store: rootStore.child('cache'),
-      pubsub,
-      logger,
-    })
-const fetchFn = await import('@whatwg-node/fetch').then(m => m?.fetch || m);
-const sources: MeshResolvedSource[] = [];
-const transforms: MeshTransform[] = [];
-const additionalEnvelopPlugins: MeshPlugin<any>[] = [];
-const hugMeNowApiTransforms = [];
-const HugMeNowApiHandler = await import("@graphql-mesh/graphql").then(handleImport);
-const hugMeNowApiHandler = new HugMeNowApiHandler({
-              name: "HugMeNowAPI",
-              config: {"endpoint":"http://localhost:3002/graphql","operationHeaders":{"Authorization":"{env.GRAPHQL_AUTH_TOKEN}"}},
-              baseDir,
-              cache,
-              pubsub,
-              store: sourcesStore.child("HugMeNowAPI"),
-              logger: logger.child({ source: "HugMeNowAPI" }),
-              importFn,
-            });
-sources[0] = {
-          name: 'HugMeNowAPI',
-          handler: hugMeNowApiHandler,
-          transforms: hugMeNowApiTransforms
-        }
-const additionalTypeDefs = [parse("extend type Query {\n  clientInfo: ClientInfo!\n  friendsMoods: [PublicMood]\n  userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]\n  sentHugs(userId: ID, limit: Int, offset: Int): [Hug]\n  receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]\n}\n\nextend type PublicMood {\n  score: Int\n}\n\nextend type Hug {\n  fromUser: User\n  toUser: User\n  read: Boolean\n}\n\ntype ClientInfo {\n  version: String!\n  buildDate: String!\n}"),] as any[];
-const RootTransform_0 = await import("@graphql-mesh/transform-naming-convention").then(handleImport);
-transforms[0] = new RootTransform_0({
-            apiName: '',
-            config: {"typeNames":"pascalCase","fieldNames":"camelCase","enumValues":"upperCase"},
-            baseDir,
-            cache,
-            pubsub,
-            importFn,
-            logger,
-          })
-const RootTransform_1 = await import("@graphql-mesh/transform-rename").then(handleImport);
-transforms[1] = new RootTransform_1({
-            apiName: '',
-            config: {"renames":[{"from":{"type":"Query","field":"publicMoods"},"to":"publicMoods"},{"from":{"type":"Query","field":"friendsMoods"},"to":"publicMoods"},{"from":{"type":"Query","field":"userMoods"},"to":"moods"},{"from":{"type":"Query","field":"sentHugs"},"to":"hugs"},{"from":{"type":"Query","field":"receivedHugs"},"to":"hugs"},{"from":{"type":"PublicMood","field":"score"},"to":"intensity"},{"from":{"type":"Hug","field":"fromUser"},"to":"sender"},{"from":{"type":"Hug","field":"toUser"},"to":"recipient"},{"from":{"type":"Hug","field":"read"},"to":"isRead"}]},
-            baseDir,
-            cache,
-            pubsub,
-            importFn,
-            logger,
-          })
-const additionalResolvers = await Promise.all([
-        import("../mesh-resolvers.js")
-            .then(m => m.resolvers || m.default || m)
-      ]);
-const Merger = await import("@graphql-mesh/merger-bare").then(handleImport);
-const merger = new Merger({
-        cache,
-        pubsub,
-        logger: logger.child({ merger: "bare" }),
-        store: rootStore.child("bare")
-      })
-
-  return {
-    sources,
-    transforms,
-    additionalTypeDefs,
-    additionalResolvers,
-    cache,
-    pubsub,
-    merger,
-    logger,
-    additionalEnvelopPlugins,
-    get documents() {
-      return [
-      
-    ];
-    },
-    fetchFn,
-  };
+export function getMeshOptions() {
+  console.warn('WARNING: These artifacts are built for development mode. Please run "mesh build" to build production artifacts');
+  return findAndParseConfig({
+    dir: baseDir,
+    artifactsDir: ".mesh",
+    configName: "mesh",
+    additionalPackagePrefixes: [],
+    initialLoggerPrefix: "",
+  });
 }
 
 export function createBuiltMeshHTTPHandler<TServerContext = {}>(): MeshHTTPHandler<TServerContext> {
   return createMeshHTTPHandler<TServerContext>({
     baseDir,
     getBuiltMesh: getBuiltMesh,
-    rawServeConfig: {"endpoint":"/graphql","playground":true,"cors":{"origin":"*"},"port":5000,"host":"0.0.0.0"},
+    rawServeConfig: {"endpoint":"/graphql","playground":true,"cors":{"origin":"*","credentials":true},"port":5001,"host":"0.0.0.0"},
   })
 }
-
 
 let meshInstance$: Promise<MeshInstance> | undefined;
 

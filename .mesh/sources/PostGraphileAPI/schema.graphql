@@ -17,18 +17,6 @@ type Query {
   hugs(userId: ID, limit: Int, offset: Int): [Hug]
   hugById(id: ID!): Hug
   hugRequests(status: String): [HugRequest]
-  clientInfo: ClientInfo!
-}
-
-type Mutation {
-  login(loginInput: LoginInput!): AuthPayload
-  register(registerInput: RegisterInput!): AuthPayload
-  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthPayload
-  createMoodEntry(moodInput: MoodEntryInput!): MoodEntry
-  sendHug(hugInput: SendHugInput!): Hug
-  markHugAsRead(hugId: ID!): Hug
-  createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
-  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
 }
 
 type User {
@@ -40,6 +28,7 @@ type User {
   isAnonymous: Boolean
   createdAt: String
   updatedAt: String
+  created_at: String
   moods: [MoodEntry]
   hugs: [Hug]
   friends: [User]
@@ -83,6 +72,17 @@ type PublicMood {
   intensity: Int
   note: String
   createdAt: String
+}
+
+type Mutation {
+  login(loginInput: LoginInput!): AuthPayload
+  register(registerInput: RegisterInput!): AuthPayload
+  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthPayload
+  createMoodEntry(moodInput: MoodEntryInput!): MoodEntry
+  sendHug(hugInput: SendHugInput!): Hug
+  markHugAsRead(hugId: ID!): Hug
+  createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
+  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
 }
 
 type HugRequest {
@@ -136,10 +136,4 @@ input RegisterInput {
 
 input AnonymousLoginInput {
   deviceId: String
-}
-
-"""Client-specific types"""
-type ClientInfo {
-  version: String!
-  buildDate: String!
 }

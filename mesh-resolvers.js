@@ -36,7 +36,7 @@ module.exports = {
       logResolver('Query.friendsMoods', args);
       try {
         // Pass all arguments through to publicMoods resolver with defaults
-        const result = await context.HugMeNowAPI.Query.publicMoods({
+        const result = await context.PostGraphileAPI.Query.publicMoods({
           limit: args.limit || 10,
           offset: args.offset || 0
         });
@@ -46,6 +46,7 @@ module.exports = {
         }
         return result || [];
       } catch (error) {
+        console.error('[Mesh] Error in friendsMoods:', error);
         return handleError('Query.friendsMoods', error) || [];
       }
     },
@@ -63,13 +64,14 @@ module.exports = {
         };
         
         // Call the underlying API with prepared arguments
-        const result = await context.HugMeNowAPI.Query.moods(moodsArgs);
+        const result = await context.PostGraphileAPI.Query.moods(moodsArgs);
         
         if (Array.isArray(result)) {
           console.log(`[Mesh] Found ${result.length} user moods`);
         }
         return result || [];
       } catch (error) {
+        console.error('[Mesh] Error in userMoods:', error);
         return handleError('Query.userMoods', error) || [];
       }
     },
@@ -88,13 +90,14 @@ module.exports = {
         };
         
         // Call the underlying API with prepared arguments
-        const result = await context.HugMeNowAPI.Query.hugs(hugsArgs);
+        const result = await context.PostGraphileAPI.Query.hugs(hugsArgs);
         
         if (Array.isArray(result)) {
           console.log(`[Mesh] Found ${result.length} sent hugs`);
         }
         return result || [];
       } catch (error) {
+        console.error('[Mesh] Error in sentHugs:', error);
         return handleError('Query.sentHugs', error) || [];
       }
     },
@@ -113,13 +116,14 @@ module.exports = {
         };
         
         // Call the underlying API with prepared arguments
-        const result = await context.HugMeNowAPI.Query.hugs(hugsArgs);
+        const result = await context.PostGraphileAPI.Query.hugs(hugsArgs);
         
         if (Array.isArray(result)) {
           console.log(`[Mesh] Found ${result.length} received hugs`);
         }
         return result || [];
       } catch (error) {
+        console.error('[Mesh] Error in receivedHugs:', error);
         return handleError('Query.receivedHugs', error) || [];
       }
     }
@@ -176,7 +180,7 @@ module.exports = {
           message: args.message || ''
         };
         
-        const result = await context.HugMeNowAPI.Mutation.sendHug({ input });
+        const result = await context.PostGraphileAPI.Mutation.sendHug({ input });
         return result;
       } catch (error) {
         return handleError('Mutation.sendFriendHug', error);
