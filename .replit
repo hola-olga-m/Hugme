@@ -77,6 +77,10 @@ args = "PostGraphile"
 task = "workflow.run"
 args = "CustomGraphQLGateway"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "EnhancedGraphQLGateway"
+
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
 author = "agent"
@@ -205,3 +209,18 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-custom-gateway.sh"
 waitForPort = 5002
+
+[[workflows.workflow]]
+name = "EnhancedGraphQLGateway"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-enhanced-gateway.sh"
+waitForPort = 5004

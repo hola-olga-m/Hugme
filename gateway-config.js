@@ -12,6 +12,7 @@ export const SERVICE_NAMES = {
   SIMPLE_GATEWAY: 'SimpleGraphQLGateway',
   MESH_APOLLO: 'GraphQLMeshApollo',
   APOLLO_MESH: 'ApolloMeshGateway',
+  ENHANCED_GATEWAY: 'EnhancedGraphQLGateway',
   HUGMENOW_APP: 'HugMeNowApp'
 };
 
@@ -22,16 +23,18 @@ export const SERVICE_PORTS = {
   SIMPLE_GATEWAY: 5000,
   MESH_APOLLO: 5001,
   APOLLO_MESH: 5003,
+  ENHANCED_GATEWAY: 5004,
   HUGMENOW_APP: 3000
 };
 
 // Service Endpoints
 export const SERVICE_ENDPOINTS = {
-  POSTGRAPHILE: `http://localhost:${SERVICE_PORTS.POSTGRAPHILE}/graphql`,
+  POSTGRAPHILE: `http://localhost:${SERVICE_PORTS.POSTGRAPHILE}/postgraphile/graphql`,
   CUSTOM_GATEWAY: `http://localhost:${SERVICE_PORTS.CUSTOM_GATEWAY}/graphql`,
   SIMPLE_GATEWAY: `http://localhost:${SERVICE_PORTS.SIMPLE_GATEWAY}/graphql`,
   MESH_APOLLO: `http://localhost:${SERVICE_PORTS.MESH_APOLLO}/graphql`,
   APOLLO_MESH: `http://localhost:${SERVICE_PORTS.APOLLO_MESH}/graphql`,
+  ENHANCED_GATEWAY: `http://localhost:${SERVICE_PORTS.ENHANCED_GATEWAY}/graphql`,
   HUGMENOW_APP: `http://localhost:${SERVICE_PORTS.HUGMENOW_APP}`
 };
 
