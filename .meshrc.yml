@@ -127,39 +127,11 @@ middleware:
           sendHug: "isAuthenticated"
           respondToHugRequest: "isAuthenticated"
 
-cache:
-  type: inmemory-lru
-  options:
-    # Default TTL settings
-    ttl: 60 # 1 minute default TTL
-    
-    # Cache size and options
-    max: 1000 # Maximum number of entries in the cache
-    
-    # Operation-specific TTL values
-    ttls:
-      - path: 'Query.publicMoods'
-        ttl: 120 # 2 minutes for public data
-      - path: 'Query.userMoods'
-        ttl: 60  # 1 minute for user-specific data
-      - path: 'Query.friendsMoods'
-        ttl: 120 # 2 minutes (same as publicMoods since it's basically the same data)
-      - path: 'Query.moodStreak'
-        ttl: 300 # 5 minutes for rarely changing data
-      - path: 'Query.clientInfo'
-        ttl: 86400 # 24 hours for static info
-      - path: 'Query.communityHugRequests'
-        ttl: 180 # 3 minutes for community data
-    
-    # Opt-out specific operations from caching
-    ignorePaths:
-      - 'Mutation.*'            # Never cache mutations
-      - 'Query.receivedHugs'    # Real-time data, no caching
-      - 'Query.pendingHugRequests' # Status changes frequently
+# Remove cache config entirely for simplicity
 
 plugins:
   # LiveQuery setup for real-time reactivity
-  - name: liveQuery
+  - name: live-query
     options:
       pollingInterval: 3000
       invalidateClosedConnections: true
@@ -172,11 +144,13 @@ plugins:
         - Query.friendsMoods
   
   # Plugin for JWT authentication
-  - name: jwtAuth
+  - name: jwt-auth
     options:
       algorithm: HS256
       secretKey: "{env.JWT_SECRET || 'default-dev-key'}"
       headerName: authorization
+      
+  # Removing envelop for now to simplify configuration
 
 additionalTypeDefs: |
   type ClientInfo {
