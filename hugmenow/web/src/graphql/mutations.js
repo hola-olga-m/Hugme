@@ -80,7 +80,8 @@ export const CREATE_MOOD = gql`
   mutation createMood($createMoodInput: CreateMoodInput!) {
     createMood(createMoodInput: $createMoodInput) {
       id
-      note
+      mood
+      intensity
       note
       isPublic
       createdAt
@@ -93,7 +94,8 @@ export const UPDATE_MOOD = gql`
   mutation updateMood($updateMoodInput: UpdateMoodInput!) {
     updateMood(updateMoodInput: $updateMoodInput) {
       id
-      note
+      mood
+      intensity
       note
       isPublic
       createdAt
@@ -115,10 +117,18 @@ export const SEND_HUG = gql`
       id
       type
       message
-      isRead
+      read
       createdAt
-      senderId
-      recipientId
+      sender {
+        id
+        name
+        username
+      }
+      recipient {
+        id
+        name
+        username
+      }
     }
   }
 `;
@@ -127,7 +137,7 @@ export const MARK_HUG_AS_READ = gql`
   mutation markHugAsRead($hugId: ID!) {
     markHugAsRead(hugId: $hugId) {
       id
-      isRead
+      read
     }
   }
 `;

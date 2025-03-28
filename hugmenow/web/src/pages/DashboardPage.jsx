@@ -10,8 +10,8 @@ import HugIconTest from '../components/ui/HugIconTest';
 import ReceivedHugCarousel from '../components/ui/ReceivedHugCarousel';
 import '../styles/dashboard.css';
 
-function DashboardPage {
-  const { currentUser } = useAuth;
+function DashboardPage() {
+  const { currentUser } = useAuth();
   const [moodScore, setMoodScore] = useState(null);
 
   // Fetch user's recent moods

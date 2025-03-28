@@ -112,10 +112,6 @@ export const GET_MOOD_STREAK = gql`
       longestStreak
       lastMoodDate
       totalMoods
-      user {
-        id
-        username
-      }
     }
   }
 `;

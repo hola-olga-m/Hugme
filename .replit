@@ -38,7 +38,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "FixAndRestartHugMeNow"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -69,7 +69,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./schema-sync-workflow.sh"
+args = "bash schema-sync-workflow.sh"
 
 [[workflows.workflow]]
 name = "PostGraphile"
@@ -83,7 +83,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./start-postgraphile.sh"
+args = "node postgraphile-server.js"
 waitForPort = 3003
 
 [[workflows.workflow]]
