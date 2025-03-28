@@ -18,7 +18,7 @@ type Query {
   hugById(id: ID!): Hug
   hugRequests(status: String): [HugRequest]
   clientInfo: ClientInfo!
-  # friendsMoods field has been removed and replaced with publicMoods
+  friendsMoods: [PublicMood]
   userMoods: [MoodEntry]
   sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
   receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]

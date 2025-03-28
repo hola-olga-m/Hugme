@@ -146,13 +146,12 @@ export const GET_PUBLIC_MOODS = gql`
   }
 `;
 
-// friendsMoods is not available in the schema
-// Using User.friends + moods as a workaround 
-// This query may not fully work until backend supports it
+// friendsMoods was renamed to publicMoods in the schema
+// This query is now deprecated - use GET_PUBLIC_MOODS instead
 export const GET_FRIENDS_MOODS = gql`
-  query GetFriendsMoods {
-    # Get public moods from all users as a temporary workaround
-    # In a real implementation, this would filter to only show friends' moods
+  query GetPublicMoods2 {
+    # Get public moods from all users instead of using friendsMoods
+    # This ensures compatibility with the current schema
     publicMoods {
       id
       mood

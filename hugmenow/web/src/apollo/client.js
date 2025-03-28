@@ -1,9 +1,9 @@
-import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, from, ApolloLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
 // Import the custom Mesh SDK
-import { getSdk } from '../../../mesh-sdk/index.js';
+import { getSdk } from '../mesh-sdk/index.js';
 
 // Base URLs
 export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy
@@ -58,8 +58,20 @@ const authLink = setContext((_, { headers }) => {
 
 // Create the Apollo client
 export const createApolloClient = () => {
+  // Debug link to log all GraphQL operations
+  const debugLink = new ApolloLink((operation, forward) => {
+    console.log(`GraphQL Operation: ${operation.operationName}`);
+    console.log(`GraphQL Query:`, operation.query.loc?.source?.body);
+    console.log(`GraphQL Variables:`, operation.variables);
+    
+    return forward(operation).map((result) => {
+      console.log(`GraphQL Result:`, result);
+      return result;
+    });
+  });
+
   const baseConfig = {
-    link: from([errorLink, authLink, httpLink]),
+    link: from([debugLink, errorLink, authLink, httpLink]),
     cache: new InMemoryCache({
       typePolicies: {
         Query: {
@@ -74,11 +86,7 @@ export const createApolloClient = () => {
                 return [...incoming];
               }
             },
-            friendsMoods: {
-              merge(existing = [], incoming) {
-                return [...incoming];
-              }
-            },
+            // friendsMoods field has been removed, using publicMoods instead
             hugs: {
               merge(existing = [], incoming) {
                 return [...incoming];

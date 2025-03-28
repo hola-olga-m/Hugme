@@ -33,10 +33,10 @@ const GRAPHQL_ERROR_MAPPINGS = {
     }
   },
   'Cannot query field "score" on type "PublicMood"': {
-    message: 'The "score" field has been renamed to "note" in the current API version.',
+    message: 'The "score" field has been renamed to "intensity" in the current API version.',
     replacement: {
       from: 'score',
-      to: 'note'
+      to: 'intensity'
     }
   },
   'Field "moodStreak" of type "MoodStreak" must have a selection of subfields': {

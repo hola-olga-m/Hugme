@@ -1,0 +1,11 @@
+{
+  "name": "mesh-sdk",
+  "version": "0.1.0",
+  "description": "Custom GraphQL Mesh SDK for HugMeNow",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./gql-fragments": "./gql-fragments.js"
+  }
+}

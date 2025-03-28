@@ -10,8 +10,8 @@ import chalk from 'chalk';
 const GRAPHQL_ENDPOINT = 'http://localhost:5000/graphql';
 
 // Define the query to test
-const FRIENDS_MOODS_QUERY = `
-  query GetFriendsMoods {
+const PUBLIC_MOODS_QUERY = `
+  query GetPublicMoods {
     publicMoods(limit: 10) {
       id
       mood
@@ -156,15 +156,15 @@ async function login() {
 }
 
 /**
- * Test the FriendsMoods query
+ * Test the PublicMoods query
  */
-async function testFriendsMoods(token) {
-  console.log(chalk.blue('\nTesting FriendsMoods query...'));
+async function testPublicMoods(token) {
+  console.log(chalk.blue('\nTesting PublicMoods query...'));
   
-  const result = await executeGraphQL(FRIENDS_MOODS_QUERY, {}, token);
+  const result = await executeGraphQL(PUBLIC_MOODS_QUERY, {}, token);
   
   if (result && result.publicMoods) {
-    console.log(chalk.green('FriendsMoods query successful!'));
+    console.log(chalk.green('PublicMoods query successful!'));
     console.log(chalk.green(`Found ${result.publicMoods.length} public moods`));
     
     console.log(chalk.blue('\nMood data:'));
@@ -182,7 +182,7 @@ async function testFriendsMoods(token) {
     
     return result.publicMoods;
   } else {
-    console.log(chalk.red('FriendsMoods query failed!'));
+    console.log(chalk.red('PublicMoods query failed!'));
     return null;
   }
 }
@@ -231,11 +231,11 @@ async function testSendHug(token, publicMoods) {
  * Run all tests
  */
 async function runTests() {
-  console.log(chalk.green.bold('=== FriendMoodsWidget Component Tests ===\n'));
+  console.log(chalk.green.bold('=== PublicMoodsWidget Component Tests ===\n'));
   
   try {
     const token = await login();
-    const publicMoods = await testFriendsMoods(token);
+    const publicMoods = await testPublicMoods(token);
     await testSendHug(token, publicMoods);
     
     console.log(chalk.green.bold('\n=== All tests completed ==='));

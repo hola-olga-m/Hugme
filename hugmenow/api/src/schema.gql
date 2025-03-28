@@ -164,7 +164,7 @@ type Mutation {
 type Query {
   checkFriendship(userId: String!): Boolean!
   communityHugRequests: [HugRequest!]!
-  friendsMoods(limit: Float = 20): [Mood!]!
+  # friendsMoods has been replaced with publicMoods
   hug(id: ID!): Hug!
   hugRequest(id: ID!): HugRequest!
   me: User!

@@ -28,8 +28,8 @@ export const resolvers = {
     
     // Virtual field resolvers that map to real API fields with filters
     
-    // Friends' moods - maps to allMoods with public visibility filter
-    friendsMoods: async (root, args, context, info) => {
+    // Public moods - maps to allMoods with public visibility filter
+    publicMoods: async (root, args, context, info) => {
       // Forward to allMoods with specific filters for public visibility
       try {
         const result = await context.PostGraphileAPI.Query.allMoods({
@@ -44,7 +44,7 @@ export const resolvers = {
         
         return result;
       } catch (error) {
-        console.error('Error in friendsMoods resolver:', error);
+        console.error('Error in publicMoods resolver:', error);
         return [];
       }
     },
