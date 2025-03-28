@@ -1,0 +1,417 @@
+/* Theme Definitions for HugMood
+   This file contains theme variables and overrides for the application */
+
+:root {
+  /* Default Theme (Purple Comfort) */
+  --primary: #7c4dff;
+  --primaryDark: #5e35b1;
+  --primaryLight: #b39ddb;
+  --secondary: #ff4d8c;
+  --secondaryDark: #c2185b;
+  --secondaryLight: #f8bbd0;
+  --accent: #43d6b5;
+  --background: #ffffff;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #333333;
+  --textLight: #757575;
+  --border: #e0e0e0;
+  --inputBackground: #f5f5f5;
+  --success: #4CAF50;
+  --warning: #FFC107;
+  --error: #F44336;
+  --info: #2196F3;
+
+  /* Animation Speeds */
+  --animationSlow: 0.5s;
+  --animationNormal: 0.3s;
+  --animationFast: 0.15s;
+  
+  /* Spacing */
+  --spacingXS: 4px;
+  --spacingS: 8px;
+  --spacingM: 16px;
+  --spacingL: 24px;
+  --spacingXL: 32px;
+  --spacingXXL: 48px;
+  
+  /* Borders */
+  --borderRadius: 12px;
+  --borderRadiusSmall: 6px;
+  --borderRadiusLarge: 24px;
+  --borderRadiusCircle: 50%;
+  
+  /* Shadows */
+  --shadowSmall: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadowMedium: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadowLarge: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --shadowInset: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Theme (Night Mode) */
+.theme-dark {
+  --primary: #bb86fc;
+  --primaryDark: #9e61f5;
+  --primaryLight: #d4a8ff;
+  --secondary: #ff79b0;
+  --secondaryDark: #c74179;
+  --secondaryLight: #ffb0cf;
+  --accent: #03dac6;
+  --background: #121212;
+  --cardBackground: rgba(30, 30, 30, 0.8);
+  --text: #e0e0e0;
+  --textLight: #9e9e9e;
+  --border: #2d2d2d;
+  --inputBackground: #2d2d2d;
+  --success: #81c784;
+  --warning: #ffb74d;
+  --error: #e57373;
+  --info: #64b5f6;
+}
+
+/* Pastel Theme (Soft Pastel) */
+.theme-pastel {
+  --primary: #ffafcc;
+  --primaryDark: #ff8fab;
+  --primaryLight: #ffc8dd;
+  --secondary: #a2d2ff;
+  --secondaryDark: #80b9f2;
+  --secondaryLight: #bde0fe;
+  --accent: #cdb4db;
+  --background: #fdfdfd;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #5e5e5e;
+  --textLight: #8e8e8e;
+  --border: #e6e6e6;
+  --inputBackground: #f8f8f8;
+  --success: #a5d6a7;
+  --warning: #ffe082;
+  --error: #ef9a9a;
+  --info: #90caf9;
+}
+
+/* Vibrant Theme (Playful Vibrance) */
+.theme-vibrant {
+  --primary: #ff5722;
+  --primaryDark: #e64a19;
+  --primaryLight: #ffab91;
+  --secondary: #4caf50;
+  --secondaryDark: #388e3c;
+  --secondaryLight: #a5d6a7;
+  --accent: #2196f3;
+  --background: #ffffff;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #212121;
+  --textLight: #757575;
+  --border: #e0e0e0;
+  --inputBackground: #f5f5f5;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --info: #2196f3;
+}
+
+/* Ocean Theme */
+.theme-ocean {
+  --primary: #006064;
+  --primaryDark: #00363a;
+  --primaryLight: #428e92;
+  --secondary: #00acc1;
+  --secondaryDark: #007c91;
+  --secondaryLight: #5ddef4;
+  --accent: #84ffff;
+  --background: #e0f7fa;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #263238;
+  --textLight: #455a64;
+  --border: #b2ebf2;
+  --inputBackground: #cdeef2;
+  --success: #26a69a;
+  --warning: #ffca28;
+  --error: #ef5350;
+  --info: #29b6f6;
+}
+
+/* Nature Theme */
+.theme-nature {
+  --primary: #388e3c;
+  --primaryDark: #1b5e20;
+  --primaryLight: #81c784;
+  --secondary: #8bc34a;
+  --secondaryDark: #689f38;
+  --secondaryLight: #c5e1a5;
+  --accent: #ffeb3b;
+  --background: #f1f8e9;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #33691e;
+  --textLight: #558b2f;
+  --border: #dcedc8;
+  --inputBackground: #e8f5e9;
+  --success: #689f38;
+  --warning: #fbc02d;
+  --error: #e57373;
+  --info: #4fc3f7;
+}
+
+/* Sunset Theme */
+.theme-sunset {
+  --primary: #ff9800;
+  --primaryDark: #f57c00;
+  --primaryLight: #ffcc80;
+  --secondary: #f44336;
+  --secondaryDark: #d32f2f;
+  --secondaryLight: #ef9a9a;
+  --accent: #ffeb3b;
+  --background: #fff3e0;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #3e2723;
+  --textLight: #5d4037;
+  --border: #ffccbc;
+  --inputBackground: #ffebee;
+  --success: #8d6e63;
+  --warning: #fb8c00;
+  --error: #d84315;
+  --info: #ff8a65;
+}
+
+/* Minimal Theme */
+.theme-minimal {
+  --primary: #212121;
+  --primaryDark: #000000;
+  --primaryLight: #484848;
+  --secondary: #757575;
+  --secondaryDark: #494949;
+  --secondaryLight: #a4a4a4;
+  --accent: #9e9e9e;
+  --background: #fafafa;
+  --cardBackground: rgba(255, 255, 255, 0.8);
+  --text: #212121;
+  --textLight: #757575;
+  --border: #eeeeee;
+  --inputBackground: #f5f5f5;
+  --success: #616161;
+  --warning: #9e9e9e;
+  --error: #424242;
+  --info: #757575;
+}
+
+/* Custom Theme - Applied dynamically via JavaScript */
+.theme-custom {
+  --primary: var(--custom-primary, #7c4dff);
+  --primaryDark: var(--custom-primaryDark, #5e35b1);
+  --primaryLight: var(--custom-primaryLight, #b39ddb);
+  --secondary: var(--custom-secondary, #ff4d8c);
+  --secondaryDark: var(--custom-secondaryDark, #c2185b);
+  --secondaryLight: var(--custom-secondaryLight, #f8bbd0);
+  --accent: var(--custom-accent, #43d6b5);
+  --background: var(--custom-background, #ffffff);
+  --text: var(--custom-text, #333333);
+  --textLight: var(--custom-textLight, #757575);
+  --border: var(--custom-border, #e0e0e0);
+}
+
+/* Apply theme transitions */
+.app-container, .mood-tracker-container, .send-hug-container,
+.contacts-container, .profile-container, .achievements-container,
+.theme-selector-container, .submission-portal-container,
+.ar-view-container, .group-hug-container, .request-hug-container,
+.hug-types-container, .mood-history-container {
+  transition: background-color var(--animationNormal) ease-in-out, color var(--animationNormal) ease-in-out;
+}
+
+/* Theme-specific category tag colors */
+.theme-dark .category-tag.comforting {
+  background-color: rgba(186, 104, 200, 0.2);
+  color: #ba68c8;
+}
+
+.theme-dark .category-tag.friendly {
+  background-color: rgba(79, 195, 247, 0.2);
+  color: #4fc3f7;
+}
+
+.theme-dark .category-tag.celebratory {
+  background-color: rgba(255, 183, 77, 0.2);
+  color: #ffb74d;
+}
+
+.theme-dark .category-tag.healing {
+  background-color: rgba(129, 199, 132, 0.2);
+  color: #81c784;
+}
+
+.theme-dark .category-tag.special {
+  background-color: rgba(240, 98, 146, 0.2);
+  color: #f06292;
+}
+
+/* Mood emoji colors for each theme */
+.theme-dark .mood-item[data-mood="ecstatic"] .mood-emoji {
+  color: #ffb74d;
+}
+
+.theme-dark .mood-item[data-mood="happy"] .mood-emoji {
+  color: #aed581;
+}
+
+.theme-dark .mood-item[data-mood="neutral"] .mood-emoji {
+  color: #b0bec5;
+}
+
+.theme-dark .mood-item[data-mood="sad"] .mood-emoji {
+  color: #7986cb;
+}
+
+.theme-dark .mood-item[data-mood="anxious"] .mood-emoji {
+  color: #64b5f6;
+}
+
+.theme-dark .mood-item[data-mood="stressed"] .mood-emoji {
+  color: #9575cd;
+}
+
+.theme-dark .mood-item[data-mood="angry"] .mood-emoji {
+  color: #e57373;
+}
+
+/* Pastel theme mood colors */
+.theme-pastel .mood-item[data-mood="ecstatic"] .mood-emoji {
+  color: #fdcb6e;
+}
+
+.theme-pastel .mood-item[data-mood="happy"] .mood-emoji {
+  color: #a5d6a7;
+}
+
+/* Ocean theme mood colors */
+.theme-ocean .mood-item[data-mood="ecstatic"] .mood-emoji {
+  color: #ffca28;
+}
+
+.theme-ocean .mood-item[data-mood="happy"] .mood-emoji {
+  color: #66bb6a;
+}
+
+/* Nature theme mood colors */
+.theme-nature .mood-item[data-mood="ecstatic"] .mood-emoji {
+  color: #ffca28;
+}
+
+.theme-nature .mood-item[data-mood="happy"] .mood-emoji {
+  color: #66bb6a;
+}
+
+/* Custom theme transitions */
+.color-picker input[type="color"] {
+  transition: box-shadow var(--animationFast) ease;
+}
+
+.color-picker input[type="color"]:hover {
+  box-shadow: var(--shadowMedium);
+}
+
+/* Theme-specific animation adjustments */
+.theme-vibrant .animated-logo {
+  animation: colorPulse 3s infinite ease-in-out;
+}
+
+@keyframes colorPulse {
+  0% {
+    color: var(--primary);
+  }
+  33% {
+    color: var(--secondary);
+  }
+  66% {
+    color: var(--accent);
+  }
+  100% {
+    color: var(--primary);
+  }
+}
+
+.theme-ocean .floating-hearts i {
+  animation: float 8s infinite ease-in-out;
+}
+
+.theme-sunset .floating-hearts i {
+  animation: float 5s infinite ease-in-out;
+}
+
+/* Theme-specific card shadows */
+.theme-dark .hug-type-card,
+.theme-dark .mood-entry-card,
+.theme-dark .contact-card,
+.theme-dark .achievement-card,
+.theme-dark .insight-card,
+.theme-dark .submission-card,
+.theme-dark .profile-card,
+.theme-dark .chart-container {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Theme-specific hover effects */
+.theme-vibrant .hug-type-card:hover,
+.theme-vibrant .special-hug-card:hover {
+  transform: translateY(-5px) rotate(2deg);
+}
+
+.theme-minimal .hug-type-card:hover,
+.theme-minimal .special-hug-card:hover,
+.theme-minimal .theme-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadowSmall);
+}
+
+/* Theme-specific input focus states */
+.theme-ocean input:focus, 
+.theme-ocean textarea:focus, 
+.theme-ocean select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 96, 100, 0.2);
+}
+
+.theme-nature input:focus, 
+.theme-nature textarea:focus, 
+.theme-nature select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.2);
+}
+
+.theme-sunset input:focus, 
+.theme-sunset textarea:focus, 
+.theme-sunset select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+}
+
+/* Dark mode specific adjustments for better readability */
+.theme-dark .mood-note,
+.theme-dark .chart-container,
+.theme-dark .achievement-card,
+.theme-dark .stat-card,
+.theme-dark .mood-stat-card,
+.theme-dark .profile-card,
+.theme-dark .contact-card,
+.theme-dark .theme-card {
+  background-color: rgba(40, 40, 40, 0.8);
+}
+
+.theme-dark .error-message {
+  background-color: rgba(244, 67, 54, 0.2);
+}
+
+.theme-dark .success-message {
+  background-color: rgba(76, 175, 80, 0.2);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

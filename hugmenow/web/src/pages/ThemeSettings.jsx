@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext.jsx';
 import ColorPaletteSelector from '../components/theme/ColorPaletteSelector';
 import PageContainer from '../components/layout/PageContainer';
 import { FiChevronLeft, FiInfo } from 'react-icons/fi';

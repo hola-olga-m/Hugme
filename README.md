@@ -177,6 +177,21 @@ For detailed information about HugMeNow's features, see:
 
 - [Live Query Guide](docs/live-query-guide.md) - How to use real-time data updates
 - [Mock Authentication Guide](docs/mock-authentication-guide.md) - How to test without real user accounts
+- [UI Versions](UI_VERSIONS.md) - Information about the simplified and comprehensive UI versions
+
+### UI Versions
+
+HugMeNow has two versions of the user interface:
+
+1. **Simplified UI** (Current) - A streamlined version with core functionality
+2. **Comprehensive UI** (Backup) - An advanced version with additional features
+
+To switch to the comprehensive UI, run:
+```bash
+./restore-comprehensive-ui.sh
+```
+
+See [UI Versions](UI_VERSIONS.md) for more details.
 
 ## Demo Scripts
 
