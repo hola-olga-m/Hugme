@@ -13,6 +13,8 @@ export const SERVICE_NAMES = {
   MESH_APOLLO: 'GraphQLMeshApollo',
   APOLLO_MESH: 'ApolloMeshGateway',
   ENHANCED_GATEWAY: 'EnhancedGraphQLGateway',
+  SIMPLE_UNIFIED_GATEWAY: 'SimpleUnifiedGateway',
+  SIMPLE_MESH_GATEWAY: 'SimpleMeshGateway',
   HUGMENOW_APP: 'HugMeNowApp'
 };
 
@@ -24,6 +26,8 @@ export const SERVICE_PORTS = {
   MESH_APOLLO: 5001,
   APOLLO_MESH: 5003,
   ENHANCED_GATEWAY: 5004,
+  SIMPLE_UNIFIED_GATEWAY: 5007,
+  SIMPLE_MESH_GATEWAY: 5006,
   HUGMENOW_APP: 3000
 };
 
@@ -35,6 +39,10 @@ export const SERVICE_ENDPOINTS = {
   MESH_APOLLO: `http://localhost:${SERVICE_PORTS.MESH_APOLLO}/graphql`,
   APOLLO_MESH: `http://localhost:${SERVICE_PORTS.APOLLO_MESH}/graphql`,
   ENHANCED_GATEWAY: `http://localhost:${SERVICE_PORTS.ENHANCED_GATEWAY}/graphql`,
+  SIMPLE_UNIFIED_GATEWAY: `http://localhost:${SERVICE_PORTS.SIMPLE_UNIFIED_GATEWAY}/graphql`,
+  SIMPLE_UNIFIED_GATEWAY_LIVE: `http://localhost:${SERVICE_PORTS.SIMPLE_UNIFIED_GATEWAY}/live-query`,
+  SIMPLE_UNIFIED_GATEWAY_TRANSLATE: `http://localhost:${SERVICE_PORTS.SIMPLE_UNIFIED_GATEWAY}/translate`,
+  SIMPLE_MESH_GATEWAY: `http://localhost:${SERVICE_PORTS.SIMPLE_MESH_GATEWAY}/graphql`,
   HUGMENOW_APP: `http://localhost:${SERVICE_PORTS.HUGMENOW_APP}`
 };
 
@@ -46,7 +54,8 @@ export const CLIENT_INFO = {
     'mood-tracking',
     'friend-moods',
     'theme-support',
-    'streak-tracking'
+    'streak-tracking',
+    'live-queries'
   ]
 };
 

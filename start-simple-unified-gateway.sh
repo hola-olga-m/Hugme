@@ -38,10 +38,12 @@ fi
 # Client configuration
 CLIENT_VERSION="${CLIENT_VERSION:-1.0.0}"
 CLIENT_PLATFORM="${CLIENT_PLATFORM:-web}"
-CLIENT_FEATURES="${CLIENT_FEATURES:-mood-tracking,friend-moods,theme-support,streak-tracking}"
+CLIENT_FEATURES="${CLIENT_FEATURES:-mood-tracking,friend-moods,theme-support,streak-tracking,live-queries}"
+POLL_INTERVAL="${POLL_INTERVAL:-2000}"  # Live query polling interval in milliseconds
 
 echo "🚀 Starting Enhanced ${SERVICE_NAME}..."
 echo "📦 Using pure HTTP-based GraphQL delegation to avoid version conflicts"
+echo "🔄 Live Query support enabled with ${POLL_INTERVAL}ms polling interval"
 
 # Set environment variables
 export PORT=$PORT
@@ -51,6 +53,7 @@ export CLIENT_VERSION=$CLIENT_VERSION
 export CLIENT_PLATFORM=$CLIENT_PLATFORM
 export CLIENT_FEATURES=$CLIENT_FEATURES
 export SERVICE_NAME=$SERVICE_NAME
+export POLL_INTERVAL=$POLL_INTERVAL
 
 # Kill any existing node processes that might be using the port
 echo "🔪 Cleaning up any existing processes on port $PORT..."

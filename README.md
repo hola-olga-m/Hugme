@@ -79,10 +79,11 @@ For testing purposes, HugMeNow supports mock authentication:
 
 HugMeNow provides several GraphQL gateway implementations:
 
-1. **Simple Mesh Gateway**: Lightweight implementation with Live Query support
-2. **Apollo Mesh Gateway**: Full-featured Apollo Server with advanced caching
-3. **Custom GraphQL Gateway**: Specialized implementation with customized resolvers
-4. **Enhanced GraphQL Gateway**: Implementation with GraphQL Shield for permissions
+1. **Simple Unified Gateway**: HTTP-based implementation that avoids GraphQL version conflicts through pure HTTP request delegation, with support for Live Queries and field translation
+2. **Simple Mesh Gateway**: Lightweight implementation with Live Query support
+3. **Apollo Mesh Gateway**: Full-featured Apollo Server with advanced caching
+4. **Custom GraphQL Gateway**: Specialized implementation with customized resolvers
+5. **Enhanced GraphQL Gateway**: Implementation with GraphQL Shield for permissions
 
 ## Getting Started
 
@@ -91,22 +92,32 @@ HugMeNow provides several GraphQL gateway implementations:
    bash start-postgraphile.sh
    ```
 
-2. Start the Simple Mesh Gateway:
+2. Start the Simple Unified Gateway (recommended):
+   ```
+   bash start-simple-unified-gateway.sh
+   ```
+   
+   Or alternatively, start the Simple Mesh Gateway:
    ```
    bash start-simple-mesh-gateway.sh
    ```
 
-3. Access the GraphiQL playground at http://localhost:5006/graphql
+3. Access the GraphQL endpoints:
+   - Simple Unified Gateway: http://localhost:5007/graphql
+   - Simple Unified Gateway Live Queries: http://localhost:5007/live-query
+   - Simple Unified Gateway Field Translation: http://localhost:5007/translate
+   - Simple Mesh Gateway GraphiQL playground: http://localhost:5006/graphql
 
 4. Try a Live Query by adding the `@live` directive:
    ```graphql
-   query PublicMoods @live {
-     publicMoods(limit: 5) {
-       mood
-       intensity
-       message
-       user {
-         username
+   query GetMoods @live {
+     allMoods(first: 5) {
+       nodes {
+         id
+         score
+         note
+         isPublic
+         createdAt
        }
      }
    }
@@ -114,15 +125,23 @@ HugMeNow provides several GraphQL gateway implementations:
 
 ## Testing
 
-### Basic Live Query Tests
+### Live Query Tests
 
 Run the basic Live Query tests:
 ```
 bash run-live-query-basic-tests.sh
 ```
 
-This will verify:
+For testing the Simple Unified Gateway specifically:
+```
+bash run-unified-live-query-tests.sh
+```
+
+These tests verify:
 - Basic Live Query functionality
+- HTTP-based real-time updates
+- WebSocket connections when available
+- Field name translation
 - Client information endpoints
 - Mock authentication for user-specific data
 
@@ -163,19 +182,29 @@ For detailed information about HugMeNow's features, see:
 
 Try these scripts to explore HugMeNow's features:
 
-1. **Live Query Demo:**
+1. **Unified Gateway Live Query Demo:**
+   ```
+   bash run-unified-live-query-tests.sh
+   ```
+
+2. **Basic Live Query Demo:**
    ```
    bash run-live-query-basic-tests.sh
    ```
 
-2. **Mock Authentication Demo:**
+3. **Mock Authentication Demo:**
    ```
    bash run-mock-auth-demo.sh
    ```
 
-3. **Send Hug Demo:**
+4. **Send Hug Demo:**
    ```
    bash run-mutation-tests.sh
+   ```
+
+5. **Data Subscription Demo:**
+   ```
+   bash run-subscription-tests.sh
    ```
 
 Each demo includes explanations and examples of how to use these features in your own applications.
