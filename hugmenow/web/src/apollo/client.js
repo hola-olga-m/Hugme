@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
 // Import the custom Mesh SDK
-import { getSdk } from 'mesh-sdk';
+import { getSdk } from '../../../mesh-sdk/index.js';
 
 // Base URLs
 export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy

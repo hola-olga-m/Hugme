@@ -8,7 +8,7 @@ function MeshSdkExample() {
   const [moods, setMoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [newMood, setNewMood] = useState({ mood: 'HAPPY', intensity: 7, note: '' });
+  const [newMood, setNewMood] = useState({ mood: 'HAPPY', intensity: 7, note: '', isPublic: true });
   
   // Get the Mesh SDK hook
   const sdk = useMeshSdk();
@@ -52,7 +52,7 @@ function MeshSdkExample() {
         setMoods(publicMoods);
         
         // Reset the form
-        setNewMood({ mood: 'HAPPY', intensity: 7, note: '' });
+        setNewMood({ mood: 'HAPPY', intensity: 7, note: '', isPublic: true });
       }
     } catch (err) {
       console.error('Error creating mood:', err);
@@ -96,11 +96,8 @@ function MeshSdkExample() {
             onChange={handleInputChange}
           >
             <option value="HAPPY">Happy</option>
-            <option value="SAD">Sad</option>
             <option value="EXCITED">Excited</option>
             <option value="CALM">Calm</option>
-            <option value="ANXIOUS">Anxious</option>
-            <option value="ANGRY">Angry</option>
             <option value="GRATEFUL">Grateful</option>
             <option value="PEACEFUL">Peaceful</option>
           </select>
@@ -159,7 +156,7 @@ function MeshSdkExample() {
             {moods.map(mood => (
               <li key={mood.id} className={`mood-item mood-${mood.mood.toLowerCase()}`}>
                 <div className="mood-header">
-                  <strong>{mood.user?.name || 'Anonymous'}</strong>
+                  <strong>{mood.userId ? `User ${mood.userId}` : 'Anonymous'}</strong>
                   <span className="mood-intensity">{mood.intensity}/10</span>
                 </div>
                 <div className="mood-content">

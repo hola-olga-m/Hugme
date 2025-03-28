@@ -19,6 +19,98 @@ sources:
     batch: true
     # Timeout settings
     timeout: 30000
+    
+# SDK Generation options
+generate:
+  # Specify SDK output paths
+  - targets:
+      - name: ESM
+        type: sdk
+        format: esm
+        output: ./mesh-sdk/index.js
+      - name: CJS
+        type: sdk
+        format: cjs
+        output: ./mesh-sdk/index.cjs
+      - name: TS
+        type: sdk
+        format: typescript
+        output: ./mesh-sdk/index.d.ts
+      - name: Schema
+        type: schema
+        output: ./mesh-sdk/schema.graphql
+  # SDK generation configuration
+  sdk:
+    # SDK generation options
+    config:
+      # Use simple scalar types
+      scalars:
+        DateTime: string
+        JSON: object
+      # Naming conventions
+      namespacedImportName: gqlTypes
+      dedupeFragments: true
+      exportFragmentSpreadSubTypes: true
+      skipTypename: true
+      documentMode: string
+      # Custom fragments
+      fragmentMasking:
+        unmaskFunctionName: getFragmentData
+        implements: { mappers: true }
+    # Define the operations we want to include in the SDK
+    operationsPaths:
+      - type: Query
+        path: me
+        name: Me
+      - type: Query
+        path: publicMoods
+        name: PublicMoods
+        arguments:
+          limit: Int = 10
+          offset: Int = 0
+      - type: Query
+        path: userMoods
+        name: UserMoods
+        arguments:
+          userId: ID!
+          limit: Int
+          offset: Int
+      - type: Query
+        path: receivedHugs
+        name: ReceivedHugs
+        arguments:
+          userId: ID!
+          limit: Int
+          offset: Int
+      - type: Query
+        path: sentHugs
+        name: SentHugs
+        arguments:
+          userId: ID!
+          limit: Int
+          offset: Int
+      - type: Query
+        path: friendsMoods
+        name: FriendsMoods
+        arguments:
+          userId: ID!
+          limit: Int = 10
+          offset: Int = 0
+      - type: Query
+        path: moodStreak
+        name: MoodStreak
+        arguments:
+          userId: ID!
+      - type: Mutation
+        path: createMood
+        name: CreateMoodEntry
+        arguments:
+          input: CreateMoodInput!
+      - type: Mutation
+        path: sendHug
+        name: SendHug
+        arguments:
+          input: SendHugInput!
 
 # Schema transformations - enhanced with additional plugins
 transforms:

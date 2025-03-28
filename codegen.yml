@@ -18,6 +18,29 @@ generates:
       preResolveTypes: true
       scalars:
         DateTime: string
+  ./mesh-sdk/index.js:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-graphql-request
+    config:
+      documentMode: string
+      skipTypename: true
+      dedupeFragments: true
+      exportFragmentSpreadSubTypes: true
+      preResolveTypes: true
+      scalars:
+        DateTime: string
+      namingConvention:
+        typeNames: pascal-case
+        enumValues: upper-case
+        transformUnderscore: true
+  ./mesh-sdk/gql-fragments.js:
+    plugins:
+      - fragment-matcher
+    config:
+      module: es2020
+      exportFragmentSpreadSubTypes: true
 hooks:
   afterAllFileWrite:
     - prettier --write

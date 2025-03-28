@@ -67,8 +67,18 @@ export function useMeshSdk(options = {}) {
   
   const createMoodEntry = useCallback(async (moodInput) => {
     try {
-      const result = await client.CreateMoodEntry(moodInput);
-      return result.createMoodEntry;
+      // Format the input according to the schema requirements - ensure mood is uppercase
+      const input = {
+        input: {
+          mood: moodInput.mood.toUpperCase(),
+          intensity: parseInt(moodInput.intensity, 10),
+          note: moodInput.note || "",
+          isPublic: moodInput.isPublic || false
+        }
+      };
+      
+      const result = await client.CreateMoodEntry(input);
+      return result.createMoodEntry || {};
     } catch (error) {
       console.error('Error creating mood entry:', error);
       throw error;

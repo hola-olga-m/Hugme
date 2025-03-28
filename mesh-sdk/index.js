@@ -177,14 +177,15 @@ function getSdk(options = {}) {
       `);
     },
 
-    async CreateMoodEntry(moodInput) {
+    async CreateMoodEntry(input) {
       return executeQuery(`
-        mutation CreateMoodEntry($moodInput: MoodEntryInput!) {
-          createMoodEntry(moodInput: $moodInput) {
+        mutation CreateMoodEntry($input: MoodEntryInput!) {
+          createMoodEntry(moodInput: $input) {
             ${MOOD_FRAGMENT}
+            userId
           }
         }
-      `, { moodInput });
+      `, { input });
     },
 
     async GetMoodStreak() {
