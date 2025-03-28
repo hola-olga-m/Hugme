@@ -154,6 +154,7 @@ const typeDefs = gql`
     user: User
     mood: String
     intensity: Int
+    score: Int
     note: String
     createdAt: String
   }
@@ -423,6 +424,12 @@ const resolvers = {
         console.error('Error resolving public mood user:', error);
         throw new Error('Failed to load public mood user');
       }
+    },
+    
+    // Add score field resolver that maps to intensity
+    score: (parent) => {
+      console.log('Resolving score for public mood (maps to intensity):', parent.id);
+      return parent.intensity;
     }
   },
   
@@ -626,6 +633,7 @@ const resolvers = {
             },
             mood: randomMood,
             intensity: randomIntensity,
+            score: randomIntensity, // Add score field explicitly, mapped to intensity
             note: `This is a public ${randomMood.toLowerCase()} mood`,
             createdAt: new Date(Date.now() - (i * 3600000)).toISOString() // i hours ago
           });
@@ -663,6 +671,7 @@ const resolvers = {
             },
             mood: randomMood,
             intensity: randomIntensity,
+            score: randomIntensity, // Add score field explicitly, mapped to intensity
             note: `This is a friend's ${randomMood.toLowerCase()} mood`,
             createdAt: new Date(Date.now() - (i * 3600000)).toISOString() // i hours ago
           });

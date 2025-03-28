@@ -9,6 +9,9 @@
  * 5. Live query support for real-time updates
  */
  
+// Import field mappings to ensure consistency across all resolvers
+const fieldMappings = require('./field-mappings');
+ 
 // Live query directives support
 const LIVE_QUERY_FIELDS = {
   'Query.publicMoods': true,
@@ -426,6 +429,15 @@ module.exports = {
     // Virtual field: score -> maps to intensity
     score: (parent, args, context, info) => {
       logResolver('Mood.score');
+      return parent.intensity;
+    }
+  },
+  
+  // Add virtual fields to the HMNPublicMood type
+  HMNPublicMood: {
+    // Virtual field: score -> maps to intensity
+    score: (parent, args, context, info) => {
+      logResolver('HMNPublicMood.score');
       return parent.intensity;
     }
   },

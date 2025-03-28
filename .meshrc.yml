@@ -244,7 +244,7 @@ serve:
       - "Authorization"
       - "x-client-version"
       - "x-client-platform"
-  port: 4000
+  port: 3002
   hostname: "0.0.0.0"
   tracing: true
   introspection: true
