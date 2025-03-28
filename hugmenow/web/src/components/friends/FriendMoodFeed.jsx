@@ -180,7 +180,8 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       .substring(0, 2);
   };
 
-  const getEmojiForScore = (score) => {
+  const getEmojiForScore = (intensity) => {
+    const score = Math.min(Math.ceil(intensity / 2), 5);
     switch (score) {
       case 5: return '😄';
       case 4: return '😊';
@@ -260,7 +261,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
                     <MoodDate>{formatDate(mood.createdAt)}</MoodDate>
                   </UserDetails>
                 </UserInfo>
-                <MoodScore>{getEmojiForScore(mood.score)}</MoodScore>
+                <MoodScore>{getEmojiForScore(mood.intensity)}</MoodScore>
               </MoodHeader>
 
               {mood.note && (

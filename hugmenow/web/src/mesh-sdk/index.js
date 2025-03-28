@@ -43,6 +43,7 @@ function getSdk(options = {}) {
    * @returns {Promise<Object>} The query results
    */
   async function executeQuery(query, variables = {}) {
+
     try {
       const headers = {
         'Content-Type': 'application/json',
