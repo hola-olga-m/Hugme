@@ -58,12 +58,13 @@ transforms:
         - "*.!(nodeId)"
   - rename:
       renames:
+        # Keep score field and add intensity as an alias
         - from:
             type: Mood
             field: score
           to:
             type: Mood
-            field: intensity
+            field: score
         - from:
             type: Mood
             field: isPublic
@@ -123,7 +124,7 @@ additionalTypeDefs: |
     intensity: Int
     note: String
     createdAt: String
-    score: Int
+    score: Int  # Keep score field for backward compatibility
   }
 
   extend type Query {
