@@ -346,4 +346,4 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash start-demo.sh"
-waitForPort = 5000
+waitForPort = 3000
