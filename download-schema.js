@@ -4,7 +4,7 @@
 import fs from 'fs';
 import { getIntrospectionQuery, buildClientSchema, printSchema } from 'graphql';
 
-const GRAPHQL_ENDPOINT = 'http://localhost:5000/graphql';
+const GRAPHQL_ENDPOINT = 'http://0.0.0.0:5000/graphql';
 const OUTPUT_PATH = './hugmenow/web/src/generated/schema.graphql';
 
 async function downloadSchema() {

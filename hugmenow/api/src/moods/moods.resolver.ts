@@ -48,15 +48,8 @@ export class MoodsResolver {
     return this.moodsService.getUserMoodStreak(user.id);
   }
   
-  @Query(() => [Mood])
-  @UseGuards(GqlAuthGuard)
-  async friendsMoods(
-    @CurrentUser() user: User,
-    @Args('limit', { type: () => Int, nullable: true, defaultValue: 20 }) limit?: number,
-    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
-  ): Promise<Mood[]> {
-    return this.moodsService.findFriendsMoods(user.id, limit, offset);
-  }
+  // friendsMoods method has been completely removed
+  // All clients should use publicMoods instead
 
   @Mutation(() => Mood)
   @UseGuards(GqlAuthGuard)

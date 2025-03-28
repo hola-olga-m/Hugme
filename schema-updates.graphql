@@ -10,8 +10,7 @@ type Query {
   # Add search and pagination to users query
   users(search: String, limit: Int, offset: Int): [User!]!
 
-  # Add pagination to friendsMoods query
-  friendsMoods(limit: Int, offset: Int): [Mood!]!
+  # friendsMoods has been replaced with publicMoods
 
   # Add friendship check
   checkFriendship(userId: ID!): Boolean!

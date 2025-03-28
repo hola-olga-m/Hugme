@@ -86,7 +86,7 @@ export const createApolloClient = () => {
                 return [...incoming];
               }
             },
-            // friendsMoods field has been removed, using publicMoods instead
+            // All references to friendsMoods have been completely removed from the codebase
             hugs: {
               merge(existing = [], incoming) {
                 return [...incoming];

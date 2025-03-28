@@ -25,13 +25,8 @@ const GRAPHQL_ERROR_MAPPINGS = {
       to: 'hugs'
     }
   },
-  'Cannot query field "friendsMoods" on type "Query"': {
-    message: 'The "friendsMoods" field has been renamed to "publicMoods" in the current API version.',
-    replacement: {
-      from: 'friendsMoods',
-      to: 'publicMoods'
-    }
-  },
+  // friendsMoods has been completely removed from the schema
+  // and this error mapping is no longer needed
   'Cannot query field "score" on type "PublicMood"': {
     message: 'The "score" field has been renamed to "intensity" in the current API version.',
     replacement: {

@@ -9,8 +9,8 @@
 set -e  # Exit on any error
 
 # Configuration
-GRAPHQL_ENDPOINT="${GRAPHQL_ENDPOINT:-http://localhost:5000/graphql}"
-POSTGRAPHILE_ENDPOINT="${POSTGRAPHILE_ENDPOINT:-http://localhost:5000/postgraphile/graphql}"
+GRAPHQL_ENDPOINT="${GRAPHQL_ENDPOINT:-http://0.0.0.0:5000/graphql}"
+POSTGRAPHILE_ENDPOINT="${POSTGRAPHILE_ENDPOINT:-http://0.0.0.0:5000/postgraphile/graphql}"
 AUTH_TOKEN="${GRAPHQL_AUTH_TOKEN:-}"
 OUTPUT_DIR="./hugmenow/web/src/generated"
 SCHEMA_PATH="$OUTPUT_DIR/schema.graphql"
