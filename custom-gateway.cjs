@@ -18,56 +18,102 @@ const AUTH_TOKEN = process.env.GRAPHQL_AUTH_TOKEN || '';
 
 console.log(`Starting gateway on port ${PORT}, connecting to API at ${API_ENDPOINT}`);
 
+// Custom directives for the schema
+const directiveTypeDefs = gql`
+  # Auth directive for authorization checking
+  directive @auth(requires: Role = USER) on FIELD_DEFINITION
+  
+  # Format directive for string formatting
+  directive @format(
+    date: String, 
+    time: String, 
+    trim: Boolean, 
+    uppercase: Boolean, 
+    lowercase: Boolean
+  ) on FIELD_DEFINITION
+  
+  # Log directive for logging resolver calls
+  directive @log(level: String = "info") on FIELD_DEFINITION
+  
+  # Rate limit directive to prevent abuse
+  directive @rateLimit(
+    max: Int = 5, 
+    window: String = "1m", 
+    message: String = "Too many requests"
+  ) on FIELD_DEFINITION
+  
+  # Deprecated field directive with reason
+  directive @deprecated(reason: String) on FIELD_DEFINITION
+  
+  # Transform directives for data transformation
+  directive @transform(
+    from: String,
+    to: String
+  ) on FIELD_DEFINITION
+  
+  # Public field access control
+  directive @public on FIELD_DEFINITION
+  
+  # Role enumeration
+  enum Role {
+    ADMIN
+    USER
+    GUEST
+  }
+`;
+
 // Type definitions for virtual fields and client-specific types
 const typeDefs = gql`
+  ${directiveTypeDefs}
+  
   # Base schema types are extended from the underlying API
   type Query {
     # Standard API fields (proxy to backend)
-    hello: String
-    users: [User]
-    currentUser: User
-    user(id: ID!): User
-    userByUsername(username: String!): User
-    moods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-    moodById(id: ID!): MoodEntry
-    moodStreak(userId: ID): MoodStreak
-    publicMoods(limit: Int, offset: Int): [PublicMood]
-    hugs(userId: ID, type: String, limit: Int, offset: Int): [Hug]
-    hugById(id: ID!): Hug
-    hugRequests(userId: ID): [HugRequest]
+    hello: String @public
+    users: [User] @auth(requires: ADMIN) @log(level: "debug")
+    currentUser: User @auth @log
+    user(id: ID!): User @auth @log
+    userByUsername(username: String!): User @auth @log
+    moods(userId: ID, limit: Int, offset: Int): [MoodEntry] @auth @log
+    moodById(id: ID!): MoodEntry @auth @log
+    moodStreak(userId: ID): MoodStreak @auth @log
+    publicMoods(limit: Int, offset: Int): [PublicMood] @public @log
+    hugs(userId: ID, type: String, limit: Int, offset: Int): [Hug] @auth @log @rateLimit(max: 50)
+    hugById(id: ID!): Hug @auth @log
+    hugRequests(userId: ID): [HugRequest] @auth @log
     
     # Client-specific fields and aliases
-    clientInfo: ClientInfo!
-    friendsMoods: [PublicMood]
-    userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-    sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
-    receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
+    clientInfo: ClientInfo! @public
+    friendsMoods: [PublicMood] @public @log
+    userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry] @auth @log
+    sentHugs(userId: ID, limit: Int, offset: Int): [Hug] @auth @log
+    receivedHugs(userId: ID, limit: Int, offset: Int): [Hug] @auth @log
   }
   
   type Mutation {
     # Proxy to underlying API
-    login(email: String!, password: String!): AuthPayload
-    register(username: String!, email: String!, password: String!): AuthPayload
-    createMood(input: MoodInput!): MoodEntry
-    updateMood(id: ID!, input: MoodInput!): MoodEntry
-    deleteMood(id: ID!): Boolean
-    sendHug(input: HugInput!): Hug
-    markHugAsRead(id: ID!): Hug
-    createHugRequest(input: HugRequestInput!): HugRequest
-    updateProfile(input: ProfileInput!): User
+    login(email: String!, password: String!): AuthPayload @public @rateLimit(max: 5, window: "5m")
+    register(username: String!, email: String!, password: String!): AuthPayload @public @rateLimit(max: 3, window: "1h")
+    createMood(input: MoodInput!): MoodEntry @auth @log
+    updateMood(id: ID!, input: MoodInput!): MoodEntry @auth @log
+    deleteMood(id: ID!): Boolean @auth @log
+    sendHug(input: HugInput!): Hug @auth @log @rateLimit(max: 10, window: "1m")
+    markHugAsRead(id: ID!): Hug @auth @log
+    createHugRequest(input: HugRequestInput!): HugRequest @auth @log
+    updateProfile(input: ProfileInput!): User @auth @log
     
     # Client-specific mutations
-    sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug
+    sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug @auth @log @rateLimit(max: 10, window: "1m")
   }
   
   # Define basic types needed for the resolvers
   type User {
     id: ID!
-    username: String!
-    email: String
+    username: String! @transform(from: "name", to: "username")
+    email: String @auth
     profileImage: String
     bio: String
-    createdAt: String
+    createdAt: String @format(date: "YYYY-MM-DD")
   }
   
   type MoodEntry {
@@ -76,7 +122,7 @@ const typeDefs = gql`
     intensity: Int!
     note: String
     isPrivate: Boolean
-    createdAt: String!
+    createdAt: String! @format(date: "YYYY-MM-DD")
     user: User
   }
   
@@ -84,7 +130,7 @@ const typeDefs = gql`
     id: ID!
     mood: String!
     intensity: Int!
-    createdAt: String!
+    createdAt: String! @format(date: "YYYY-MM-DD")
     user: User
     score: Int
   }
@@ -93,7 +139,7 @@ const typeDefs = gql`
     id: ID!
     message: String
     isRead: Boolean
-    createdAt: String!
+    createdAt: String! @format(date: "YYYY-MM-DD")
     sender: User
     recipient: User
     mood: MoodEntry
@@ -105,7 +151,7 @@ const typeDefs = gql`
   type HugRequest {
     id: ID!
     status: String!
-    createdAt: String!
+    createdAt: String! @format(date: "YYYY-MM-DD")
     fromUser: User
     toUser: User
   }
@@ -114,7 +160,7 @@ const typeDefs = gql`
     userId: ID!
     currentStreak: Int!
     longestStreak: Int!
-    lastMoodDate: String
+    lastMoodDate: String @format(date: "YYYY-MM-DD")
   }
   
   type AuthPayload {
@@ -670,6 +716,238 @@ async function executeGraphQL(query, variables = {}) {
   });
 }
 
+// Implement directive transformers
+function authDirectiveTransformer(schema) {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName, schema) => {
+      const authDirective = getDirective(schema, fieldConfig, 'auth');
+      
+      if (authDirective) {
+        const { requires } = authDirective[0] || { requires: 'USER' };
+        
+        // Save the original resolver
+        const originalResolver = fieldConfig.resolve;
+        
+        // Replace with function that checks auth
+        fieldConfig.resolve = async (source, args, context, info) => {
+          console.log(`[AuthDirective] Checking authorization for ${typeName}.${info.fieldName}, requires: ${requires}`);
+          
+          // Get the token from context
+          const { token } = context;
+          
+          // Simple token check (could be improved with actual JWT verification)
+          if (!token && requires !== 'GUEST') {
+            throw new Error('Not authorized. Authentication required.');
+          }
+          
+          // Check role requirements
+          if (requires === 'ADMIN') {
+            // Here you would check if the user is an admin
+            // For now, we'll just log the requirement
+            console.log('[AuthDirective] Admin access required');
+          }
+          
+          // If authorized, run the original resolver
+          return originalResolver(source, args, context, info);
+        };
+      }
+      
+      return fieldConfig;
+    },
+  });
+}
+
+function logDirectiveTransformer(schema) {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+      const logDirective = getDirective(schema, fieldConfig, 'log');
+      
+      if (logDirective) {
+        const { level } = logDirective[0] || { level: 'info' };
+        const originalResolver = fieldConfig.resolve;
+        
+        fieldConfig.resolve = async (source, args, context, info) => {
+          console.log(`[LogDirective][${level}] Executing ${typeName}.${fieldName}`);
+          
+          const start = Date.now();
+          const result = await originalResolver(source, args, context, info);
+          const duration = Date.now() - start;
+          
+          console.log(`[LogDirective][${level}] Completed ${typeName}.${fieldName} in ${duration}ms`);
+          
+          return result;
+        };
+      }
+      
+      return fieldConfig;
+    },
+  });
+}
+
+function formatDirectiveTransformer(schema) {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+      const formatDirective = getDirective(schema, fieldConfig, 'format');
+      
+      if (formatDirective) {
+        const { date, time, trim, uppercase, lowercase } = formatDirective[0] || {};
+        const originalResolver = fieldConfig.resolve;
+        
+        fieldConfig.resolve = async (source, args, context, info) => {
+          let result = await originalResolver(source, args, context, info);
+          
+          // Apply transformations based on directive parameters
+          if (result) {
+            if (date && typeof result === 'string') {
+              // Here you could use a date formatting library
+              console.log(`[FormatDirective] Formatting date: ${result} with format ${date}`);
+              // Simple ISO date formatting for now
+              const dateObj = new Date(result);
+              result = dateObj.toISOString().split('T')[0];
+            }
+            
+            if (trim && typeof result === 'string') {
+              result = result.trim();
+            }
+            
+            if (uppercase && typeof result === 'string') {
+              result = result.toUpperCase();
+            }
+            
+            if (lowercase && typeof result === 'string') {
+              result = result.toLowerCase();
+            }
+          }
+          
+          return result;
+        };
+      }
+      
+      return fieldConfig;
+    },
+  });
+}
+
+function rateLimitDirectiveTransformer(schema) {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
+      const rateLimitDirective = getDirective(schema, fieldConfig, 'rateLimit');
+      
+      if (rateLimitDirective) {
+        const { max, window, message } = rateLimitDirective[0] || { max: 5, window: '1m', message: 'Too many requests' };
+        const originalResolver = fieldConfig.resolve;
+        
+        // Create a simple in-memory rate limiter
+        const requestCounts = new Map();
+        
+        fieldConfig.resolve = async (source, args, context, info) => {
+          const { token, ip } = context;
+          const key = token || ip || 'anonymous';
+          
+          console.log(`[RateLimitDirective] Checking rate limit for ${key} on ${typeName}.${fieldName}`);
+          
+          // Get current count and time
+          const now = Date.now();
+          const requestInfo = requestCounts.get(key) || { count: 0, resetAt: now + parseTimeWindow(window) };
+          
+          // Reset counter if window expired
+          if (now > requestInfo.resetAt) {
+            requestInfo.count = 0;
+            requestInfo.resetAt = now + parseTimeWindow(window);
+          }
+          
+          // Increment count
+          requestInfo.count += 1;
+          requestCounts.set(key, requestInfo);
+          
+          // Check if rate limit exceeded
+          if (requestInfo.count > max) {
+            console.log(`[RateLimitDirective] Rate limit exceeded for ${key}`);
+            throw new Error(message || 'Rate limit exceeded');
+          }
+          
+          return originalResolver(source, args, context, info);
+        };
+      }
+      
+      return fieldConfig;
+    },
+  });
+}
+
+// Helper function to parse time window
+function parseTimeWindow(window) {
+  const value = parseInt(window);
+  const unit = window.slice(-1);
+  
+  switch (unit) {
+    case 's': return value * 1000;
+    case 'm': return value * 60 * 1000;
+    case 'h': return value * 60 * 60 * 1000;
+    case 'd': return value * 24 * 60 * 60 * 1000;
+    default: return 60 * 1000; // Default 1 minute
+  }
+}
+
+// Define GraphQL Shield rules
+const isAuthenticated = rule()(async (_, __, context) => {
+  return !!context.token || 'Not authenticated';
+});
+
+const isAdmin = rule()(async (_, __, context) => {
+  // Check if token exists and contains admin role
+  // For demo purposes, just check if token contains 'admin'
+  return context.token && context.token.includes('admin') || 'Not authorized as admin';
+});
+
+const hasUserAccess = rule()(async (_, args, context) => {
+  // Check if user has access to the requested user data
+  // Would typically verify the token contains user ID or admin role
+  const requestedUserId = args.userId || args.id;
+  return !!context.token || 'Not authorized to access user data';
+});
+
+// Create the GraphQL Shield permissions
+const permissions = shield({
+  Query: {
+    hello: allow,
+    clientInfo: allow,
+    publicMoods: allow,
+    friendsMoods: allow,
+    users: isAdmin,
+    currentUser: isAuthenticated,
+    user: and(isAuthenticated, hasUserAccess),
+    userByUsername: isAuthenticated,
+    moods: and(isAuthenticated, hasUserAccess),
+    moodById: and(isAuthenticated, hasUserAccess),
+    moodStreak: and(isAuthenticated, hasUserAccess),
+    hugs: and(isAuthenticated, hasUserAccess),
+    hugById: and(isAuthenticated, hasUserAccess),
+    hugRequests: and(isAuthenticated, hasUserAccess),
+    sentHugs: and(isAuthenticated, hasUserAccess),
+    receivedHugs: and(isAuthenticated, hasUserAccess),
+    userMoods: and(isAuthenticated, hasUserAccess)
+  },
+  Mutation: {
+    login: allow,
+    register: allow,
+    createMood: isAuthenticated,
+    updateMood: isAuthenticated,
+    deleteMood: isAuthenticated,
+    sendHug: isAuthenticated,
+    markHugAsRead: isAuthenticated,
+    createHugRequest: isAuthenticated,
+    updateProfile: isAuthenticated,
+    sendFriendHug: isAuthenticated
+  },
+  // Allow access to all fields of client info type
+  ClientInfo: allow
+}, {
+  allowExternalErrors: true,
+  fallbackRule: deny,
+  fallbackError: 'Not authorized to access this resource'
+});
+
 /**
  * Main function to start the server
  */
@@ -679,10 +957,19 @@ async function startServer() {
     const app = express();
     
     // Create a GraphQL schema
-    const schema = makeExecutableSchema({ 
+    let schema = makeExecutableSchema({ 
       typeDefs,
       resolvers 
     });
+    
+    // Apply directive transformers
+    schema = authDirectiveTransformer(schema);
+    schema = logDirectiveTransformer(schema);
+    schema = formatDirectiveTransformer(schema);
+    schema = rateLimitDirectiveTransformer(schema);
+    
+    // Apply GraphQL Shield permissions middleware
+    schema = applyMiddleware(schema, permissions);
     
     // Create Apollo Server
     const server = new ApolloServer({
@@ -692,7 +979,8 @@ async function startServer() {
       context: ({ req }) => {
         // Pass the authorization header if present
         const token = req.headers.authorization || '';
-        return { token };
+        const ip = req.ip || req.connection.remoteAddress || '';
+        return { token, ip };
       }
     });
     
