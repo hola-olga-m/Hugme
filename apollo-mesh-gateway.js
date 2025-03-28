@@ -582,8 +582,14 @@ const resolvers = {
 };
 
 // Helper function to execute GraphQL requests against the API
+/**
+ * Execute a GraphQL query against the PostGraphile API
+ * This function is similar to how GraphQL Mesh executes remote queries
+ */
 async function executeGraphQL(query, variables = {}, token = null) {
   try {
+    console.log(`[Gateway] Executing GraphQL query to ${TARGET_API}`);
+    
     const response = await fetch(TARGET_API, {
       method: 'POST',
       headers: {
@@ -604,6 +610,66 @@ async function executeGraphQL(query, variables = {}, token = null) {
   } catch (error) {
     console.error('[Gateway] Error executing GraphQL:', error);
     return null;
+  }
+}
+
+/**
+ * Fallback query for fetching public moods when the REST approach fails
+ * Uses a simpler GraphQL query structure to minimize schema conflicts
+ */
+async function fetchMoodsWithSimpleQuery(args, context) {
+  console.log('[Gateway] Falling back to simple GraphQL query for public moods');
+  
+  try {
+    // Use allMoods query which works better with PostGraphile's default schema
+    return executeGraphQL(`
+      query GetPublicMoods($limit: Int, $offset: Int) {
+        allMoods(
+          first: $limit
+          offset: $offset
+          filter: {
+            isPublic: { equalTo: true }
+          }
+        ) {
+          nodes {
+            id
+            score
+            note
+            isPublic
+            createdAt
+            userId
+            userByUserId {
+              id
+              username
+              name
+              avatarUrl
+            }
+          }
+        }
+      }
+    `,
+      { limit: args.limit || 10, offset: args.offset || 0 },
+      context.headers?.authorization
+    ).then(data => {
+      // Transform the response to match our PublicMood type
+      const moods = data?.allMoods?.nodes || [];
+      return moods.map(mood => ({
+        id: mood.id,
+        intensity: mood.score,
+        emoji: "😊", // Default emoji mapping
+        message: mood.note || "",
+        createdAt: mood.createdAt,
+        userId: mood.userId,
+        user: {
+          id: mood.userByUserId?.id,
+          name: mood.userByUserId?.username || mood.userByUserId?.name,
+          avatar: mood.userByUserId?.avatarUrl || ""
+        }
+      }));
+    });
+  } catch (error) {
+    console.error('[Gateway] Error in fetchMoodsWithSimpleQuery:', error);
+    return [];
   }
 }
 
