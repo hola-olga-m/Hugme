@@ -18,8 +18,8 @@ const handleError = (path, error) => {
   return null;
 };
 
-// Export resolvers
-module.exports = {
+// Export resolvers using ES module syntax
+export default {
   Query: {
     // Client information - client-only field providing version info
     clientInfo: () => {
@@ -27,9 +27,9 @@ module.exports = {
       return {
         version: process.env.CLIENT_VERSION || '1.0.0',
         buildDate: new Date().toISOString(),
-        platform: 'web',
+        platform: process.env.CLIENT_PLATFORM || 'web',
         deviceInfo: 'HugMeNow Web Client',
-        features: ['mood-tracking', 'friend-moods', 'theme-support', 'streak-tracking']
+        features: (process.env.CLIENT_FEATURES || 'mood-tracking,friend-moods').split(',')
       };
     },
     
