@@ -48,6 +48,32 @@ transforms:
             type: Hug
             field: isRead
           to: read
+          
+  # Authentication transform commented out until we fix the transform names
+  # Removing for now to get basic functionality working
+
+  # Support for Live Queries
+  - liveQuery:
+      invalidations:
+        - field: "Query.publicMoods"
+          invalidatedBy:
+            - "Mutation.createMoodEntry"
+        - field: "Query.friendsMoods"
+          invalidatedBy:
+            - "Mutation.createMoodEntry"
+        - field: "Query.userMoods"
+          invalidatedBy:
+            - "Mutation.createMoodEntry"
+        - field: "Query.receivedHugs"
+          invalidatedBy:
+            - "Mutation.sendHug"
+        - field: "Query.sentHugs"
+          invalidatedBy:
+            - "Mutation.sendHug"
+        - field: "Query.communityHugRequests"
+          invalidatedBy:
+            - "Mutation.createHugRequest"
+            - "Mutation.respondToHugRequest"
 
 # Dynamic resolvers from a JavaScript file
 additionalResolvers:
@@ -120,55 +146,6 @@ additionalTypeDefs: |
   extend type HugRequest {
     requester: User
   }
-
-  # Authentication transform for security (added to transforms section)
-  - authenticationTransform:
-      type: "@graphql-mesh/transform-authentication"
-      options:
-        mode: graphql-shield
-        rules:
-          # Define authentication rules
-          isAuthenticated: "context => !!context.user"
-          hasScope: "scopeName => context => context.user && context.user.scopes.includes(scopeName)"
-          
-        # Apply rules to fields and types
-        permissions:
-          Query: 
-            "*": "isAuthenticated"
-            publicMoods: "true" # Public access
-            friendsMoods: "true" # Public access (legacy field)
-            clientInfo: "true" # Public access
-          Mutation: 
-            "*": "isAuthenticated"
-            login: "true" # Public access
-            register: "true" # Public access
-          Hug: "isAuthenticated"
-          User.email: "isAuthenticated"
-          User.name: "true" # Public access
-          User.username: "true" # Public access
-
-  # Support for Live Queries
-  - liveQuery:
-      invalidations:
-        - field: "Query.publicMoods"
-          invalidatedBy:
-            - "Mutation.createMoodEntry"
-        - field: "Query.friendsMoods"
-          invalidatedBy:
-            - "Mutation.createMoodEntry"
-        - field: "Query.userMoods"
-          invalidatedBy:
-            - "Mutation.createMoodEntry"
-        - field: "Query.receivedHugs"
-          invalidatedBy:
-            - "Mutation.sendHug"
-        - field: "Query.sentHugs"
-          invalidatedBy:
-            - "Mutation.sendHug"
-        - field: "Query.communityHugRequests"
-          invalidatedBy:
-            - "Mutation.createHugRequest"
-            - "Mutation.respondToHugRequest"
 
 # Enable SDL generation
 sdl:
