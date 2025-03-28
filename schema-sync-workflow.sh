@@ -148,6 +148,28 @@ compare_postgraphile_schema() {
   return 0
 }
 
+# Function to build GraphQL Mesh
+build_mesh() {
+  echo "🔧 Building GraphQL Mesh..."
+  
+  # Check if .meshrc.yml exists
+  if [ ! -f ".meshrc.yml" ]; then
+    echo "❌ Mesh configuration file not found at .meshrc.yml"
+    return 1
+  fi
+  
+  # Build the mesh
+  npx graphql-mesh build
+  
+  if [ $? -ne 0 ]; then
+    echo "❌ Building GraphQL Mesh failed"
+    return 1
+  fi
+  
+  echo "✅ GraphQL Mesh built successfully"
+  return 0
+}
+
 # Main workflow execution
 main() {
   # Check command-line arguments for specific modes
@@ -177,6 +199,11 @@ main() {
     fi
   fi
   
+  if [ "$1" = "--build-mesh" ]; then
+    build_mesh
+    exit $?
+  fi
+  
   # Run the full workflow
   if check_server; then
     if fetch_schema; then
@@ -184,6 +211,10 @@ main() {
       
       # Skip typegen for now until component queries are fixed
       echo "⚠️ Skipping type generation to avoid syntax errors in queries"
+      
+      # Build GraphQL Mesh to apply field transformations
+      echo "🔄 Building GraphQL Mesh to apply field transformations..."
+      build_mesh
       
       # Run analysis if requested
       if [ "$1" = "--with-analysis" ] || [ "$1" = "--full" ]; then

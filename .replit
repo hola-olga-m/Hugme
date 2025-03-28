@@ -57,6 +57,14 @@ args = "PostGraphile"
 task = "workflow.run"
 args = "HugMeNow"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "CustomGraphQLGateway"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "GraphQLMeshApollo"
+
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
 author = "agent"
@@ -140,3 +148,33 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash restart-app.sh"
+
+[[workflows.workflow]]
+name = "CustomGraphQLGateway"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-custom-gateway.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "GraphQLMeshApollo"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-mesh-apollo.sh"
+waitForPort = 5000

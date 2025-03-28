@@ -1,0 +1,139 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  hello: String
+  dbTest: String
+  users: [User]
+  currentUser: User
+  user(id: ID!): User
+  userByUsername(username: String!): User
+  moods(userId: ID, limit: Int, offset: Int): [MoodEntry]
+  moodById(id: ID!): MoodEntry
+  moodStreak(userId: ID): MoodStreak
+  publicMoods(limit: Int, offset: Int): [PublicMood]
+  hugs(userId: ID, limit: Int, offset: Int): [Hug]
+  hugById(id: ID!): Hug
+  hugRequests(status: String): [HugRequest]
+}
+
+type User {
+  id: ID
+  email: String
+  username: String
+  name: String
+  avatarUrl: String
+  isAnonymous: Boolean
+  createdAt: String
+  updatedAt: String
+  created_at: String
+  moods: [MoodEntry]
+  hugs: [Hug]
+  friends: [User]
+}
+
+type MoodEntry {
+  id: ID
+  userId: ID
+  mood: String
+  intensity: Int
+  note: String
+  isPublic: Boolean
+  createdAt: String
+  updatedAt: String
+}
+
+type Hug {
+  id: ID
+  senderId: ID
+  sender: User
+  recipientId: ID
+  recipient: User
+  type: String
+  message: String
+  isRead: Boolean
+  createdAt: String
+}
+
+type MoodStreak {
+  currentStreak: Int
+  longestStreak: Int
+  lastMoodDate: String
+  totalMoods: Int
+}
+
+type PublicMood {
+  id: ID
+  userId: ID
+  user: User
+  mood: String
+  intensity: Int
+  note: String
+  createdAt: String
+}
+
+type Mutation {
+  login(loginInput: LoginInput!): AuthPayload
+  register(registerInput: RegisterInput!): AuthPayload
+  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthPayload
+  createMoodEntry(moodInput: MoodEntryInput!): MoodEntry
+  sendHug(hugInput: SendHugInput!): Hug
+  markHugAsRead(hugId: ID!): Hug
+  createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
+  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
+}
+
+type HugRequest {
+  id: ID
+  requesterId: ID
+  requester: User
+  recipientId: ID
+  recipient: User
+  message: String
+  status: String
+  createdAt: String
+  respondedAt: String
+}
+
+input MoodEntryInput {
+  mood: String!
+  intensity: Int!
+  note: String
+  isPublic: Boolean
+}
+
+input SendHugInput {
+  recipientId: ID!
+  type: String!
+  message: String
+}
+
+input HugRequestInput {
+  recipientId: ID!
+  message: String
+  isCommunityRequest: Boolean
+}
+
+type AuthPayload {
+  accessToken: String
+  user: User
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+  rememberMe: Boolean
+}
+
+input RegisterInput {
+  email: String!
+  username: String!
+  password: String!
+  name: String
+}
+
+input AnonymousLoginInput {
+  deviceId: String
+}

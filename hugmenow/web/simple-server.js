@@ -58,7 +58,7 @@ app.use('/api', createProxyMiddleware({
   }
 }));
 
-// Setup GraphQL proxy
+// Setup GraphQL proxy to use API server directly
 app.use('/graphql', createProxyMiddleware({
   target: 'http://localhost:3002',
   changeOrigin: true,

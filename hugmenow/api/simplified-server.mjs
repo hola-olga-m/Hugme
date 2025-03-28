@@ -18,7 +18,7 @@ import { useSofa } from 'sofa-api';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 // Constants
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 const DATABASE_URL = process.env.DATABASE_URL;
 
 // Create Express app

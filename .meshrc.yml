@@ -1,41 +1,144 @@
+# GraphQL Mesh Configuration for HugMeNow
+# This configuration integrates with Apollo Server via mesh-apollo-server.js
+
+# API source configuration
 sources:
   - name: HugMeNowAPI
     handler: 
       graphql:
-        source: http://localhost:5000/graphql
+        endpoint: http://localhost:3002/graphql
         operationHeaders:
+          Authorization: '{context.headers.authorization}'
+        schemaHeaders:
           Authorization: '{env.GRAPHQL_AUTH_TOKEN}'
+        # Better introspection options
+        introspection:
+          pollingInterval: 10000  # Check for schema changes every 10 seconds
+          handleFieldConflicts: true
+        # Better subscription support
+        subscriptions: true
+        # Add batch execution
+        batch: true
+        # Add operation name handling
+        useGETForQueries: false
 
+# Schema transformations
 transforms:
+  # Apply consistent naming conventions
   - namingConvention:
       typeNames: pascalCase
       fieldNames: camelCase
       enumValues: upperCase
+  
+  # Map client-side field names to server-side
+  - rename:
+      renames:
+        # Query field mappings
+        - from:
+            type: Query
+            field: friendsMoods
+          to:
+            type: Query
+            field: publicMoods
+        - from:
+            type: Query
+            field: userMoods
+          to:
+            type: Query
+            field: moods
+        - from:
+            type: Query
+            field: sentHugs
+          to:
+            type: Query
+            field: hugs
+        - from:
+            type: Query
+            field: receivedHugs
+          to:
+            type: Query
+            field: hugs
+        
+        # Type field mappings
+        - from:
+            type: PublicMood
+            field: score
+          to:
+            type: PublicMood
+            field: intensity
+        - from:
+            type: Hug
+            field: fromUser
+          to:
+            type: Hug
+            field: sender
+        - from:
+            type: Hug
+            field: toUser
+          to:
+            type: Hug
+            field: recipient
+        - from:
+            type: Hug
+            field: read
+          to:
+            type: Hug
+            field: isRead
 
+# Additional type definitions
 additionalTypeDefs: |
+  # Client-specific fields for Query type
   extend type Query {
-    # Add any client-only fields here
-    _clientInfo: ClientInfo!
+    # Client information field - provides version info
+    clientInfo: ClientInfo!
+    
+    # Virtual fields that map to existing schema fields with different parameters
+    friendsMoods(limit: Int, offset: Int): [PublicMood]
+    userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
+    sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
+    receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
   }
   
+  # Client-specific fields for PublicMood type
+  extend type PublicMood {
+    score: Int
+  }
+  
+  # Client-specific fields for Hug type
+  extend type Hug {
+    fromUser: User
+    toUser: User
+    read: Boolean
+  }
+  
+  # Client-specific types
   type ClientInfo {
     version: String!
     buildDate: String!
   }
 
+# Additional resolvers
 additionalResolvers:
   - ./mesh-resolvers.js
 
-plugins:
-  - responseCache:
-      ttl: 300  # 5 minutes
-  - parserCache: {}
-  - validationCache: {}
-  - depthLimit:
-      maxDepth: 10
+# Cache configuration for better performance
+cache:
+  localforage:
+    useCache: true
+    ttl: 300 # 5 minutes
 
+# Apollo-specific options
+apollo:
+  introspection: true
+  playground: true
+  debug: true
+
+# Serve configuration (for standalone mode)
 serve:
+  endpoint: /graphql
   playground: true
   cors:
     origin: '*'
-  port: 8080
+    credentials: true
+  port: 5000
+  host: "0.0.0.0"
