@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../services/api';
-import { useMutation } from '@apollo/client';
-import { LOGIN, REGISTER, ANONYMOUS_LOGIN } from '../graphql/mutations';
+import { meshSdk } from '../apollo/client';
 
 // Create the context
 const AuthContext = createContext();
@@ -16,10 +14,8 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  // GraphQL mutations
-  const [loginMutation] = useMutation(LOGIN);
-  const [registerMutation] = useMutation(REGISTER);
-  const [anonymousLoginMutation] = useMutation(ANONYMOUS_LOGIN);
+  // Create a client instance for Mesh SDK
+  const client = meshSdk();
   
   // Clear error helper
   const clearError = () => setError(null);
@@ -30,57 +26,65 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          // Verify token and get current user
-          const userData = await authApi.getCurrentUser();
-          setCurrentUser(userData);
-          setIsAuthenticated(true);
+          // Use Mesh SDK GetMe
+          console.log('Attempting Mesh SDK GetMe operation...');
+          const result = await client.GetMe();
+          
+          if (result && result.me) {
+            console.log('Mesh SDK GetMe successful, user:', result.me.username);
+            setCurrentUser(result.me);
+            setIsAuthenticated(true);
+          } else {
+            console.error('Invalid Mesh SDK GetMe response structure:', result);
+            throw new Error('Invalid GetMe response');
+          }
         } catch (err) {
           console.error('Token validation error:', err);
           // Clear invalid token
           localStorage.removeItem('authToken');
           setIsAuthenticated(false);
         }
+      } else {
+        setIsAuthenticated(false);
       }
       setLoading(false);
     };
     
     checkAuth();
-  }, []);
+  }, [client]);
   
   // Login with email and password
   const login = async (credentials) => {
     setLoading(true);
     clearError();
     try {
-      // Try REST API first
-      const response = await authApi.login(credentials);
+      console.log('Attempting Mesh SDK login with input:', JSON.stringify({
+        email: credentials.email,
+        // Password omitted for security
+      }));
       
-      // Store token and user data
-      localStorage.setItem('authToken', response.accessToken);
-      setCurrentUser(response.user);
-      setIsAuthenticated(true);
-      return response.user;
-    } catch (restError) {
-      console.error('REST login error:', restError);
+      const loginInput = {
+        email: credentials.email,
+        password: credentials.password
+      };
       
-      // Fallback to GraphQL
-      try {
-        const { data } = await loginMutation({
-          variables: {
-            loginInput: credentials
-          }
-        });
-        
-        const response = data.login;
+      const result = await client.Login(loginInput);
+      
+      if (result && result.login) {
+        const response = result.login;
+        console.log('Mesh SDK login successful, user:', response.user?.username);
         localStorage.setItem('authToken', response.accessToken);
         setCurrentUser(response.user);
         setIsAuthenticated(true);
         return response.user;
-      } catch (graphqlError) {
-        console.error('GraphQL login error:', graphqlError);
-        setError(graphqlError.message || 'Login failed');
-        throw graphqlError;
+      } else {
+        console.error('Invalid Mesh SDK login response structure:', result);
+        throw new Error('Invalid login response');
       }
+    } catch (error) {
+      console.error('Mesh SDK login error:', error);
+      setError(error.message || 'Login failed');
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -98,74 +102,44 @@ export const AuthProvider = ({ children }) => {
       // Password omitted for security
     });
     
-    // Define a function to handle both REST and GraphQL responses
-    const handleAuthResponse = (response) => {
-      console.log('Registration successful, user:', response.user?.username);
-      localStorage.setItem('authToken', response.accessToken);
-      setCurrentUser(response.user);
-      setIsAuthenticated(true);
-      return response.user;
-    };
-    
     try {
-      // Try GraphQL first this time
-      try {
-        console.log('Attempting GraphQL registration with input:', JSON.stringify({
-          username: userData.username,
-          email: userData.email,
-          name: userData.name,
-          avatarUrl: userData.avatarUrl || null // include avatarUrl if it exists
-        }));
-        
-        // Ensure the input data format matches exactly what the GraphQL API expects
-        const graphQLInput = {
-          username: userData.username,
-          email: userData.email,
-          name: userData.name,
-          password: userData.password
-        };
-        
-        // Only add avatarUrl if it exists
-        if (userData.avatarUrl) {
-          graphQLInput.avatarUrl = userData.avatarUrl;
-        }
-        
-        const { data } = await registerMutation({
-          variables: {
-            registerInput: graphQLInput
-          }
-        });
-        
-        console.log('GraphQL register response:', data);
-        
-        if (data && data.register) {
-          return handleAuthResponse(data.register);
-        } else {
-          console.error('Invalid GraphQL response structure:', data);
-          throw new Error('Invalid GraphQL response');
-        }
-      } catch (graphqlError) {
-        console.error('GraphQL register error details:', graphqlError);
-        if (graphqlError.networkError) {
-          console.error('Network error details:', graphqlError.networkError);
-        }
-        if (graphqlError.graphQLErrors) {
-          console.error('GraphQL error details:', graphqlError.graphQLErrors);
-        }
-        
-        // Fallback to REST API
-        console.log('Falling back to REST API registration...');
-        try {
-          const response = await authApi.register(userData);
-          console.log('REST API register response:', response);
-          return handleAuthResponse(response);
-        } catch (restError) {
-          console.error('REST API register error:', restError);
-          throw restError;
-        }
+      console.log('Attempting Mesh SDK registration with input:', JSON.stringify({
+        username: userData.username,
+        email: userData.email,
+        name: userData.name,
+        avatarUrl: userData.avatarUrl || null // include avatarUrl if it exists
+      }));
+      
+      // Ensure the input data format matches exactly what the GraphQL API expects
+      const registerInput = {
+        username: userData.username,
+        email: userData.email,
+        name: userData.name,
+        password: userData.password
+      };
+      
+      // Only add avatarUrl if it exists
+      if (userData.avatarUrl) {
+        registerInput.avatarUrl = userData.avatarUrl;
+      }
+      
+      const result = await client.Register(registerInput);
+      
+      console.log('Mesh SDK register response:', result);
+      
+      if (result && result.register) {
+        const response = result.register;
+        console.log('Registration successful, user:', response.user?.username);
+        localStorage.setItem('authToken', response.accessToken);
+        setCurrentUser(response.user);
+        setIsAuthenticated(true);
+        return response.user;
+      } else {
+        console.error('Invalid Mesh SDK response structure:', result);
+        throw new Error('Invalid registration response');
       }
     } catch (error) {
-      console.error('Registration failed completely:', error);
+      console.error('Registration failed:', error);
       
       // Provide more specific error message based on the error
       let errorMessage = 'Registration failed';
@@ -196,35 +170,33 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     clearError();
     try {
-      // Try REST API first
-      const response = await authApi.anonymousLogin(anonymousData);
+      console.log('Attempting Mesh SDK anonymous login with input:', JSON.stringify({
+        deviceId: anonymousData.deviceId,
+        deviceName: anonymousData.deviceName
+      }));
       
-      // Store token and user data
-      localStorage.setItem('authToken', response.accessToken);
-      setCurrentUser(response.user);
-      setIsAuthenticated(true);
-      return response.user;
-    } catch (restError) {
-      console.error('REST anonymous login error:', restError);
+      const anonymousLoginInput = {
+        deviceId: anonymousData.deviceId,
+        deviceName: anonymousData.deviceName
+      };
       
-      // Fallback to GraphQL
-      try {
-        const { data } = await anonymousLoginMutation({
-          variables: {
-            anonymousLoginInput: anonymousData
-          }
-        });
-        
-        const response = data.anonymousLogin;
+      const result = await client.AnonymousLogin(anonymousLoginInput);
+      
+      if (result && result.anonymousLogin) {
+        const response = result.anonymousLogin;
+        console.log('Mesh SDK anonymous login successful, user:', response.user?.username);
         localStorage.setItem('authToken', response.accessToken);
         setCurrentUser(response.user);
         setIsAuthenticated(true);
         return response.user;
-      } catch (graphqlError) {
-        console.error('GraphQL anonymous login error:', graphqlError);
-        setError(graphqlError.message || 'Anonymous login failed');
-        throw graphqlError;
+      } else {
+        console.error('Invalid Mesh SDK anonymous login response structure:', result);
+        throw new Error('Invalid anonymous login response');
       }
+    } catch (error) {
+      console.error('Mesh SDK anonymous login error:', error);
+      setError(error.message || 'Anonymous login failed');
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -234,32 +206,48 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setLoading(true);
     try {
-      // Call logout API (optional, may not be needed if using JWT)
-      await authApi.logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-      // Continue with local logout even if API call fails
-    } finally {
-      // Clear token and user data regardless of API success
+      // Since we're using JWT tokens, we don't need an explicit logout API call
+      // We just need to remove the token and clear the user state
+      console.log('Logging out user');
       localStorage.removeItem('authToken');
       setCurrentUser(null);
       setIsAuthenticated(false);
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
       setLoading(false);
     }
   };
   
   // Update user profile
-  const updateProfile = async (userId, userData) => {
+  const updateProfile = async (userData) => {
     setLoading(true);
     clearError();
     try {
-      const updatedUser = await authApi.updateProfile(userId, userData);
-      setCurrentUser(updatedUser);
-      return updatedUser;
-    } catch (err) {
-      console.error('Update profile error:', err);
-      setError(err.message || 'Failed to update profile');
-      throw err;
+      console.log('Attempting to update user profile:', {
+        name: userData.name,
+        username: userData.username,
+        avatarUrl: userData.avatarUrl
+      });
+      
+      // Prepare input for SDK call
+      const updateUserInput = { ...userData };
+      
+      const result = await client.UpdateUser(updateUserInput);
+      
+      if (result && result.updateUser) {
+        const updatedUser = result.updateUser;
+        console.log('Profile update successful:', updatedUser.username);
+        setCurrentUser(updatedUser);
+        return updatedUser;
+      } else {
+        console.error('Invalid UpdateUser response structure:', result);
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      setError(error.message || 'Failed to update profile');
+      throw error;
     } finally {
       setLoading(false);
     }

@@ -168,11 +168,10 @@ function getSdk(options = {}) {
       // Since we don't have a dedicated friendsMoods field in the schema,
       // we use publicMoods as a proxy for friends' moods
       return executeQuery(`
-        query FriendsMoods {
+        query PublicMoods {
           publicMoods {
             ${MOOD_FRAGMENT}
             userId
-            isPublic
             user {
               ${USER_FRAGMENT}
             }
@@ -346,6 +345,17 @@ function getSdk(options = {}) {
           }
         }
       `, { updateFriendshipInput });
+    },
+
+    // User profile operations
+    async UpdateUser(updateUserInput) {
+      return executeQuery(`
+        mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+          updateUser(updateUserInput: $updateUserInput) {
+            ${USER_FRAGMENT}
+          }
+        }
+      `, { updateUserInput });
     },
 
     // Utility operations

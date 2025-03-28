@@ -3,6 +3,19 @@
 # Startup script for HugMeNow application
 echo "Starting HugMeNow application services..."
 
+# Clean up any existing processes
+echo "Cleaning up existing processes..."
+echo "Killing any Node.js processes that might be using ports 3002 and 5000..."
+
+# Find and kill processes 
+pkill -f "node.*PORT=3002" || true
+pkill -f "node.*PORT=5000" || true
+pkill -f "node.*simplified-server.mjs" || true
+pkill -f "node.*simple-server.js" || true
+
+# Wait a moment for ports to be released
+sleep 2
+
 # Get the API port from environment variable or use default
 API_PORT=${API_PORT:-3002}
 

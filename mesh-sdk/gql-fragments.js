@@ -22,7 +22,6 @@ const MOOD_FRAGMENT = `
   note
   createdAt
   userId
-  isPublic
 `;
 
 // Hug fields
