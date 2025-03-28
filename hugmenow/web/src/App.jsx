@@ -20,6 +20,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'));
 const HugGalleryDemo = lazy(() => import('./pages/HugGalleryDemo'));
 const PublicHugGallery = lazy(() => import('./pages/PublicHugGallery'));
+const MeshSdkDemo = lazy(() => import('./pages/MeshSdkDemo'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Theme error boundary component definition
@@ -134,10 +135,15 @@ const App = () => {
                     <ThemeSettings />
                   </ProtectedRoute>
                 } />
-                {/* Static demo route - always accessible */}
+                {/* Static demo routes - always accessible */}
                 <Route path="/hug-gallery" element={
                   <StaticRoute>
                     <PublicHugGallery />
+                  </StaticRoute>
+                } />
+                <Route path="/mesh-sdk-demo" element={
+                  <StaticRoute>
+                    <MeshSdkDemo />
                   </StaticRoute>
                 } />
                 

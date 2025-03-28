@@ -100,6 +100,14 @@ function MainLayout({ children }) {
                     {t('moodTracker.moodHistory')}
                   </Link>
                 </li>
+                <li className="nav-item">
+                  <Link 
+                    to="/mesh-sdk-demo" 
+                    className={location.pathname === '/mesh-sdk-demo' ? 'active' : ''}
+                  >
+                    Mesh SDK Demo
+                  </Link>
+                </li>
               </ul>
             </nav>
           )}
@@ -185,6 +193,7 @@ function MainLayout({ children }) {
                   <li><Link to="/mood-tracker">{t('navigation.moodTracker')}</Link></li>
                   <li><Link to="/hug-center">{t('navigation.hugCenter')}</Link></li>
                   <li><Link to="/hug-gallery">{t('nav.hugGallery')}</Link></li>
+                  <li><Link to="/mesh-sdk-demo">Mesh SDK Demo</Link></li>
                 </ul>
               </div>
               <div className="footer-links-column">

@@ -2,10 +2,24 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
+// Import the custom Mesh SDK
+import { getSdk } from 'mesh-sdk';
 
 // Base URLs
 export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy
 export const GRAPHQL_URL = '/graphql';
+
+// Create a Mesh SDK instance for direct API calls
+export const meshSdk = () => {
+  // Get the token from localStorage
+  const token = localStorage.getItem('authToken');
+  
+  // Create and return the SDK instance
+  return getSdk({
+    baseUrl: `${API_BASE_URL}${GRAPHQL_URL}`,
+    token,
+  });
+};
 
 // Create an error link for handling GraphQL errors
 const errorLink = onError(({ graphQLErrors, networkError }) => {

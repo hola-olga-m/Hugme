@@ -40,8 +40,35 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parser middleware
-app.use(bodyParser.json());
+// Configure body parsing before any route handlers to ensure all POST requests work
+// Basic configuration first (general body parsing)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Special body parser configuration for Apollo Server requests
+app.use('/graphql', (req, res, next) => {
+  bodyParser.json({
+    limit: '2mb',
+    verify: (req, res, buf) => {
+      // Store the raw body buffer for Apollo
+      req.rawBody = buf.toString('utf8');
+    }
+  })(req, res, (err) => {
+    if (err) {
+      console.error('GraphQL body parsing error:', err);
+      return res.status(400).json({
+        errors: [{
+          message: 'Invalid JSON request body',
+          extensions: { code: 'BAD_REQUEST' }
+        }]
+      });
+    }
+    next();
+  });
+});
+
+// Add URL-encoded parser for form data (for regular form submissions)
+app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 
 // Basic request logging
 app.use((req, res, next) => {
@@ -963,16 +990,58 @@ app.get('/db-status', async (req, res) => {
   }
 });
 
-// Create Apollo Server
+// Create Apollo Server with enhanced configuration and optimized parsing
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   introspection: true,
   playground: true,
+  
+  // Use custom parseOptions to avoid the stream is not readable error
+  // This configuration bypasses the default body parser and uses our custom one
+  bodyParserConfig: { verify: () => {} },
+  
   context: ({ req }) => {
-    // Extract auth token from request if needed
-    const token = req.headers.authorization || '';
-    return { token };
+    try {
+      // Extract auth token from Authorization header
+      // Format: "Bearer <token>" or just "<token>"
+      const authHeader = req.headers.authorization || '';
+      const token = authHeader.startsWith('Bearer ') 
+        ? authHeader.slice(7)
+        : authHeader;
+      
+      // Log authentication attempt (but not the full token for security)
+      if (token) {
+        console.log(`GraphQL request with token: ${token.substring(0, 8)}...`);
+      } else {
+        console.log('GraphQL request without authentication token');
+      }
+      
+      return { 
+        token,
+        userId: token ? `user-from-token-${token.substring(0, 5)}` : null,
+        pgPool
+      };
+    } catch (error) {
+      console.error('Error in Apollo context function:', error);
+      // Return basic context even on error to prevent Apollo from crashing
+      return { token: null, pgPool };
+    }
+  },
+  formatError: (err) => {
+    console.error('GraphQL Error:', err);
+    
+    // Return a structured error response
+    return {
+      message: err.message,
+      extensions: {
+        code: err.extensions?.code || 'INTERNAL_SERVER_ERROR',
+        path: err.path,
+        exception: {
+          stacktrace: err.extensions?.exception?.stacktrace || [],
+        }
+      }
+    };
   }
 });
 
@@ -1057,15 +1126,38 @@ async function startServer() {
     }
   });
   
-  // Anonymous login endpoint
+  // Anonymous login endpoint with improved error handling
   app.post('/anonymous-login', (req, res) => {
-    const clientId = Math.random().toString(36).substring(2, 15);
-    res.json({
-      success: true,
-      token: `anonymous-token-${clientId}`,
-      userId: `anon-${clientId}`,
-      isAnonymous: true
-    });
+    try {
+      console.log('Anonymous login request:', req.body);
+      
+      // Generate a client ID - use device ID if provided or generate a random one
+      const deviceId = req.body?.deviceId || '';
+      const clientId = deviceId || Math.random().toString(36).substring(2, 15);
+      
+      // Create a response with authentication info
+      res.json({
+        success: true,
+        token: `anonymous-token-${clientId}`,
+        userId: `anon-${clientId}`,
+        user: {
+          id: `anon-${clientId}`,
+          username: `anonymous-${clientId.substring(0, 5)}`,
+          name: 'Anonymous User',
+          avatarUrl: null,
+          isAnonymous: true,
+          createdAt: new Date().toISOString()
+        },
+        isAnonymous: true
+      });
+    } catch (error) {
+      console.error('Error in anonymous login:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create anonymous login session',
+        details: error.message
+      });
+    }
   });
   
   // Custom login endpoint to bypass GraphQL/Sofa issues

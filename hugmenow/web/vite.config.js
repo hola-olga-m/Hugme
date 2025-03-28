@@ -55,6 +55,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      'mesh-sdk': resolve(__dirname, '../../mesh-sdk'),
     },
     extensions: ['.js', '.jsx', '.json'],
   },
