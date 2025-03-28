@@ -9,7 +9,13 @@ import http from 'http';
 import express from 'express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/use/ws';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { PubSub } from 'graphql-subscriptions';
+import { GraphQLError } from 'graphql';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import bodyParser from 'body-parser';
@@ -124,12 +130,6 @@ const typeDefs = `#graphql
     user: User
   }
 
-  # Authentication types
-  type AuthPayload {
-    token: String!
-    user: User!
-  }
-  
   # Root Query type definition
   type Query {
     # Client information field - provides version info
@@ -143,7 +143,6 @@ const typeDefs = `#graphql
     
     # Direct fields that pass through to the API
     user(id: ID!): User
-    me: User
     mood(id: ID!): MoodEntry
     publicMoods(limit: Int, offset: Int): [PublicMood]
     moods(userId: ID!, limit: Int, offset: Int): [MoodEntry]
@@ -166,21 +165,42 @@ const typeDefs = `#graphql
     moodId: ID
   }
 
-  # Register input type
-  input RegisterInput {
-    name: String!
-    email: String!
-    password: String!
-  }
-
   # Mutation definitions
   type Mutation {
     createMood(input: CreateMoodInput!): MoodEntry
     sendHug(input: SendHugInput!): Hug
-    login(email: String!, password: String!): AuthPayload
-    register(input: RegisterInput!): AuthPayload
+  }
+  
+  # Subscription definitions for real-time updates
+  type Subscription {
+    # Triggered when a new mood is created
+    newMood: MoodEntry
+    
+    # Triggered when a new hug is sent
+    newHug: Hug
+    
+    # Triggered when a new hug is sent to a specific user
+    newHugReceived(userId: ID!): Hug
+    
+    # Triggered when a new mood is created by a user's friend
+    newFriendMood(userId: ID!): PublicMood
   }
 `;
+
+// Create a PubSub instance for handling subscription events
+const pubsub = new PubSub();
+
+// Log the PubSub instance to confirm its capabilities
+console.log('PubSub instance created with methods:', Object.keys(pubsub));
+console.log('PubSub asyncIterator exists:', typeof pubsub.asyncIterator === 'function');
+
+// Define event topics for subscriptions
+const EVENTS = {
+  NEW_MOOD: 'NEW_MOOD',
+  NEW_HUG: 'NEW_HUG',
+  NEW_HUG_RECEIVED: 'NEW_HUG_RECEIVED',
+  NEW_FRIEND_MOOD: 'NEW_FRIEND_MOOD'
+};
 
 // ===== Custom Resolvers =====
 const resolvers = {
@@ -229,9 +249,7 @@ const resolvers = {
       ).then(data => {
         // Transform the response from allMoods.nodes to match our PublicMood type
         const moods = data?.allMoods?.nodes || [];
-        // Filter to only include public moods
-        const publicMoods = moods.filter(mood => mood.isPublic === true);
-        return publicMoods.map(mood => ({
+        return moods.map(mood => ({
           id: mood.id,
           intensity: mood.score, // Map score to intensity
           emoji: "😊", // Default emoji since we don't have mood field
@@ -297,53 +315,49 @@ const resolvers = {
     },
 
     publicMoods: async (_, args, context) => {
-      console.log('[Gateway] Resolving Query.publicMoods with REST approach');
-      
-      try {
-        // Get raw JSON data to avoid GraphQL schema conflicts
-        // This approach fetches data as JSON directly from PostgreSQL via PostGraphile's non-GraphQL endpoint
-        const response = await fetch(`${TARGET_API.replace('/postgraphile/graphql', '')}/postgraphile/status?moodData=true&limit=${args.limit || 10}&offset=${args.offset || 0}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            ...(context.headers?.authorization ? { 'Authorization': context.headers.authorization } : {})
+      console.log('[Gateway] Resolving Query.publicMoods');
+      return executeGraphQL(`
+        query GetPublicMoods($limit: Int, $offset: Int) {
+          allMoods(
+            first: $limit
+            offset: $offset
+          ) {
+            nodes {
+              id
+              score
+              note
+              isPublic
+              createdAt
+              userId
+              userByUserId {
+                id
+                username
+                name
+                avatarUrl
+              }
+            }
           }
-        });
-        
-        if (!response.ok) {
-          console.error(`[Gateway] Error fetching public moods: ${response.status} ${response.statusText}`);
-          return [];
         }
-        
-        const result = await response.json();
-        
-        if (!result.moods || !Array.isArray(result.moods)) {
-          console.log('[Gateway] No moods data found or invalid format:', result);
-          
-          // As a fallback, use a simpler GraphQL query that avoids complex types
-          return fetchMoodsWithSimpleQuery(args, context);
-        }
-        
-        // Transform to match our PublicMood schema
-        return result.moods.map(mood => ({
+      `,
+        { limit: args.limit || 10, offset: args.offset || 0 },
+        context.headers?.authorization
+      ).then(data => {
+        // Transform the response from allMoods.nodes to match our PublicMood type
+        const moods = data?.allMoods?.nodes || [];
+        return moods.map(mood => ({
           id: mood.id,
-          intensity: mood.score,
-          emoji: "😊", // Default emoji mapping
+          intensity: mood.score, // Map score to intensity
+          emoji: "😊", // Default emoji since we don't have mood field
           message: mood.note || "",
-          createdAt: mood.created_at,
-          userId: mood.user_id,
+          createdAt: mood.createdAt,
+          userId: mood.userId,
           user: {
-            id: mood.user?.id,
-            name: mood.user?.username,
-            avatar: mood.user?.avatar_url || ""
+            id: mood.userByUserId?.id,
+            name: mood.userByUserId?.username,
+            avatar: mood.userByUserId?.avatarUrl || ""
           }
         }));
-      } catch (error) {
-        console.error('[Gateway] Error in publicMoods resolver:', error);
-        
-        // As a fallback, try a simpler approach if the REST endpoint fails
-        return fetchMoodsWithSimpleQuery(args, context);
-      }
+      });
     },
 
     moods: async (_, args, context) => {
@@ -371,60 +385,6 @@ const resolvers = {
         { userId: args.userId },
         context.headers?.authorization
       ).then(data => data?.moodStreak);
-    },
-    
-    me: async (_, args, context) => {
-      console.log('[Gateway] Resolving Query.me');
-      if (!context.headers?.authorization) {
-        console.log('[Gateway] No authorization token, returning null for me query');
-        return null;
-      }
-      
-      try {
-        // Use a direct HTTP request to fetch the current user data
-        const response = await fetch(TARGET_API, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': context.headers.authorization
-          },
-          body: JSON.stringify({
-            query: `
-              query GetCurrentUser {
-                currentUser {
-                  id
-                  username
-                  email
-                  avatarUrl
-                }
-              }
-            `
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.errors) {
-          console.error('[Gateway] GraphQL errors in me query:', result.errors);
-          return null;
-        }
-        
-        const user = result.data?.currentUser;
-        if (!user) {
-          return null;
-        }
-        
-        // Transform to match our User type
-        return {
-          id: user.id,
-          name: user.username,
-          email: user.email,
-          avatar: user.avatarUrl
-        };
-      } catch (error) {
-        console.error('[Gateway] Error in me resolver:', error);
-        return null;
-      }
     }
   },
   
@@ -432,135 +392,228 @@ const resolvers = {
   Mutation: {
     createMood: async (_, args, context) => {
       console.log('[Gateway] Resolving Mutation.createMood');
-      return executeGraphQL(
-        'mutation CreateMood($input: CreateMoodInput!) { createMood(input: $input) { id intensity emoji message createdAt userId } }',
-        { input: args.input },
-        context.headers?.authorization
-      ).then(data => data?.createMood);
+      
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      // Only enforce auth in production
+      if (!isDevelopment && !context.headers?.authorization) {
+        throw new Error("Authentication required to create moods");
+      }
+      
+      // Use a default token for testing if in development and no auth provided
+      const authToken = isDevelopment && !context.headers?.authorization 
+        ? 'Bearer test-token-for-development-only'
+        : context.headers?.authorization;
+      
+      try {
+        // Transform the input to match PostGraphile's schema
+        // Important: PostGraphile expects a nested object structure with ClientMutationId
+        // The schema shows we need { input: { mood: { score, note, etc } } }
+        // Prevent GraphQL version conflicts by using string-only parameters
+        const moodInput = {
+          score: args.input.intensity || args.input.score || 5,
+          note: args.input.message || "",
+          isPublic: args.input.isPublic === undefined ? true : args.input.isPublic,
+          userId: args.input.userId || "1" // Add userId from input
+        };
+        
+        const mutationInput = { 
+          clientMutationId: "test-" + Date.now(),
+          mood: moodInput
+        };
+        
+        console.log('[Gateway] Sending createMood with input:', JSON.stringify(mutationInput));
+        
+        const result = await executeGraphQL(
+          `mutation CreateMood($input: CreateMoodInput!) {
+            createMood(input: $input) {
+              mood {
+                id
+                score
+                note
+                isPublic
+                createdAt
+                userId
+                userByUserId {
+                  id
+                  username
+                }
+              }
+            }
+          }`,
+          { input: mutationInput },
+          authToken
+        );
+        
+        if (!result?.data?.createMood?.mood) {
+          console.error('[Gateway] Error creating mood:', result?.errors);
+          throw new Error('Failed to create mood');
+        }
+        
+        const mood = result.data.createMood.mood;
+        
+        // Transform the response to match client expectations
+        const transformedMood = {
+          id: mood.id,
+          intensity: mood.score,
+          emoji: "😊", // Default emoji since not stored in DB
+          message: mood.note || "",
+          createdAt: mood.createdAt,
+          userId: mood.userId,
+          isPublic: mood.isPublic,
+          score: mood.score // For backward compatibility
+        };
+        
+        // Publish the new mood event for subscriptions
+        console.log('[Gateway] Publishing NEW_MOOD event:', transformedMood.id);
+        pubsub.publish(EVENTS.NEW_MOOD, { newMood: transformedMood });
+        
+        // If the mood is public, also publish it as a friend mood event
+        if (mood.isPublic) {
+          console.log('[Gateway] Publishing NEW_FRIEND_MOOD event for user:', transformedMood.userId);
+          // In a real app, we'd loop through all friends of the user and publish to their channels
+          // For now, we'll publish to a user-specific channel for the creator (as a demonstration)
+          pubsub.publish(`${EVENTS.NEW_FRIEND_MOOD}.${transformedMood.userId}`, { 
+            newFriendMood: transformedMood
+          });
+        }
+        
+        return transformedMood;
+      } catch (error) {
+        console.error('[Gateway] Error in createMood resolver:', error);
+        throw error;
+      }
     },
     
     sendHug: async (_, args, context) => {
       console.log('[Gateway] Resolving Mutation.sendHug');
-      return executeGraphQL(
-        'mutation SendHug($input: SendHugInput!) { sendHug(input: $input) { id message sentAt senderId recipientId moodId isRead } }',
-        { input: args.input },
-        context.headers?.authorization
-      ).then(data => data?.sendHug);
-    },
-    
-    login: async (_, { email, password }, context) => {
-      console.log('[Gateway] Resolving Mutation.login');
+      
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      // Only enforce auth in production
+      if (!isDevelopment && !context.headers?.authorization) {
+        throw new Error("Authentication required to send hugs");
+      }
+      
+      // Use a default token for testing if in development and no auth provided
+      const authToken = isDevelopment && !context.headers?.authorization 
+        ? 'Bearer test-token-for-development-only'
+        : context.headers?.authorization;
       
       try {
-        // Use a direct HTTP request to authenticate with PostGraphile
-        const response = await fetch(TARGET_API, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            query: `
-              mutation Login($email: String!, $password: String!) {
-                authenticate(input: {email: $email, password: $password}) {
-                  jwt
-                  user {
-                    id
-                    username
-                    email
-                    avatarUrl
-                  }
+        // Important: In PostGraphile, the mutation is createHug, not sendHug
+        // And it requires a properly formatted UUID for senderId and recipientId
+        // The HugInput doesn't have a moodId field, so we need to drop it
+        
+        // Prevent GraphQL version conflicts by using string-only parameters
+        const hugInput = {
+          type: "SUPPORTIVE", // Default type
+          message: args.input.message || "",
+          senderId: args.input.senderId,
+          recipientId: args.input.recipientId,
+          isRead: false // Default as unread
+        };
+        
+        const mutationInput = {
+          clientMutationId: "test-" + Date.now(),
+          hug: hugInput
+        };
+        
+        console.log('[Gateway] Sending createHug with input:', JSON.stringify(mutationInput));
+        
+        const result = await executeGraphQL(
+          `mutation CreateHug($input: CreateHugInput!) {
+            createHug(input: $input) {
+              hug {
+                id
+                message
+                type
+                senderId
+                recipientId
+                isRead
+                createdAt
+                userBySenderId {
+                  id
+                  username
+                }
+                userByRecipientId {
+                  id
+                  username
                 }
               }
-            `,
-            variables: { email, password }
-          })
+            }
+          }`,
+          { input: mutationInput },
+          authToken
+        );
+        
+        if (!result?.data?.createHug?.hug) {
+          console.error('[Gateway] Error sending hug:', result?.errors);
+          throw new Error('Failed to send hug');
+        }
+        
+        const hug = result.data.createHug.hug;
+        
+        // Transform the response to match client expectations
+        const transformedHug = {
+          id: hug.id,
+          message: hug.message || "",
+          sentAt: hug.createdAt,
+          senderId: hug.senderId,
+          recipientId: hug.recipientId,
+          isRead: hug.isRead,
+          moodId: args.input.moodId, // Keep the original moodId from the input
+          type: hug.type
+        };
+        
+        // Publish the new hug event for subscriptions
+        console.log('[Gateway] Publishing NEW_HUG event:', transformedHug.id);
+        pubsub.publish(EVENTS.NEW_HUG, { newHug: transformedHug });
+        
+        // Publish specific event for the recipient
+        console.log('[Gateway] Publishing NEW_HUG_RECEIVED event for user:', transformedHug.recipientId);
+        pubsub.publish(`${EVENTS.NEW_HUG_RECEIVED}.${transformedHug.recipientId}`, { 
+          newHugReceived: transformedHug
         });
         
-        const result = await response.json();
-        
-        if (result.errors) {
-          console.error('[Gateway] GraphQL errors in login:', result.errors);
-          throw new Error(result.errors[0].message || "Login failed");
-        }
-        
-        const authData = result.data?.authenticate;
-        if (!authData) {
-          throw new Error("Authentication failed");
-        }
-        
-        // Transform to match our AuthPayload type
-        return {
-          token: authData.jwt,
-          user: {
-            id: authData.user.id,
-            name: authData.user.username,
-            email: authData.user.email,
-            avatar: authData.user.avatarUrl
-          }
-        };
+        return transformedHug;
       } catch (error) {
-        console.error('[Gateway] Error in login resolver:', error);
-        throw new Error(error.message || "Login failed");
+        console.error('[Gateway] Error in sendHug resolver:', error);
+        throw error;
+      }
+    }
+  },
+  
+  // Subscription resolvers
+  Subscription: {
+    newMood: {
+      subscribe: () => {
+        console.log('[Gateway] Setting up newMood subscription');
+        return pubsub.asyncIterator(EVENTS.NEW_MOOD);
       }
     },
     
-    register: async (_, { input }, context) => {
-      console.log('[Gateway] Resolving Mutation.register');
-      
-      try {
-        // Use a direct HTTP request to register with PostGraphile
-        const response = await fetch(TARGET_API, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            query: `
-              mutation Register($name: String!, $email: String!, $password: String!) {
-                registerUser(input: {username: $name, email: $email, password: $password}) {
-                  user {
-                    id
-                    username
-                    email
-                    avatarUrl
-                  }
-                  jwt
-                }
-              }
-            `,
-            variables: { 
-              name: input.name,
-              email: input.email,
-              password: input.password
-            }
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.errors) {
-          console.error('[Gateway] GraphQL errors in register:', result.errors);
-          throw new Error(result.errors[0].message || "Registration failed");
-        }
-        
-        const registerData = result.data?.registerUser;
-        if (!registerData) {
-          throw new Error("Registration failed");
-        }
-        
-        // Transform to match our AuthPayload type
-        return {
-          token: registerData.jwt,
-          user: {
-            id: registerData.user.id,
-            name: registerData.user.username,
-            email: registerData.user.email,
-            avatar: registerData.user.avatarUrl
-          }
-        };
-      } catch (error) {
-        console.error('[Gateway] Error in register resolver:', error);
-        throw new Error(error.message || "Registration failed");
+    newHug: {
+      subscribe: () => {
+        console.log('[Gateway] Setting up newHug subscription');
+        return pubsub.asyncIterator(EVENTS.NEW_HUG);
+      }
+    },
+    
+    newHugReceived: {
+      subscribe: (_, { userId }) => {
+        console.log('[Gateway] Setting up newHugReceived subscription for userId:', userId);
+        return pubsub.asyncIterator(`${EVENTS.NEW_HUG_RECEIVED}.${userId}`);
+      }
+    },
+    
+    newFriendMood: {
+      subscribe: (_, { userId }) => {
+        console.log('[Gateway] Setting up newFriendMood subscription for userId:', userId);
+        return pubsub.asyncIterator(`${EVENTS.NEW_FRIEND_MOOD}.${userId}`);
+      },
+      resolve: (payload, { userId }) => {
+        // In a real app, we would check if the mood creator is a friend of the subscriber
+        // For now, we'll pass through all public moods
+        return payload.newFriendMood;
       }
     }
   },
@@ -589,6 +642,7 @@ const resolvers = {
 async function executeGraphQL(query, variables = {}, token = null) {
   try {
     console.log(`[Gateway] Executing GraphQL query to ${TARGET_API}`);
+    console.log('[Gateway] Variables:', JSON.stringify(variables, null, 2));
     
     const response = await fetch(TARGET_API, {
       method: 'POST',
@@ -602,74 +656,13 @@ async function executeGraphQL(query, variables = {}, token = null) {
     const result = await response.json();
     
     if (result.errors) {
-      console.error('[Gateway] GraphQL errors:', result.errors);
-      throw new Error(result.errors[0].message);
+      console.error('[Gateway] GraphQL errors:', JSON.stringify(result.errors, null, 2));
     }
     
-    return result.data;
+    return result; // Return the full result object including data and errors
   } catch (error) {
     console.error('[Gateway] Error executing GraphQL:', error);
-    return null;
-  }
-}
-
-/**
- * Fallback query for fetching public moods when the REST approach fails
- * Uses a simpler GraphQL query structure to minimize schema conflicts
- */
-async function fetchMoodsWithSimpleQuery(args, context) {
-  console.log('[Gateway] Falling back to simple GraphQL query for public moods');
-  
-  try {
-    // Use allMoods query which works better with PostGraphile's default schema
-    return executeGraphQL(`
-      query GetPublicMoods($limit: Int, $offset: Int) {
-        allMoods(
-          first: $limit
-          offset: $offset
-          filter: {
-            isPublic: { equalTo: true }
-          }
-        ) {
-          nodes {
-            id
-            score
-            note
-            isPublic
-            createdAt
-            userId
-            userByUserId {
-              id
-              username
-              name
-              avatarUrl
-            }
-          }
-        }
-      }
-    `,
-      { limit: args.limit || 10, offset: args.offset || 0 },
-      context.headers?.authorization
-    ).then(data => {
-      // Transform the response to match our PublicMood type
-      const moods = data?.allMoods?.nodes || [];
-      return moods.map(mood => ({
-        id: mood.id,
-        intensity: mood.score,
-        emoji: "😊", // Default emoji mapping
-        message: mood.note || "",
-        createdAt: mood.createdAt,
-        userId: mood.userId,
-        user: {
-          id: mood.userByUserId?.id,
-          name: mood.userByUserId?.username || mood.userByUserId?.name,
-          avatar: mood.userByUserId?.avatarUrl || ""
-        }
-      }));
-    });
-  } catch (error) {
-    console.error('[Gateway] Error in fetchMoodsWithSimpleQuery:', error);
-    return [];
+    throw error; // Rethrow to allow caller to handle the error
   }
 }
 
@@ -677,17 +670,75 @@ async function startServer() {
   // Create Express app
   const app = express();
   
-  // Create Apollo Server
+  // Create HTTP server
+  const httpServer = http.createServer(app);
+  
+  // Create WebSocket server for subscriptions
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/graphql',
+  });
+  
+  // Create executable schema from type definitions and resolvers
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+  
+  // Set up WebSocket server for subscriptions
+  console.log('🔌 Setting up WebSocket server for GraphQL subscriptions');
+  
+  const serverCleanup = useServer(
+    { 
+      schema,
+      // This function is called when a client connects
+      onConnect: async (ctx) => {
+        console.log('👋 Client connected to WebSocket', ctx.connectionParams);
+        return true; // Allow connection
+      },
+      // This function is called when a client disconnects
+      onDisconnect: (ctx) => {
+        console.log('👋 Client disconnected from WebSocket');
+      },
+      // This function builds the context for subscriptions
+      context: async (ctx) => {
+        // Extract the token from connection params if present
+        const token = ctx.connectionParams?.authorization || '';
+        console.log(`🔑 Building context for subscription with token: ${token ? 'Present' : 'Not present'}`);
+        return { 
+          headers: { authorization: token },
+          auth: {
+            token,
+            isAuthenticated: !!token
+          }
+        };
+      }
+    }, 
+    wsServer
+  );
+  
+  // Create Apollo Server with plugins for HTTP server draining
   const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+    schema,
     introspection: true,
+    plugins: [
+      // Proper shutdown for HTTP server
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      
+      // Proper shutdown for WebSocket server
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
   });
   
   // Start Apollo Server
   await server.start();
   
-  // Set up middleware
+  // Set up middleware for HTTP server
   app.use(
     '/graphql',
     cors(),
@@ -709,10 +760,10 @@ async function startServer() {
   });
   
   // Start server
-  const httpServer = http.createServer(app);
   await new Promise((resolve) => httpServer.listen({ port: PORT, host: '0.0.0.0' }, resolve));
   
   console.log(`🚀 Apollo Mesh Gateway ready at http://0.0.0.0:${PORT}/graphql`);
+  console.log(`🔌 WebSocket subscriptions available at ws://0.0.0.0:${PORT}/graphql`);
   
   // Add explicit console log for port binding to help with workflow detection
   console.log(`NOTICE: Server is listening on port ${PORT}`);
