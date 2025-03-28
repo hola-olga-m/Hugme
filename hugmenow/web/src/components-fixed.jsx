@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_FRIENDS_MOODS, SEND_HUG } from '../../graphql/queries';
+import { GET_PUBLIC_MOODS, SEND_HUG } from '../../graphql/queries';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiClock, FiSend, FiHeart, FiAlertCircle, FiBell } from 'react-icons/fi';
@@ -294,7 +294,7 @@ const FilterButton = styled.button`
 
 // Component
 const FriendMoodsWidget = () => {
-  const { loading, error, data, refetch } = useQuery(GET_FRIENDS_MOODS, {
+  const { loading, error, data, refetch } = useQuery(GET_PUBLIC_MOODS, {
     fetchPolicy: 'network-only',
     pollInterval: 60000 // Poll every minute for updates
   });
