@@ -38,7 +38,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "RestartHugMeNow"
+runButton = "FixAndRestartHugMeNow"
 
 [[workflows.workflow]]
 name = "Project"
@@ -125,6 +125,15 @@ args = "bash start-hugmenow.sh"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash restart-app.sh"
+
+[[workflows.workflow]]
+name = "FixAndRestartHugMeNow"
 author = 40513268
 mode = "sequential"
 
