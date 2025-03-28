@@ -1,119 +1,113 @@
+# Remove logger config for simplicity
+
 sources:
   - name: PostGraphileAPI
     handler:
       graphql:
-        endpoint: http://localhost:3003/postgraphile/graphql
+        endpoint: "http://localhost:3003/postgraphile/graphql"
         batch: true
         batchingOptions:
-          maxBatchSize: 15      # Increased from 10 to 15 for better throughput
-          delay: 30             # Reduced from 50ms to 30ms for faster response
+          maxBatchSize: 15
+          delay: 30
         retry: 3
-        retryOptions:           # Enhanced retry options
-          retryStrategy: 'incremental'
+        retryOptions:
+          retryStrategy: "incremental"
           maxRetryDelay: 2000
           initialDelay: 100
-        timeout: 12000          # Increased from 10000ms to 12000ms
-        multipart: true         # Support for multipart requests (file uploads)
+        timeout: 12000
+        multipart: true
         operationHeaders:
           Authorization: "{context.headers.authorization}"
-          'x-client-version': "{context.headers['x-client-version'] || '1.0.0'}"
-          'x-client-platform': "{context.headers['x-client-platform'] || 'web'}"
-          'x-request-id': "{context.headers['x-request-id'] || generateId()}"
-          'x-mesh-source': "mesh-gateway"
+          "x-client-version": "{context.headers['x-client-version'] || '1.0.0'}"
+          "x-client-platform": "{context.headers['x-client-platform'] || 'web'}"
+          "x-request-id": "{context.headers['x-request-id'] || generateId()}"
+          "x-mesh-source": "mesh-gateway"
         schemaHeaders:
           Authorization: "{context.headers.authorization}"
-          'x-request-type': 'schema'
-          'x-mesh-internal': 'true'
+          "x-request-type": "schema"
+          "x-mesh-internal": "true"
 
 transforms:
-  # Step 1: Apply naming convention transformations
   - namingConvention:
-      typeNames: pascalCase      # User_Data → UserData
-      fieldNames: camelCase      # user_name → userName
-      enumValues: upperCase      # pending → PENDING
-      transformUnderscore: true  # Remove all underscores
-  
-  # Step 2: Add namespace prefix to avoid conflicts 
-  # Core types are exempt to maintain a clean API
+      typeNames: pascalCase
+      fieldNames: camelCase
+      enumValues: upperCase
+      transformUnderscore: true
   - prefix:
       includeRootOperations: false
       value: HMN
       ignore:
-        # Main business domain entities don't get prefixed
         - User
         - Mood
         - Hug
         - HugRequest
         - Friendship
         - MoodStreak
-        # Input types used directly by client don't get prefixed
         - MoodInput
         - HugInput
         - HugRequestInput
-        # Auth types are kept clean for better DX
         - AuthPayload
         - LoginInput
         - RegisterInput
-    
-  # Step 3: Filter out internal schema elements for security and cleaner API
   - filterSchema:
-      # More comprehensive filtering approach
       filters:
-        # Remove internal queries and system metadata
-        - Query.!(_*|metadata|schema|introspection|clientInfo|pgAdmin*|nodeId*|node*)
-        # Remove internal mutations and node deletion
-        - Mutation.!(_*|metadata|deleteNode|delete*|register*|removeAll*)
-        # Remove dangerous types that could expose database internals
-        - Type.!(*Connection|*Edge|*Payload|Node|PageInfo)
-        # Keep only the fields needed from User type
-        - User.!(nodeId|firstName|lastName|__typename)
-        # Automatically strip nodeId from all objects
+        - "Query.!(_*|metadata|schema|introspection|clientInfo|pgAdmin*|nodeId*|node*)"
+        - "Mutation.!(_*|metadata|deleteNode|delete*|register*|removeAll*)"
+        - "Type.!(*Connection|*Edge|*Payload|Node|PageInfo)"
+        - "User.!(nodeId|firstName|lastName|__typename)"
         - "*.!(nodeId)"
-
-  # Step 4: Field and type renaming for better client API naming
   - rename:
       renames:
-        # Field renames to match client expectations
-        - from: 
+        - from:
             type: Mood
             field: score
-          to: intensity
+          to:
+            type: Mood
+            field: intensity
         - from:
             type: Mood
             field: isPublic
-          to: public
+          to:
+            type: Mood
+            field: public
         - from:
             type: Hug
             field: isRead
-          to: read
+          to:
+            type: Hug
+            field: read
         - from:
             type: User
             field: avatarUrl
-          to: profileImage
+          to:
+            type: User
+            field: profileImage
         - from:
             type: HugRequest
             field: createdAt
-          to: requestedAt
-        
-        # Type renames for better semantics
+          to:
+            type: HugRequest
+            field: requestedAt
         - from:
             type: CreateMoodPayload
-          to: MoodResult
+          to:
+            type: MoodResult
         - from:
             type: CreateHugPayload
-          to: HugResult
+          to:
+            type: HugResult
 
 additionalResolvers:
-  - ./mesh-resolvers.js
+  - "./mesh-resolvers.js"
 
 middleware:
   - shield:
-      resolvers: ./shield-rules.js
+      resolvers: "./shield-rules.js"
       fallbackRule: "allow"
       allowExternalErrors: true
       debug: true
       rules:
-        Query: 
+        Query:
           "*": true
           userMoods: "isAuthenticated"
           receivedHugs: "isAuthenticated"
@@ -127,10 +121,9 @@ middleware:
           sendHug: "isAuthenticated"
           respondToHugRequest: "isAuthenticated"
 
-# Remove cache config entirely for simplicity
-
+# Simplifying plugin configuration to essential ones only
 plugins:
-  # LiveQuery setup for real-time reactivity
+  # Keep only essential plugins for now
   - name: live-query
     options:
       pollingInterval: 3000
@@ -142,15 +135,13 @@ plugins:
         - Query.receivedHugs
         - Query.pendingHugRequests
         - Query.friendsMoods
-  
-  # Plugin for JWT authentication
+        
+  # JWT Authentication plugin
   - name: jwt-auth
     options:
       algorithm: HS256
       secretKey: "{env.JWT_SECRET || 'default-dev-key'}"
-      headerName: authorization
-      
-  # Removing envelop for now to simplify configuration
+      headerName: "authorization"
 
 additionalTypeDefs: |
   type ClientInfo {
@@ -162,10 +153,7 @@ additionalTypeDefs: |
   }
 
   extend type Query {
-    # Client information
     clientInfo: ClientInfo!
-  
-    # Virtual fields that map to transformed queries
     publicMoods(limit: Int, offset: Int): [Mood!]!
     userMoods(userId: ID, limit: Int, offset: Int): [Mood!]!
     moodStreak(userId: ID!): MoodStreak!
@@ -173,17 +161,12 @@ additionalTypeDefs: |
     receivedHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!
     sentHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!
     pendingHugRequests(userId: ID!): [HugRequest!]!
-    
-    # Legacy field kept for backward compatibility
     friendsMoods(limit: Int, offset: Int): [Mood!]!
   }
 
   extend type Mutation {
-    # Virtual mutations that map to the actual PostGraphile mutations
     sendHug(input: HugInput!): Hug
     createMoodEntry(moodInput: MoodInput!): Mood
-    # createHugRequest - commented out as it exists in the base schema
-    # createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
     respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
   }
 
@@ -222,37 +205,33 @@ additionalTypeDefs: |
 
 sdl:
   generate: true
-  filepath: ./schema.graphql
-  # Additional SDL output formats for documentation
+  filepath: "./schema.graphql"
   additionalOutputs:
     - type: introspection
-      path: ./schema-introspection.json
+      path: "./schema-introspection.json"
     - type: typescriptDefinitions
-      path: ./schema.d.ts
+      path: "./schema.d.ts"
 
-# Generate TypeScript SDK with enhanced options
 sdk:
   generate: true
-  path: ./hugmenow/web/src/mesh-sdk
-  # Include operations from multiple files
+  path: "./hugmenow/web/src/mesh-sdk"
   operations:
-    - ./hugmenow/web/src/graphql/operations.graphql
-    - ./hugmenow/web/src/graphql/queries/*.graphql
-    - ./hugmenow/web/src/graphql/mutations/*.graphql
-  # SDK generation options
+    - "./hugmenow/web/src/graphql/operations.graphql"
+    - "./hugmenow/web/src/graphql/queries/*.graphql"
+    - "./hugmenow/web/src/graphql/mutations/*.graphql"
   options:
     typescript:
-      reactHooks: true           # Generate React hooks
-      scalars:                    # Custom scalar type mappings
+      reactHooks: true
+      scalars:
         Date: Date
         UUID: string
-        JSON: Record<string, any>
-      unmaskErrors: true          # Don't mask errors in development
-      dedupeFragments: true       # Remove duplicate fragments
-      preResolveTypes: true       # Pre-resolve types for better performance
-      skipTypename: false         # Include __typename for better caching
-      documentMode: 'documentNode' # Use documentNode for better performance
-      pureMagicComments: true     # Add /* @__PURE__ */ comments for better treeshaking
+        JSON: "Record<string, any>"
+      unmaskErrors: true
+      dedupeFragments: true
+      preResolveTypes: true
+      skipTypename: false
+      documentMode: "documentNode"
+      pureMagicComments: true
 
 serve:
   browser: false
@@ -294,11 +273,18 @@ serve:
   cors:
     origin: "*"
     credentials: true
-    methods: ["GET", "POST", "OPTIONS"]
-    allowedHeaders: ["Content-Type", "Authorization", "x-client-version", "x-client-platform"]
+    methods:
+      - "GET"
+      - "POST"
+      - "OPTIONS"
+    allowedHeaders:
+      - "Content-Type"
+      - "Authorization"
+      - "x-client-version"
+      - "x-client-platform"
   port: 4000
   hostname: "0.0.0.0"
   tracing: true
   introspection: true
   errorOptions:
-    maskError: process.env.NODE_ENV !== 'development'
+    maskError: "{process.env.NODE_ENV !== 'development'}"
