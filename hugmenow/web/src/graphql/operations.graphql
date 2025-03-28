@@ -1,149 +1,185 @@
 # HugMeNow GraphQL Operations
 
 # Query for public moods - replaces friendsMoods
-query publicMoods($limit: Int, $offset: Int) {
-  publicMoods(limit: $limit, offset: $offset) {
-    id
-    intensity
-    note
-    createdAt
-    user {
+query publicMoods($first: Int, $offset: Int) {
+  allMoods(first: $first, offset: $offset, condition: { isPublic: true }) {
+    nodes {
       id
-      name
-      username
-      avatarUrl
+      score
+      note
+      createdAt
+      userByUserId {
+        id
+        name
+        username
+        avatarUrl
+      }
     }
   }
 }
 
 # Query for a user's moods
-query userMoods($userId: ID, $limit: Int, $offset: Int) {
-  userMoods(userId: $userId, limit: $limit, offset: $offset) {
-    id
-    intensity
-    note
-    createdAt
-    emoji
-    private
+query userMoods($userId: UUID, $first: Int, $offset: Int) {
+  allMoods(
+    first: $first, 
+    offset: $offset, 
+    condition: { userId: $userId }
+  ) {
+    nodes {
+      id
+      score
+      note
+      createdAt
+      isPublic
+    }
   }
 }
 
-# Query for mood streak for a user
-query moodStreak($userId: ID!) {
-  moodStreak(userId: $userId) {
-    currentStreak
-    longestStreak
-    lastMoodDate
+# Query for mood streak for a user (custom resolver implemented in mesh-resolvers.js)
+query moodStreak($userId: UUID!) {
+  userById(id: $userId) {
+    id
+    moodsByUserId {
+      totalCount
+    }
   }
 }
 
 # Query for community hug requests
-query communityHugRequests($limit: Int, $offset: Int) {
-  communityHugRequests(limit: $limit, offset: $offset) {
-    id
-    message
-    createdAt
-    requester {
+query communityHugRequests($first: Int, $offset: Int) {
+  allHugRequests(first: $first, offset: $offset) {
+    nodes {
       id
-      name
-      username
-      avatarUrl
+      message
+      createdAt
+      userByRequesterId {
+        id
+        name
+        username
+        avatarUrl
+      }
     }
   }
 }
 
 # Query for a user's received hugs
-query receivedHugs($userId: ID!, $limit: Int, $offset: Int) {
-  receivedHugs(userId: $userId, limit: $limit, offset: $offset) {
-    id
-    message
-    createdAt
-    read
-    fromUser {
+query receivedHugs($userId: UUID!, $first: Int, $offset: Int) {
+  allHugs(
+    first: $first, 
+    offset: $offset, 
+    condition: { recipientId: $userId }
+  ) {
+    nodes {
       id
-      name
-      username
-      avatarUrl
+      message
+      createdAt
+      isRead
+      userBySenderId {
+        id
+        name
+        username
+        avatarUrl
+      }
     }
   }
 }
 
 # Query for a user's sent hugs
-query sentHugs($userId: ID!, $limit: Int, $offset: Int) {
-  sentHugs(userId: $userId, limit: $limit, offset: $offset) {
-    id
-    message
-    createdAt
-    toUser {
+query sentHugs($userId: UUID!, $first: Int, $offset: Int) {
+  allHugs(
+    first: $first, 
+    offset: $offset, 
+    condition: { senderId: $userId }
+  ) {
+    nodes {
       id
-      name
-      username
-      avatarUrl
+      message
+      createdAt
+      userByRecipientId {
+        id
+        name
+        username
+        avatarUrl
+      }
     }
   }
 }
 
 # Mutation to create a mood entry
-mutation createMood($moodInput: MoodInput!) {
-  createMoodEntry(moodInput: $moodInput) {
-    id
-    intensity
-    note
-    createdAt
-    emoji
-    private
+mutation createMood($input: CreateMoodInput!) {
+  createMood(input: $input) {
+    mood {
+      id
+      score
+      note
+      createdAt
+      isPublic
+    }
   }
 }
 
 # Mutation to send a hug to a user
-mutation sendHug($hugInput: HugInput!) {
-  sendHug(hugInput: $hugInput) {
-    id
-    message
-    createdAt
-    fromUser {
+mutation sendHug($input: CreateHugInput!) {
+  createHug(input: $input) {
+    hug {
       id
-      name
-    }
-    toUser {
-      id
-      name
+      message
+      createdAt
+      userBySenderId {
+        id
+        name
+      }
+      userByRecipientId {
+        id
+        name
+      }
     }
   }
 }
 
 # Mutation to create a community hug request
-mutation createHugRequest($requestInput: HugRequestInput!) {
-  createHugRequest(hugRequestInput: $requestInput) {
-    id
-    message
-    createdAt
-    requester {
+mutation createHugRequest($input: CreateHugRequestInput!) {
+  createHugRequest(input: $input) {
+    hugRequest {
       id
-      name
+      message
+      createdAt
+      userByRequesterId {
+        id
+        name
+      }
     }
   }
 }
 
-# Mutation to respond to a hug request
-mutation respondToHugRequest($requestId: ID!, $accept: Boolean!) {
-  respondToHugRequest(requestId: $requestId, accept: $accept) {
-    id
-    status
-    updatedAt
+# Mutation to respond to a hug request (custom resolver implemented in mesh-resolvers.js)
+mutation updateHugRequest($input: UpdateHugRequestInput!) {
+  updateHugRequest(input: $input) {
+    hugRequest {
+      id
+      status
+      createdAt
+    }
   }
 }
 
 # Query for a user's pending hug requests
-query pendingHugRequests($userId: ID!) {
-  pendingHugRequests(userId: $userId) {
-    id
-    message
-    createdAt
-    requester {
+query pendingHugRequests($userId: UUID!) {
+  allHugRequests(
+    condition: { 
+      requesterId: $userId,
+      status: "PENDING"
+    }
+  ) {
+    nodes {
       id
-      name
-      username
+      message
+      createdAt
+      userByRequesterId {
+        id
+        name
+        username
+      }
     }
   }
 }

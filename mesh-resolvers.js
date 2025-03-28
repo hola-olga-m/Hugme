@@ -85,7 +85,7 @@ module.exports = {
     },
     
     // The friendsMoods field has been replaced with publicMoods
-    // This resolver is kept for backward compatibility but marked as deprecated
+    // This resolver maps the publicMoods query name to allMoods with condition
     publicMoods: async (root, args, context, info) => {
       logResolver('Query.publicMoods', args);
       try {
@@ -94,8 +94,8 @@ module.exports = {
           first: args.limit || 10,
           offset: args.offset || 0,
           // Filter to only include public moods
-          filter: {
-            isPrivate: { equalTo: false }
+          condition: {
+            isPublic: true
           }
         });
         
@@ -103,14 +103,25 @@ module.exports = {
         const nodes = result?.nodes || [];
         console.log(`[Mesh] Found ${nodes.length} public moods`);
         
-        // Transform data to match client expectations
-        return nodes.map(transformMoodNode);
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          intensity: node.score, // Map score to intensity
+          note: node.note,
+          createdAt: node.createdAt,
+          user: node.userByUserId ? {
+            id: node.userByUserId.id,
+            name: node.userByUserId.name,
+            username: node.userByUserId.username,
+            avatarUrl: node.userByUserId.avatarUrl
+          } : null
+        }));
       } catch (error) {
         return handleError('Query.publicMoods', error) || [];
       }
     },
     
-    // Virtual field: userMoods -> maps to allMoods with user filter
+    // Virtual field: userMoods -> maps to allMoods with user condition
     userMoods: async (root, args, context, info) => {
       logResolver('Query.userMoods', args);
       try {
@@ -119,8 +130,8 @@ module.exports = {
           first: args.limit || 10,
           offset: args.offset || 0,
           // Filter by user ID if provided
-          filter: args.userId ? {
-            userId: { equalTo: args.userId }
+          condition: args.userId ? {
+            userId: args.userId
           } : {}
         });
         
@@ -128,14 +139,83 @@ module.exports = {
         const nodes = result?.nodes || [];
         console.log(`[Mesh] Found ${nodes.length} user moods`);
         
-        // Transform data to match client expectations
-        return nodes.map(transformMoodNode);
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          intensity: node.score, // Map score to intensity
+          note: node.note,
+          createdAt: node.createdAt,
+          emoji: null, // Not provided in the schema, set to null
+          private: !node.isPublic // inverse of isPublic
+        }));
       } catch (error) {
         return handleError('Query.userMoods', error) || [];
       }
     },
     
-    // Virtual field: sentHugs -> maps to allHugs with sender filter
+    // Virtual field: moodStreak -> Custom resolver to calculate user mood streak
+    moodStreak: async (root, args, context, info) => {
+      logResolver('Query.moodStreak', args);
+      try {
+        // Get user and their moods
+        const user = await context.PostGraphileAPI.Query.userById({
+          id: args.userId
+        });
+        
+        if (!user) {
+          return { currentStreak: 0, longestStreak: 0, lastMoodDate: null };
+        }
+        
+        // Get mood count (in a real implementation, we'd calculate actual streaks)
+        const moodCount = user.moodsByUserId?.totalCount || 0;
+        
+        // Simple placeholder implementation - in production, we'd calculate real streaks
+        return {
+          currentStreak: moodCount > 0 ? Math.min(moodCount, 7) : 0,
+          longestStreak: moodCount > 0 ? Math.min(moodCount, 14) : 0,
+          lastMoodDate: new Date().toISOString()
+        };
+      } catch (error) {
+        return handleError('Query.moodStreak', error) || {
+          currentStreak: 0, 
+          longestStreak: 0, 
+          lastMoodDate: null
+        };
+      }
+    },
+    
+    // Virtual field: communityHugRequests -> maps to allHugRequests
+    communityHugRequests: async (root, args, context, info) => {
+      logResolver('Query.communityHugRequests', args);
+      try {
+        // Use PostGraphile-compatible pagination parameters
+        const result = await context.PostGraphileAPI.Query.allHugRequests({
+          first: args.limit || 10,
+          offset: args.offset || 0
+        });
+        
+        // Extract nodes from the connection
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} community hug requests`);
+        
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          message: node.message,
+          createdAt: node.createdAt,
+          requester: node.userByRequesterId ? {
+            id: node.userByRequesterId.id,
+            name: node.userByRequesterId.name,
+            username: node.userByRequesterId.username,
+            avatarUrl: node.userByRequesterId.avatarUrl
+          } : null
+        }));
+      } catch (error) {
+        return handleError('Query.communityHugRequests', error) || [];
+      }
+    },
+    
+    // Virtual field: sentHugs -> maps to allHugs with sender condition
     sentHugs: async (root, args, context, info) => {
       logResolver('Query.sentHugs', args);
       try {
@@ -144,8 +224,8 @@ module.exports = {
           first: args.limit || 10,
           offset: args.offset || 0,
           // Filter to hugs sent by the specified user
-          filter: {
-            senderId: { equalTo: args.userId }
+          condition: {
+            senderId: args.userId
           }
         });
         
@@ -153,14 +233,24 @@ module.exports = {
         const nodes = result?.nodes || [];
         console.log(`[Mesh] Found ${nodes.length} sent hugs`);
         
-        // Transform data to match client expectations
-        return nodes.map(transformHugNode);
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          message: node.message,
+          createdAt: node.createdAt,
+          toUser: node.userByRecipientId ? {
+            id: node.userByRecipientId.id,
+            name: node.userByRecipientId.name,
+            username: node.userByRecipientId.username,
+            avatarUrl: node.userByRecipientId.avatarUrl
+          } : null
+        }));
       } catch (error) {
         return handleError('Query.sentHugs', error) || [];
       }
     },
     
-    // Virtual field: receivedHugs -> maps to allHugs with recipient filter
+    // Virtual field: receivedHugs -> maps to allHugs with recipient condition
     receivedHugs: async (root, args, context, info) => {
       logResolver('Query.receivedHugs', args);
       try {
@@ -169,8 +259,8 @@ module.exports = {
           first: args.limit || 10,
           offset: args.offset || 0,
           // Filter to hugs received by the specified user
-          filter: {
-            recipientId: { equalTo: args.userId }
+          condition: {
+            recipientId: args.userId
           }
         });
         
@@ -178,10 +268,55 @@ module.exports = {
         const nodes = result?.nodes || [];
         console.log(`[Mesh] Found ${nodes.length} received hugs`);
         
-        // Transform data to match client expectations
-        return nodes.map(transformHugNode);
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          message: node.message,
+          createdAt: node.createdAt,
+          read: node.isRead,
+          fromUser: node.userBySenderId ? {
+            id: node.userBySenderId.id,
+            name: node.userBySenderId.name,
+            username: node.userBySenderId.username,
+            avatarUrl: node.userBySenderId.avatarUrl
+          } : null
+        }));
       } catch (error) {
         return handleError('Query.receivedHugs', error) || [];
+      }
+    },
+    
+    // Virtual field: pendingHugRequests -> maps to filtered allHugRequests
+    pendingHugRequests: async (root, args, context, info) => {
+      logResolver('Query.pendingHugRequests', args);
+      try {
+        // Use PostGraphile-compatible pagination and filtering
+        const result = await context.PostGraphileAPI.Query.allHugRequests({
+          first: 20,
+          // Filter to requests with PENDING status for the user
+          condition: {
+            requesterId: args.userId,
+            status: "PENDING"
+          }
+        });
+        
+        // Extract nodes from the connection
+        const nodes = result?.nodes || [];
+        console.log(`[Mesh] Found ${nodes.length} pending hug requests`);
+        
+        // Map PostGraphile response structure to what frontend expects
+        return nodes.map(node => ({
+          id: node.id,
+          message: node.message,
+          createdAt: node.createdAt,
+          requester: node.userByRequesterId ? {
+            id: node.userByRequesterId.id,
+            name: node.userByRequesterId.name,
+            username: node.userByRequesterId.username
+          } : null
+        }));
+      } catch (error) {
+        return handleError('Query.pendingHugRequests', error) || [];
       }
     }
   },
@@ -219,27 +354,151 @@ module.exports = {
   // Add custom mutations
   Mutation: {
     // Custom mutation that maps to createHug with appropriate input transformation
-    sendFriendHug: async (root, args, context, info) => {
-      logResolver('Mutation.sendFriendHug', args);
+    sendHug: async (root, args, context, info) => {
+      logResolver('Mutation.sendHug', args);
       try {
         // Transform input to match the expected PostGraphile structure
         const createHugResult = await context.PostGraphileAPI.Mutation.createHug({
           input: {
             hug: {
-              recipientId: args.toUserId,
-              moodId: args.moodId,
-              message: args.message || ''
+              senderId: args.input.senderId,
+              recipientId: args.input.recipientId,
+              message: args.input.message || ''
             }
           }
         });
         
-        // Extract and transform the created hug
+        // Extract the created hug
         const createdHug = createHugResult?.hug;
         if (!createdHug) return null;
         
-        return transformHugNode(createdHug);
+        // Map to expected client response format
+        return {
+          id: createdHug.id,
+          message: createdHug.message,
+          createdAt: createdHug.createdAt,
+          fromUser: createdHug.userBySenderId ? {
+            id: createdHug.userBySenderId.id,
+            name: createdHug.userBySenderId.name
+          } : null,
+          toUser: createdHug.userByRecipientId ? {
+            id: createdHug.userByRecipientId.id,
+            name: createdHug.userByRecipientId.name
+          } : null
+        };
       } catch (error) {
-        return handleError('Mutation.sendFriendHug', error);
+        return handleError('Mutation.sendHug', error);
+      }
+    },
+    
+    // Custom mutation to create a mood entry
+    createMoodEntry: async (root, args, context, info) => {
+      logResolver('Mutation.createMoodEntry', args);
+      try {
+        // Transform to PostGraphile input format
+        const createMoodResult = await context.PostGraphileAPI.Mutation.createMood({
+          input: {
+            mood: {
+              userId: args.moodInput.userId,
+              score: args.moodInput.intensity,
+              note: args.moodInput.note || '',
+              isPublic: !args.moodInput.private
+            }
+          }
+        });
+        
+        // Extract the created mood
+        const createdMood = createMoodResult?.mood;
+        if (!createdMood) return null;
+        
+        // Map to expected client response format
+        return {
+          id: createdMood.id,
+          intensity: createdMood.score,
+          note: createdMood.note,
+          createdAt: createdMood.createdAt,
+          emoji: null, // Not in schema
+          private: !createdMood.isPublic
+        };
+      } catch (error) {
+        return handleError('Mutation.createMoodEntry', error);
+      }
+    },
+    
+    // Custom mutation to create a hug request
+    createHugRequest: async (root, args, context, info) => {
+      logResolver('Mutation.createHugRequest', args);
+      try {
+        // Get input from provided format
+        const requestInput = args.hugRequestInput || {};
+        
+        // Transform to PostGraphile input format
+        const createRequestResult = await context.PostGraphileAPI.Mutation.createHugRequest({
+          input: {
+            hugRequest: {
+              requesterId: requestInput.requesterId,
+              message: requestInput.message || '',
+              status: 'PENDING'
+            }
+          }
+        });
+        
+        // Extract the created request
+        const createdRequest = createRequestResult?.hugRequest;
+        if (!createdRequest) return null;
+        
+        // Map to expected client response format
+        return {
+          id: createdRequest.id,
+          message: createdRequest.message,
+          createdAt: createdRequest.createdAt,
+          requester: createdRequest.userByRequesterId ? {
+            id: createdRequest.userByRequesterId.id,
+            name: createdRequest.userByRequesterId.name
+          } : null
+        };
+      } catch (error) {
+        return handleError('Mutation.createHugRequest', error);
+      }
+    },
+    
+    // Custom mutation to respond to a hug request
+    respondToHugRequest: async (root, args, context, info) => {
+      logResolver('Mutation.respondToHugRequest', args);
+      try {
+        // Find the request first
+        const requestNode = await context.PostGraphileAPI.Query.hugRequest({
+          id: args.requestId
+        });
+        
+        if (!requestNode) {
+          throw new Error(`Hug request with ID ${args.requestId} not found`);
+        }
+        
+        // Update the request status
+        const updateResult = await context.PostGraphileAPI.Mutation.updateHugRequest({
+          input: {
+            id: args.requestId,
+            hugRequestPatch: {
+              status: args.accept ? 'ACCEPTED' : 'REJECTED'
+              // Note: createdAt is handled by the database, not using updatedAt which doesn't exist
+            }
+          }
+        });
+        
+        // Extract the updated request
+        const updatedRequest = updateResult?.hugRequest;
+        if (!updatedRequest) return null;
+        
+        // Map to expected client response format
+        return {
+          id: updatedRequest.id,
+          status: updatedRequest.status,
+          // Use createdAt as a substitute for updatedAt since the field doesn't exist
+          updatedAt: updatedRequest.createdAt
+        };
+      } catch (error) {
+        return handleError('Mutation.respondToHugRequest', error);
       }
     }
   }
