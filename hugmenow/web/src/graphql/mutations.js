@@ -92,6 +92,19 @@ export const UPDATE_HUG_REQUEST = gql`
   }
 `;
 
+// Mutation to respond to a hug request (alias for UPDATE_HUG_REQUEST)
+export const RESPOND_TO_HUG_REQUEST = gql`
+  mutation respondToHugRequest($input: UpdateHugRequestInput!) {
+    updateHugRequest(input: $input) {
+      hugRequest {
+        id
+        status
+        createdAt
+      }
+    }
+  }
+`;
+
 // Mutation to update a user's profile
 export const UPDATE_USER = gql`
   mutation updateUser($input: UpdateUserInput!) {
@@ -144,6 +157,17 @@ export const MARK_HUG_AS_READ = gql`
       hug {
         id
         isRead
+      }
+    }
+  }
+`;
+
+// Mutation to cancel a hug request
+export const CANCEL_HUG_REQUEST = gql`
+  mutation cancelHugRequest($id: ID!) {
+    deleteHugRequest(input: { id: $id }) {
+      hugRequest {
+        id
       }
     }
   }

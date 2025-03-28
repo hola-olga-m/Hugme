@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingScreen from '../components/common/LoadingScreen';
-import PublicMoodList from '../components/PublicMoodList';
+import FriendsMoodList from '../components/FriendsMoodList';
 import DashboardStats from '../components/dashboard/DashboardStats';
 import FriendMoodsWidget from '../components/dashboard/FriendMoodsWidget';
 import QuickSendHugWidget from '../components/dashboard/QuickSendHugWidget';
@@ -414,7 +414,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <PublicMoodList />
+              <FriendsMoodList />
             </motion.div>
           </WidgetColumn>
           

@@ -1,20 +1,32 @@
 import { gql } from '@apollo/client';
 
-// Query for public moods
-export const GET_PUBLIC_MOODS = gql`
-  query publicMoods($first: Int, $offset: Int) {
-    allMoods(first: $first, offset: $offset, condition: { isPublic: true }) {
+// Query for all users (needed for QuickSendHugWidget)
+export const GET_USERS = gql`
+  query getUsers {
+    allUsers {
       nodes {
         id
-        intensity
-        note
-        createdAt
-        userByUserId {
-          id
-          name
-          username
-          avatarUrl
-        }
+        name
+        username
+        avatarUrl
+      }
+    }
+  }
+`;
+
+// Query for friends moods
+export const GET_FRIENDS_MOODS = gql`
+  query friendsMoods($limit: Int, $offset: Int) {
+    friendsMoods(limit: $limit, offset: $offset) {
+      id
+      intensity
+      note
+      createdAt
+      user {
+        id
+        name
+        username
+        avatarUrl
       }
     }
   }
@@ -111,6 +123,29 @@ export const GET_SENT_HUGS = gql`
           name
           username
           avatarUrl
+        }
+      }
+    }
+  }
+`;
+
+// Query for my hug requests
+export const GET_MY_HUG_REQUESTS = gql`
+  query myHugRequests($userId: UUID!) {
+    allHugRequests(
+      condition: { 
+        requesterId: $userId
+      }
+    ) {
+      nodes {
+        id
+        message
+        status
+        createdAt
+        userByRequesterId {
+          id
+          name
+          username
         }
       }
     }

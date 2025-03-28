@@ -30,9 +30,13 @@ sleep 3
 # Get the frontend port from environment variable or use default
 FRONTEND_PORT=${PORT:-5000}
 
+# Build and then start the frontend server
+echo "Building the frontend before starting server..."
+cd hugmenow/web && npm run build && cd ../..
+
 # Start the frontend server
 echo "Starting frontend server on port ${FRONTEND_PORT}..."
-cd hugmenow/web && PORT=${FRONTEND_PORT} node simple-server.js &
+cd hugmenow/web && PORT=${FRONTEND_PORT} node express-server.js &
 FRONTEND_PID=$!
 
 # Display useful information
