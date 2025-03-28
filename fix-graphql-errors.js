@@ -1,7 +1,13 @@
+
 // Comprehensive GraphQL Error Fixing Script
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+// Get current directory in ESM context
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('🔄 Starting comprehensive GraphQL error fixing...');
 
@@ -35,7 +41,13 @@ function collectErrors() {
       '[GraphQL error]: Message: Unknown argument "offset" on field "Query.users".',
       '[GraphQL error]: Message: Unknown argument "limit" on field "Query.friendsMoods".',
       '[GraphQL error]: Message: Unknown argument "offset" on field "Query.friendsMoods".',
-      '[GraphQL error]: Message: Variable "$limit" of type "Int" used in position expecting type "Float".'
+      '[GraphQL error]: Message: Variable "$limit" of type "Int" used in position expecting type "Float".',
+      '[GraphQL error]: Message: Field "moodStreak" of type "MoodStreak" must have a selection of subfields. Did you mean "moodStreak { ... }"?',
+      '[GraphQL error]: Message: Cannot query field "userMoods" on type "Query". Did you mean "moods" or "users"?',
+      '[GraphQL error]: Message: Cannot query field "sentHugs" on type "Query". Did you mean "hugs"?',
+      '[GraphQL error]: Message: Cannot query field "receivedHugs" on type "Query".',
+      '[GraphQL error]: Message: Cannot query field "friendsMoods" on type "Query".',
+      '[GraphQL error]: Message: Cannot query field "score" on type "PublicMood". Did you mean "note"?'
     ];
   }
 
@@ -43,12 +55,13 @@ function collectErrors() {
 }
 
 // Step 2: Run fix-schema-mismatches with collected errors
-function fixSchemaMismatches(errorString) {
+async function fixSchemaMismatches(errorString) {
   console.log('🔧 Fixing schema mismatches...');
 
   try {
-    // Fix schema using the collected errors
-    require('./fix-schema-mismatches').fixSchemaMismatches(errorString);
+    // We need to dynamically import in ESM context
+    const fixSchemaModule = await import('./fix-schema-mismatches.js');
+    fixSchemaModule.fixSchemaMismatches(errorString);
   } catch (error) {
     console.error('❌ Error fixing schema mismatches:', error);
     console.log('⚠️ Attempting direct schema fix...');
@@ -168,11 +181,12 @@ scalar DateTime
 }
 
 // Step 3: Sync schema to both API and web
-function syncSchema() {
+async function syncSchema() {
   console.log('🔄 Syncing schema...');
 
   try {
-    require('./sync-schema').syncSchema();
+    const syncSchemaModule = await import('./sync-schema.js');
+    syncSchemaModule.syncSchema();
   } catch (error) {
     console.error('❌ Error syncing schema:', error);
     console.log('⚠️ Attempting direct schema synchronization...');
@@ -219,11 +233,11 @@ function syncSchema() {
 }
 
 // Step 4: Clear caches
-function clearCaches() {
+async function clearCaches() {
   console.log('🧹 Clearing caches...');
 
   try {
-    require('./cache-clear');
+    await import('./cache-clear.js');
   } catch (error) {
     console.error('❌ Error clearing caches:', error);
     console.log('⚠️ Attempting direct cache clearing...');
@@ -249,11 +263,11 @@ function clearCaches() {
 }
 
 // Step 5: Restart the application
-function restartApp() {
+async function restartApp() {
   console.log('🔄 Restarting application...');
 
   try {
-    require('./restart-app');
+    await import('./restart-app.js');
   } catch (error) {
     console.error('❌ Error restarting application:', error);
     console.log('⚠️ Attempting direct application restart...');
@@ -277,18 +291,30 @@ function restartApp() {
 }
 
 // Run the process
-const errorString = collectErrors();
-fixSchemaMismatches(errorString);
-syncSchema();
-clearCaches();
-restartApp();
-const fixClientPagination = require('./fix-client-pagination'); //Added this line
-fixClientPagination.fixAllFiles(); // and this line.
+async function main() {
+  const errorString = collectErrors();
+  await fixSchemaMismatches(errorString);
+  await syncSchema();
+  await clearCaches();
+  await restartApp();
 
-console.log('✅ GraphQL error fixing process completed');
+  try {
+    const fixClientPaginationModule = await import('./fix-client-pagination.js');
+    fixClientPaginationModule.fixAllFiles();
+  } catch (error) {
+    console.error('❌ Error fixing client pagination:', error);
+  }
+
+  console.log('✅ GraphQL error fixing process completed');
+}
+
+// Execute the main function
+main().catch(error => {
+  console.error('❌ Main process failed:', error);
+});
 
 // Export functions for reuse in other modules
-module.exports = {
+export {
   collectErrors,
   fixSchemaMismatches,
   syncSchema,
