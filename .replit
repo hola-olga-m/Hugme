@@ -23,6 +23,18 @@ localPort = 3003
 externalPort = 3003
 
 [[ports]]
+localPort = 3004
+externalPort = 8081
+
+[[ports]]
+localPort = 3005
+externalPort = 8099
+
+[[ports]]
+localPort = 3006
+externalPort = 9000
+
+[[ports]]
 localPort = 4000
 externalPort = 4200
 
@@ -104,6 +116,18 @@ args = "SimpleGraphQLGateway"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "SimpleUnifiedGateway"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "VersionIndependentPostGraphile"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "DirectPostgresProxy"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "LiveQueryDemo"
 
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
@@ -278,3 +302,48 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-simple-unified-gateway.sh"
 waitForPort = 5007
+
+[[workflows.workflow]]
+name = "VersionIndependentPostGraphile"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-version-independent-postgraphile.sh"
+waitForPort = 3004
+
+[[workflows.workflow]]
+name = "DirectPostgresProxy"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-direct-postgres-proxy.sh"
+waitForPort = 3006
+
+[[workflows.workflow]]
+name = "LiveQueryDemo"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-demo.sh"
+waitForPort = 5000

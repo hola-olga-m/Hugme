@@ -26,7 +26,13 @@ import config, { SERVICE_NAMES, SERVICE_PORTS, SERVICE_ENDPOINTS, CLIENT_INFO } 
 
 // Configuration variables 
 const PORT = process.env.PORT || SERVICE_PORTS.SIMPLE_UNIFIED_GATEWAY;
-const POSTGRAPHILE_ENDPOINT = process.env.POSTGRAPHILE_ENDPOINT || SERVICE_ENDPOINTS.POSTGRAPHILE;
+
+// Use Version-Independent Proxy for PostGraphile
+const VERSION_INDEPENDENT_PORT = SERVICE_PORTS.POSTGRAPHILE + 1;
+const POSTGRAPHILE_ENDPOINT = process.env.POSTGRAPHILE_ENDPOINT || 
+  `http://localhost:${VERSION_INDEPENDENT_PORT}/graphql`;
+const DIRECT_POSTGRAPHILE_ENDPOINT = SERVICE_ENDPOINTS.POSTGRAPHILE;
+
 const AUTH_ENDPOINT = process.env.AUTH_ENDPOINT || POSTGRAPHILE_ENDPOINT;
 const SERVICE_NAME = process.env.SERVICE_NAME || SERVICE_NAMES.SIMPLE_UNIFIED_GATEWAY;
 const CLIENT_VERSION = process.env.CLIENT_VERSION || CLIENT_INFO.VERSION;
@@ -35,7 +41,9 @@ const CLIENT_FEATURES = process.env.CLIENT_FEATURES || CLIENT_INFO.FEATURES.join
 const POLL_INTERVAL = process.env.POLL_INTERVAL || 2000; // Live query poll interval in ms
 const UPSTREAM_SERVICES = {
   postgraphile: POSTGRAPHILE_ENDPOINT,
-  auth: AUTH_ENDPOINT
+  directPostgraphile: DIRECT_POSTGRAPHILE_ENDPOINT,
+  auth: AUTH_ENDPOINT,
+  versionIndependentProxy: `http://localhost:${VERSION_INDEPENDENT_PORT}/graphql`
 };
 
 // Create Express app
@@ -65,25 +73,33 @@ function createQueryHash(query, variables) {
 /**
  * Execute a GraphQL query against the underlying API
  * Pure HTTP-based implementation to avoid any GraphQL version conflicts
+ * 
+ * This implementation is deliberately "GraphQL library-free" to prevent any dependency
+ * on GraphQL types or parsing which could cause version conflicts.
  */
 async function executeGraphQL(query, variables = {}, token = null, endpoint = POSTGRAPHILE_ENDPOINT) {
   try {
     // Check if this is a live query and strip the @live directive to avoid conflicts
+    // Using regex-only approach to avoid importing any GraphQL parsing libraries
     let queryToExecute = query;
-    const liveDirectiveRegex = /@live\b/;
+    
+    // More comprehensive regex pattern to safely handle directives in various positions
+    const liveDirectiveRegex = /@live(\s*\([^)]*\))?/g;
     
     if (liveDirectiveRegex.test(query)) {
-      // Remove the @live directive using regex
-      queryToExecute = query.replace(/@live(\s*\([^)]*\))?/, '');
+      // Remove the @live directive using regex without any GraphQL parsing
+      queryToExecute = query.replace(liveDirectiveRegex, '');
       console.log('[executeGraphQL] Stripped @live directive from query');
     }
     
-    // Prepare headers
+    // Prepare headers - deliberately avoid any GraphQL-specific headers
+    // that might trigger version detection/validation
     const headers = {
       'Content-Type': 'application/json',
       'X-Client-Version': CLIENT_VERSION,
       'X-Client-Platform': CLIENT_PLATFORM,
-      'X-Gateway-Name': SERVICE_NAME
+      'X-Gateway-Name': SERVICE_NAME,
+      'X-Version-Independent': 'true'  // Signal that this is a version-independent request
     };
     
     // Add authorization if present
@@ -91,7 +107,7 @@ async function executeGraphQL(query, variables = {}, token = null, endpoint = PO
       headers['Authorization'] = token;
     }
     
-    // Forward the request to the API using pure HTTP
+    // Forward the request to the API using pure HTTP with minimal processing
     // This bypasses all GraphQL parsing to avoid version conflicts
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -105,10 +121,17 @@ async function executeGraphQL(query, variables = {}, token = null, endpoint = PO
     // Get the response status
     const status = response.status;
     
-    // Handle non-200 responses
+    // Handle non-200 responses with generic error handling
+    // (avoiding any GraphQL-specific error handling)
     if (status !== 200) {
       console.error(`[Unified Gateway] API returned status ${status}`);
-      const errorText = await response.text();
+      let errorText;
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        errorText = "Could not read error response";
+      }
+      
       return {
         errors: [{
           message: `API error (${status}): ${errorText}`,
@@ -121,8 +144,11 @@ async function executeGraphQL(query, variables = {}, token = null, endpoint = PO
       };
     }
     
-    // Get the response data
-    return await response.json();
+    // Get the response data with minimal processing
+    const result = await response.json();
+    
+    // Return a clean result without any GraphQL-specific handling
+    return result;
   } catch (error) {
     console.error('[Unified Gateway] Error executing GraphQL:', error);
     return { 
@@ -202,8 +228,8 @@ app.post('/translate', (req, res) => {
 });
 
 /**
- * A special endpoint for live query support that avoids GraphQL version conflicts 
- * by processing the @live directive on the gateway side
+ * A special endpoint for live query support that completely avoids GraphQL version conflicts 
+ * by processing the @live directive on the gateway side using only regex matching
  */
 app.post('/live-query', async (req, res) => {
   const { query, variables, operationName, pollInterval } = req.body;
@@ -223,28 +249,30 @@ app.post('/live-query', async (req, res) => {
   
   try {
     // Use regex to check for @live directive instead of GraphQL parsing
-    // This avoids GraphQL version conflicts
+    // This completely avoids GraphQL version conflicts by not using any GraphQL libraries
     let isLiveQuery = false;
     let strippedQuery = query;
     
-    // Simple regex to check for @live directive
-    const liveDirectiveRegex = /@live\b/;
+    // More comprehensive regex pattern to safely handle directives in various positions
+    const liveDirectiveRegex = /@live(\s*\([^)]*\))?/g;
     isLiveQuery = liveDirectiveRegex.test(query);
     
     // If it's a live query, strip the @live directive using regex
     if (isLiveQuery) {
-      // Remove the @live directive using regex (more robust than simple replace)
-      strippedQuery = query.replace(/@live(\s*\([^)]*\))?/, '');
+      // Remove the @live directive using regex without any GraphQL parsing
+      strippedQuery = query.replace(liveDirectiveRegex, '');
       console.log('Stripped @live directive for query execution');
     }
     
-    // Execute query directly with a pure HTTP request instead of using GraphQL parsing
-    // This avoids any GraphQL version conflicts
+    // Execute query directly with a pure HTTP request with version-independent headers
+    // This completely bypasses GraphQL library version conflicts
     const headers = {
       'Content-Type': 'application/json',
       'X-Client-Version': CLIENT_VERSION,
       'X-Client-Platform': CLIENT_PLATFORM,
-      'X-Gateway-Name': SERVICE_NAME
+      'X-Gateway-Name': SERVICE_NAME,
+      'X-Version-Independent': 'true', // Signal this is a version-independent request
+      'X-GraphQL-Gateway': 'UnifiedVersionIndependent'
     };
     
     // Add authorization if present
@@ -252,7 +280,8 @@ app.post('/live-query', async (req, res) => {
       headers['Authorization'] = token;
     }
     
-    // Directly make the HTTP request
+    // Directly make the HTTP request with minimal processing
+    // Convert the GraphQL query to a plain HTTP request to avoid any GraphQL version conflicts
     const response = await fetch(POSTGRAPHILE_ENDPOINT, {
       method: 'POST',
       headers,
@@ -263,31 +292,47 @@ app.post('/live-query', async (req, res) => {
       })
     });
     
-    // Get the response JSON
-    const result = await response.json();
+    // Get the response as JSON with error handling
+    let result;
+    try {
+      result = await response.json();
+    } catch (e) {
+      console.error('Error parsing JSON response:', e);
+      return res.status(500).json({
+        errors: [{
+          message: 'Error parsing API response',
+          extensions: {
+            code: 'RESPONSE_PARSE_ERROR'
+          }
+        }]
+      });
+    }
     
-    // Add metadata about live query support
-    if (result.data) {
-      result.extensions = {
-        ...result.extensions,
+    // Add metadata about live query support without modifying any GraphQL-specific structures
+    // This avoids any GraphQL type conflicts
+    const resultWithExtensions = {
+      ...result,
+      extensions: {
+        ...(result.extensions || {}),
         liveQuery: {
           isLiveQuery,
-          pollInterval: isLiveQuery ? (pollInterval || POLL_INTERVAL) : null,
+          pollInterval: isLiveQuery ? (pollInterval || POLL_INTERVAL).toString() : null,
           supportedOperations: ['query'],
           gateway: SERVICE_NAME
         }
-      };
-    }
+      }
+    };
     
     // Return query result with live query metadata
-    return res.json(result);
+    return res.json(resultWithExtensions);
   } catch (error) {
     console.error('Live query error:', error);
     return res.status(500).json({
       errors: [{
         message: `Live query error: ${error.message}`,
         extensions: {
-          code: 'LIVE_QUERY_ERROR'
+          code: 'LIVE_QUERY_ERROR',
+          gateway: SERVICE_NAME
         }
       }]
     });
@@ -317,12 +362,26 @@ app.post('/auth', async (req, res) => {
   }
 });
 
-// Main GraphQL endpoint - Pure HTTP-based approach to avoid GraphQL version conflicts
+// Main GraphQL endpoint - Pure HTTP-based approach completely avoiding GraphQL version conflicts
 app.post('/graphql', async (req, res) => {
   const { query, variables, operationName } = req.body;
   console.log(`Processing GraphQL request: ${operationName || 'Anonymous operation'}`);
   
   try {
+    // Check if this is a live query and needs directive stripping
+    let queryToExecute = query;
+    let isLiveQuery = false;
+    
+    // Use regex pattern to detect and handle @live directive without GraphQL parsing
+    const liveDirectiveRegex = /@live(\s*\([^)]*\))?/g;
+    isLiveQuery = liveDirectiveRegex.test(query);
+    
+    // If it's a live query, strip the @live directive using regex (no GraphQL parsing)
+    if (isLiveQuery) {
+      queryToExecute = query.replace(liveDirectiveRegex, '');
+      console.log('Main endpoint: Stripped @live directive from query');
+    }
+    
     // Determine if this is an auth-related operation
     const isAuthOperation = (
       operationName === 'Login' || 
@@ -338,12 +397,14 @@ app.post('/graphql', async (req, res) => {
     // Get the auth token from headers
     const token = req.headers.authorization;
     
-    // Prepare headers for the upstream service
+    // Prepare version-independent headers for the upstream service
     const headers = {
       'Content-Type': 'application/json',
       'X-Client-Version': CLIENT_VERSION,
       'X-Client-Platform': CLIENT_PLATFORM,
-      'X-Gateway-Service': SERVICE_NAME
+      'X-Gateway-Service': SERVICE_NAME,
+      'X-Version-Independent': 'true',  // Signal version independence
+      'X-GraphQL-Gateway': 'UnifiedVersionIndependent'
     };
     
     // Add authorization if present
@@ -351,22 +412,51 @@ app.post('/graphql', async (req, res) => {
       headers['Authorization'] = token;
     }
     
-    // Directly proxy the request to the upstream service
+    // Directly proxy the request to the upstream service with minimal processing
     console.log(`Proxying to ${endpoint} (${isAuthOperation ? 'auth' : 'data'} operation)`);
     
     const response = await fetch(endpoint, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        query,
+        query: queryToExecute,  // Use the version without @live directive if needed
         variables,
         operationName
       })
     });
     
-    // Get the response status and body
+    // Get the response status
     const status = response.status;
-    const result = await response.json();
+    
+    // Handle the response with proper error handling
+    let result;
+    try {
+      result = await response.json();
+    } catch (e) {
+      console.error('Error parsing JSON response:', e);
+      return res.status(500).json({
+        errors: [{
+          message: 'Error parsing API response',
+          extensions: {
+            code: 'RESPONSE_PARSE_ERROR',
+            gateway: SERVICE_NAME
+          }
+        }]
+      });
+    }
+    
+    // Add live query info if applicable
+    if (isLiveQuery && result && result.data) {
+      result.extensions = {
+        ...(result.extensions || {}),
+        liveQuery: {
+          isLiveQuery: true,
+          supportedOperations: ['query'],
+          gateway: SERVICE_NAME,
+          message: 'For better live query support, use the /live-query endpoint'
+        }
+      };
+    }
     
     // Set the appropriate status code and return the result
     res.status(status).json(result);
@@ -465,19 +555,20 @@ wsServer.on('connection', (ws) => {
       const { query, variables, operationName } = payload;
       
       // Check if this is a live query (has @live directive) using regex
-      // This avoids GraphQL version conflicts
+      // This completely avoids GraphQL version conflicts by not using any GraphQL libraries
       let isLiveQuery = false;
       let modifiedQuery = query;
       
       try {
-        // Simple regex to check for @live directive
-        const liveDirectiveRegex = /@live\b/;
+        // More comprehensive regex pattern to safely handle directives in various positions
+        const liveDirectiveRegex = /@live(\s*\([^)]*\))?/g;
         isLiveQuery = liveDirectiveRegex.test(query);
         
-        // If it's a live query, strip the @live directive using regex
+        // If it's a live query, strip the @live directive using regex without any GraphQL parsing
         if (isLiveQuery) {
-          // Remove the @live directive using regex
-          modifiedQuery = query.replace(/@live(\s*\([^)]*\))?/, '');
+          // Remove the @live directive using regex - avoid any GraphQL parsing
+          modifiedQuery = query.replace(liveDirectiveRegex, '');
+          console.log('WebSocket: Stripped @live directive from query');
         }
       } catch (err) {
         console.error(`Error processing query: ${err}`);
@@ -485,7 +576,8 @@ wsServer.on('connection', (ws) => {
           type: 'error',
           id,
           payload: {
-            message: `Error processing query: ${err.message}`
+            message: `Error processing query: ${err.message}`,
+            gateway: SERVICE_NAME
           }
         }));
         return;

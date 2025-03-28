@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HugMeNow Live Query Demo (Mock)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .mood-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .mood-score {
+      font-size: 24px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .mood-note {
+      font-style: italic;
+    }
+    .mood-date {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+    .controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f5f5f5;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    input, select {
+      padding: 8px;
+      margin-right: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .status {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .status.live {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status.polling {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .log {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      margin-top: 20px;
+      height: 150px;
+      overflow-y: auto;
+      font-family: monospace;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+  <h1>HugMeNow Live Query Demo (Mock)</h1>
+  
+  <div class="controls">
+    <h2>Create New Mood</h2>
+    <div>
+      <label for="mood-score">Score (1-5):</label>
+      <select id="mood-score">
+        <option value="1">1 - Very bad</option>
+        <option value="2">2 - Bad</option>
+        <option value="3" selected>3 - Neutral</option>
+        <option value="4">4 - Good</option>
+        <option value="5">5 - Excellent</option>
+      </select>
+      
+      <label for="mood-note">Note:</label>
+      <input type="text" id="mood-note" placeholder="How are you feeling?">
+      
+      <label for="is-public">Public:</label>
+      <input type="checkbox" id="is-public" checked>
+      
+      <button onclick="createMood()">Add Mood</button>
+    </div>
+  </div>
+
+  <div class="status live" id="status">LIVE QUERY ACTIVE - Auto-refreshing every 2 seconds</div>
+  <button onclick="toggleLiveQuery()">Toggle Live Query</button>
+  <button onclick="refreshData()">Refresh Now</button>
+
+  <div id="moods-container"></div>
+  
+  <h3>Activity Log</h3>
+  <div class="log" id="log"></div>
+
+  <script>
+    // Mock data
+    let mockMoods = [
+      {
+        id: 1,
+        user_id: "7f22e2eb-03ee-4709-96e9-2ad65265f221",
+        score: 5,
+        note: "Feeling fantastic today!",
+        is_public: true,
+        created_at: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+      },
+      {
+        id: 2,
+        user_id: "7f22e2eb-03ee-4709-96e9-2ad65265f221",
+        score: 3,
+        note: "Just an average day",
+        is_public: true,
+        created_at: new Date(Date.now() - 7200000).toISOString() // 2 hours ago
+      },
+      {
+        id: 3,
+        user_id: "7f22e2eb-03ee-4709-96e9-2ad65265f221",
+        score: 4,
+        note: "Made some progress on my project",
+        is_public: true,
+        created_at: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+      }
+    ];
+    
+    // State
+    let isLiveQueryActive = true;
+    let pollInterval = 2000;
+    let pollingTimer = null;
+    let lastData = null;
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      log('Initializing Live Query Demo (Mock)');
+      displayMoods({
+        data: {
+          allMoods: {
+            nodes: mockMoods
+          },
+          operations: {
+            moodsCount: mockMoods.length,
+            moodsAVG: mockMoods.reduce((sum, mood) => sum + mood.score, 0) / mockMoods.length
+          }
+        },
+        extensions: {
+          liveQuery: {
+            isLiveQuery: true,
+            pollInterval: 2000
+          }
+        }
+      });
+      
+      // Set up mock live updates
+      setupLiveUpdates();
+    });
+    
+    // Toggle live query mode
+    function toggleLiveQuery() {
+      isLiveQueryActive = !isLiveQueryActive;
+      
+      // Clear any existing polling
+      if (pollingTimer) {
+        clearInterval(pollingTimer);
+        pollingTimer = null;
+      }
+      
+      // Update status display
+      updateStatusDisplay();
+      
+      // If reactivating, setup live updates again
+      if (isLiveQueryActive) {
+        setupLiveUpdates();
+      }
+      
+      log(`Live query mode: ${isLiveQueryActive ? 'ENABLED' : 'DISABLED'}`);
+    }
+    
+    // Set up simulated live updates
+    function setupLiveUpdates() {
+      if (isLiveQueryActive && !pollingTimer) {
+        log(`Setting up polling every ${pollInterval}ms`);
+        
+        // Set up polling
+        pollingTimer = setInterval(() => {
+          // Refresh the view with current data
+          displayMoods({
+            data: {
+              allMoods: {
+                nodes: mockMoods
+              },
+              operations: {
+                moodsCount: mockMoods.length,
+                moodsAVG: mockMoods.reduce((sum, mood) => sum + mood.score, 0) / mockMoods.length
+              }
+            },
+            extensions: {
+              liveQuery: {
+                isLiveQuery: true,
+                pollInterval: 2000
+              }
+            }
+          });
+        }, pollInterval);
+      }
+    }
+    
+    // Update the status display
+    function updateStatusDisplay() {
+      const statusElem = document.getElementById('status');
+      statusElem.textContent = isLiveQueryActive 
+        ? 'LIVE QUERY ACTIVE - Auto-refreshing every 2 seconds' 
+        : 'Static Query - Manual refresh only';
+      statusElem.className = isLiveQueryActive ? 'status live' : 'status polling';
+    }
+    
+    // Refresh data manually
+    function refreshData() {
+      log('Manual refresh requested');
+      
+      displayMoods({
+        data: {
+          allMoods: {
+            nodes: mockMoods
+          },
+          operations: {
+            moodsCount: mockMoods.length,
+            moodsAVG: mockMoods.reduce((sum, mood) => sum + mood.score, 0) / mockMoods.length
+          }
+        },
+        extensions: {
+          liveQuery: {
+            isLiveQuery: false,
+            pollInterval: 2000
+          }
+        }
+      });
+    }
+    
+    // Display moods in the UI
+    function displayMoods(data) {
+      const moodsData = data.data?.allMoods?.nodes || [];
+      const operationsData = data.data?.operations || {};
+      const container = document.getElementById('moods-container');
+      
+      // Check if data has changed before updating DOM
+      const newDataString = JSON.stringify(moodsData);
+      if (lastData === newDataString) {
+        log('No data changes detected');
+        return;
+      }
+      
+      // Update last data
+      lastData = newDataString;
+      log(`Displaying ${moodsData.length} moods`);
+      
+      // Clear container
+      container.innerHTML = '';
+      
+      // Add statistics if available
+      if (operationsData) {
+        const stats = document.createElement('div');
+        stats.className = 'mood-card';
+        stats.innerHTML = `
+          <h3>Mood Statistics</h3>
+          <p>Total moods: <strong>${operationsData.moodsCount || moodsData.length}</strong></p>
+          <p>Average score: <strong>${parseFloat(operationsData.moodsAVG || 0).toFixed(1)}</strong></p>
+        `;
+        container.appendChild(stats);
+      }
+      
+      // Add moods
+      moodsData.forEach(mood => {
+        const card = document.createElement('div');
+        card.className = 'mood-card';
+        
+        // Format date
+        const date = new Date(mood.created_at);
+        const formattedDate = date.toLocaleString();
+        
+        card.innerHTML = `
+          <div>
+            <span class="mood-score">⭐ ${mood.score}</span>
+            <span class="mood-note">${mood.note}</span>
+          </div>
+          <div class="mood-date">
+            Posted: ${formattedDate}
+            ${mood.is_public ? '(Public)' : '(Private)'}
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+    
+    // Create a new mood
+    function createMood() {
+      const score = parseInt(document.getElementById('mood-score').value);
+      const note = document.getElementById('mood-note').value || `Mood level ${score}`;
+      const isPublic = document.getElementById('is-public').checked;
+      
+      // Validate input
+      if (isNaN(score) || score < 1 || score > 5) {
+        log('ERROR: Invalid score (must be 1-5)');
+        return;
+      }
+      
+      // Create new mood with mock data
+      const newMood = {
+        id: mockMoods.length + 1,
+        user_id: "7f22e2eb-03ee-4709-96e9-2ad65265f221",
+        score: score,
+        note: note,
+        is_public: isPublic,
+        created_at: new Date().toISOString()
+      };
+      
+      log(`Creating new mood: Score ${score}, Note: "${note}", Public: ${isPublic}`);
+      
+      // Add to mock data
+      mockMoods.unshift(newMood);
+      
+      // Clear the form
+      document.getElementById('mood-note').value = '';
+      
+      // Refresh the data
+      displayMoods({
+        data: {
+          allMoods: {
+            nodes: mockMoods
+          },
+          operations: {
+            moodsCount: mockMoods.length,
+            moodsAVG: mockMoods.reduce((sum, mood) => sum + mood.score, 0) / mockMoods.length
+          }
+        },
+        extensions: {
+          liveQuery: {
+            isLiveQuery: true,
+            pollInterval: 2000
+          }
+        }
+      });
+      
+      log('Mood created successfully');
+    }
+    
+    // Log function for activity log
+    function log(message) {
+      const logContainer = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      
+      // Format timestamp
+      const now = new Date();
+      const timestamp = now.toLocaleTimeString();
+      
+      entry.innerHTML = `<strong>${timestamp}</strong>: ${message}`;
+      
+      // Add to top of log
+      logContainer.insertBefore(entry, logContainer.firstChild);
+    }
+  </script>
+</body>
+</html>
