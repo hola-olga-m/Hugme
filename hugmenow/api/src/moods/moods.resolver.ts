@@ -48,7 +48,7 @@ export class MoodsResolver {
     return this.moodsService.getUserMoodStreak(user.id);
   }
   
-  // friendsMoods method has been completely removed
+  // All references to friendsMoods have been completely removed from the codebase
   // All clients should use publicMoods instead
 
   @Mutation(() => Mood)
