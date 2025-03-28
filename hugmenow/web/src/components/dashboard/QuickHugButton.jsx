@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
-import { GET_USERS } from '../../graphql/queries';
-import { SEND_HUG } from '../../graphql/mutations';
 import styled from 'styled-components';
+import { useMeshSdk } from '../../hooks/useMeshSdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiHeart, FiX, FiAlertCircle } from 'react-icons/fi';
 import { Icon } from '../ui/IconComponent';
@@ -307,6 +305,9 @@ const ErrorToast = styled(Toast)`
 
 // Quick Hug Button Component
 const QuickHugButton = ({ onSent = () => {} }) => {
+  // Use Mesh SDK for data fetching and mutations
+  const { getUsers, sendHug } = useMeshSdk();
+  
   const [showPopup, setShowPopup] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [selectedHugType, setSelectedHugType] = useState('StandardHug');
@@ -315,23 +316,33 @@ const QuickHugButton = ({ onSent = () => {} }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [sentToUser, setSentToUser] = useState('');
   
-  // Fetch users list (will be filtered to friends in a future update)
-  const { loading, error, data } = useQuery(GET_USERS, {
-    fetchPolicy: 'network-only',
-    skip: !showPopup,
-    onError: (error) => {
-      console.error("Error fetching users:", error);
-    }
-  });
+  // State for users data, loading and error
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [sendingHug, setSendingHug] = useState(false);
   
-  // Send hug mutation
-  const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG, {
-    onError: (error) => {
-      console.error("Error sending hug:", error);
-      setErrorMessage(error.message?.split(':')[0] || 'Failed to send hug');
-      setShowErrorToast(true);
+  // Fetch users when popup is opened
+  useEffect(() => {
+    if (showPopup) {
+      fetchUsers();
     }
-  });
+  }, [showPopup]);
+  
+  // Function to fetch users
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const usersList = await getUsers();
+      setUsers(usersList || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Close popup when clicking outside
   useEffect(() => {
@@ -411,17 +422,18 @@ const QuickHugButton = ({ onSent = () => {} }) => {
     if (!selectedFriend) return;
     
     try {
-      const response = await sendHug({
-        variables: {
-          hugInput: {
-            recipientId: selectedFriend.id,
-            type: selectedHugType,
-            message: `Sending you a quick ${selectedHugType.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}!`,
-          }
-        }
-      });
+      setSendingHug(true);
       
-      if (response.data?.sendHug) {
+      // Format hug data according to the SDK requirements
+      const hugData = {
+        recipientId: selectedFriend.id,
+        type: selectedHugType,
+        message: `Sending you a quick ${selectedHugType.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}!`,
+      };
+      
+      const result = await sendHug(hugData);
+      
+      if (result) {
         setSentToUser(selectedFriend.name || selectedFriend.username);
         setShowHugSentToast(true);
         closePopup();
@@ -429,6 +441,10 @@ const QuickHugButton = ({ onSent = () => {} }) => {
       }
     } catch (err) {
       console.error('Error sending hug:', err);
+      setErrorMessage(err.message?.split(':')[0] || 'Failed to send hug');
+      setShowErrorToast(true);
+    } finally {
+      setSendingHug(false);
     }
   };
   
@@ -471,11 +487,11 @@ const QuickHugButton = ({ onSent = () => {} }) => {
                 Couldn't load friends list. 
                 {error.message && <div>Error: {error.message.split(':')[0]}</div>}
               </ErrorState>
-            ) : !data || !data.users || data.users.length === 0 ? (
+            ) : !users || users.length === 0 ? (
               <EmptyState>No friends found</EmptyState>
             ) : (
               <FriendsList>
-                {data.users.map(friend => (
+                {users.map(friend => (
                   <FriendOption
                     key={friend.id}
                     selected={selectedFriend && selectedFriend.id === friend.id}

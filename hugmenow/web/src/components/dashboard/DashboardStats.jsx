@@ -1,14 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useQuery } from '@apollo/client';
 import { Icon } from '../ui/IconComponent';
-import { 
-  GET_MOOD_STREAK, 
-  GET_USER_MOODS_COUNT, 
-  GET_SENT_HUGS_COUNT, 
-  GET_RECEIVED_HUGS_COUNT 
-} from '../../graphql/queries';
+import { useMeshSdk } from '../../hooks/useMeshSdk';
 
 // Styled components
 const StatsContainer = styled.div`
@@ -119,24 +113,48 @@ const cardVariants = {
  * using PNG icons for visual appeal
  */
 const DashboardStats = () => {
-  // Use individual queries for each stat
-  const { data: streakData, loading: streakLoading } = useQuery(GET_MOOD_STREAK);
-  const { data: moodsData, loading: moodsLoading } = useQuery(GET_USER_MOODS_COUNT);
-  const { data: sentHugsData, loading: sentHugsLoading } = useQuery(GET_SENT_HUGS_COUNT);
-  const { data: receivedHugsData, loading: receivedHugsLoading } = useQuery(GET_RECEIVED_HUGS_COUNT);
+  // Use Mesh SDK for data fetching
+  const { getMoodStreak, getUserMoods, getSentHugs, getReceivedHugs } = useMeshSdk();
   
-  // Combine loading states
-  const isLoading = streakLoading || moodsLoading || sentHugsLoading || receivedHugsLoading;
+  // State for stats data
+  const [stats, setStats] = useState({
+    moodStreak: 0,
+    totalMoodEntries: 0,
+    hugsSent: 0,
+    hugsReceived: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Use useMemo to calculate stats from the raw data
-  const stats = useMemo(() => {
-    return {
-      moodStreak: streakData?.moodStreak || 0,
-      totalMoodEntries: moodsData?.userMoods?.length || 0,
-      hugsSent: sentHugsData?.sentHugs?.length || 0,
-      hugsReceived: receivedHugsData?.receivedHugs?.length || 0
-    };
-  }, [streakData, moodsData, sentHugsData, receivedHugsData]);
+  // Fetch data using Mesh SDK
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        
+        // Fetch all data in parallel
+        const [moodStreak, userMoods, sentHugs, receivedHugs] = await Promise.all([
+          getMoodStreak(),
+          getUserMoods(),
+          getSentHugs(),
+          getReceivedHugs()
+        ]);
+        
+        // Update stats
+        setStats({
+          moodStreak: moodStreak?.currentStreak || 0,
+          totalMoodEntries: userMoods?.length || 0,
+          hugsSent: sentHugs?.length || 0,
+          hugsReceived: receivedHugs?.length || 0
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchData();
+  }, [getMoodStreak, getUserMoods, getSentHugs, getReceivedHugs]);
   
   // Define stats cards data with updated styling
   const statsCards = [

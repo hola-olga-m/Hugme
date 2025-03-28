@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { GET_FRIENDS_MOODS } from '../../graphql/queries';
-import { SEND_HUG } from '../../graphql/mutations';
 import styled from 'styled-components';
+import { useMeshSdk } from '../../hooks/useMeshSdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiClock, FiSend, FiHeart, FiAlertCircle, FiBell } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
@@ -295,23 +293,50 @@ const FilterButton = styled.button`
 
 // Component
 const FriendMoodsWidget = () => {
-  const { loading, error, data, refetch } = useQuery(GET_FRIENDS_MOODS, {
-    fetchPolicy: 'network-only',
-    pollInterval: 60000, // Poll every minute for updates
-    onError: (error) => console.error("FriendMoods query error:", error)
-  });
-
+  // Use the Mesh SDK for data fetching and mutations
+  const { getFriendsMoods, sendHug } = useMeshSdk();
+  
   const [expandedMood, setExpandedMood] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'needSupport', 'recent'
   const [showHugSentToast, setShowHugSentToast] = useState(false);
   const [hugSentToUser, setHugSentToUser] = useState(null);
   const [sendingHugTo, setSendingHugTo] = useState(null);
-
-  // GraphQL mutation for sending hugs
-  const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG);
-
+  
+  // State for data, loading and error
+  const [moods, setMoods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [sendingHug, setSendingHug] = useState(false);
+  
+  // Fetch data
+  const fetchMoods = async () => {
+    try {
+      setLoading(true);
+      const friendsMoods = await getFriendsMoods();
+      setMoods(friendsMoods || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching friends' moods:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Initial data load
+  useEffect(() => {
+    fetchMoods();
+    
+    // Poll for updates every minute
+    const interval = setInterval(() => {
+      fetchMoods();
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   // Check for friends with bad moods (intensity <= 4)
-  const friendsNeedingSupport = data?.publicMoods?.filter(mood => mood.intensity <= 4) || [];
+  const friendsNeedingSupport = moods.filter(mood => mood.intensity <= 4) || [];
   const hasFriendsNeedingSupport = friendsNeedingSupport.length > 0;
 
   // Effect to auto-dismiss hug sent toast
@@ -349,56 +374,57 @@ const FriendMoodsWidget = () => {
     if (sendingHug) return; // Prevent multiple clicks
 
     setSendingHugTo(mood.user.id);
+    setSendingHug(true);
 
     try {
-      const response = await sendHug({
-        variables: {
-          hugInput: {
-            recipientId: mood.user.id,
-            type: mood.intensity <= 4 ? 'ComfortingHug' : 'StandardHug',
-            message: mood.intensity <= 4 
-              ? `I noticed you're not feeling great. Sending you a comforting hug!` 
-              : `Hey! Just sending a friendly hug your way!`,
-          }
-        }
-      });
+      // Format the hug data according to the SDK format
+      const hugData = {
+        recipientId: mood.user.id,
+        type: mood.intensity <= 4 ? 'ComfortingHug' : 'StandardHug',
+        message: mood.intensity <= 4 
+          ? `I noticed you're not feeling great. Sending you a comforting hug!` 
+          : `Hey! Just sending a friendly hug your way!`,
+      };
 
-      if (response.data?.sendHug) {
+      const result = await sendHug(hugData);
+
+      if (result) {
         setHugSentToUser(mood.user.name || mood.user.username);
         setShowHugSentToast(true);
 
         // Refetch moods after a short delay to show updated state
         setTimeout(() => {
-          refetch();
+          fetchMoods();
         }, 1000);
       }
     } catch (err) {
       console.error('Error sending hug:', err);
     } finally {
       setSendingHugTo(null);
+      setSendingHug(false);
     }
   };
 
   // Filter moods based on selected filter
   const getFilteredMoods = () => {
-    if (!data?.publicMoods) return [];
+    if (!moods || moods.length === 0) return [];
 
-    let moods = [...data.publicMoods];
+    let filteredMoods = [...moods];
 
     if (filter === 'needSupport') {
-      return moods.filter(mood => mood.intensity <= 4);
+      return filteredMoods.filter(mood => mood.intensity <= 4);
     } else if (filter === 'recent') {
-      return moods.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return filteredMoods.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
-    return moods;
+    return filteredMoods;
   };
 
   // Render functions
   const renderMoods = () => {
     if (loading) return <LoadingState>Loading friends' moods...</LoadingState>;
     if (error) return <EmptyState>Couldn't load friends' moods. Please try again.</EmptyState>;
-    if (!data || !data.publicMoods || data.publicMoods.length === 0) {
+    if (!moods || moods.length === 0) {
       return <EmptyState>No friend moods yet. Add friends to see their moods here!</EmptyState>;
     }
 

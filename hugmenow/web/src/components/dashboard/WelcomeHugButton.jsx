@@ -321,9 +321,9 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
       setError(null);
       
       try {
-        const result = await getUsers();
-        if (result && result.users) {
-          setUsersData(result.users);
+        const users = await getUsers();
+        if (users && Array.isArray(users)) {
+          setUsersData(users);
         } else {
           setUsersData([]);
         }
@@ -434,7 +434,7 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
         message: welcomeMessage || 'Hi there! I\'d like to connect and be friends on HugMeNow! Sending you a warm welcome hug.',
       };
       
-      // Send the welcome hug
+      // Send the welcome hug with the input structured according to the schema requirements
       const result = await sendHug(hugInput);
       
       if (result) {

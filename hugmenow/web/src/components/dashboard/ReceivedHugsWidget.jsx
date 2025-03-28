@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { GET_RECEIVED_HUGS, MARK_HUG_AS_READ } from '../../graphql/queries';
-import { SEND_HUG } from '../../graphql/mutations';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiClock, FiMessageCircle, FiCheck, FiHeart, FiCornerUpRight } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { Icon } from '../ui/IconComponent';
+import { useMeshSdk } from '../../hooks/useMeshSdk';
 
 // Styled Components
 const WidgetContainer = styled(motion.div)`
@@ -467,12 +465,14 @@ const SendButton = styled.button`
 
 // Component
 const ReceivedHugsWidget = () => {
-  const { loading, error, data, refetch } = useQuery(GET_RECEIVED_HUGS, {
-    fetchPolicy: 'network-only',
-  });
-
-  const [markAsRead] = useMutation(MARK_HUG_AS_READ);
-  const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG);
+  // Use Mesh SDK for data fetching and mutations
+  const { getReceivedHugs, markHugAsRead, sendHug } = useMeshSdk();
+  
+  // State for data, loading and error
+  const [receivedHugs, setReceivedHugs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [sendingHug, setSendingHug] = useState(false);
 
   const [replyingToHug, setReplyingToHug] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
@@ -481,8 +481,28 @@ const ReceivedHugsWidget = () => {
   const [showHugSentToast, setShowHugSentToast] = useState(false);
   const [hugSentToUser, setHugSentToUser] = useState(null);
 
+  // Load received hugs on component mount
+  useEffect(() => {
+    fetchReceivedHugs();
+  }, []);
+
+  // Function to fetch received hugs
+  const fetchReceivedHugs = async () => {
+    try {
+      setLoading(true);
+      const hugs = await getReceivedHugs();
+      setReceivedHugs(hugs || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching received hugs:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Calculate unread hugs
-  const unreadHugs = data?.receivedHugs?.filter(hug => !hug.isRead) || [];
+  const unreadHugs = receivedHugs.filter(hug => !hug.isRead) || [];
   const hasUnreadHugs = unreadHugs.length > 0;
 
   // Auto dismiss toast
@@ -517,12 +537,10 @@ const ReceivedHugsWidget = () => {
     event.stopPropagation();
 
     try {
-      await markAsRead({
-        variables: { id: hugId }
-      });
-
-      // Refetch to update UI
-      refetch();
+      await markHugAsRead(hugId);
+      
+      // Refresh the data after marking as read
+      fetchReceivedHugs();
     } catch (err) {
       console.error('Error marking hug as read:', err);
     }
@@ -547,28 +565,31 @@ const ReceivedHugsWidget = () => {
     if (!replyingToHug || !replyMessage.trim()) return;
 
     try {
-      const response = await sendHug({
-        variables: {
-          input: {
-            receiverId: replyingToHug.sender.id,
-            type: replyHugType,
-            message: replyMessage.trim(),
-          }
-        }
-      });
-
-      if (response.data?.sendHug) {
+      setSendingHug(true);
+      
+      // Format hug data according to the SDK requirements
+      const hugData = {
+        recipientId: replyingToHug.sender.id,
+        type: replyHugType,
+        message: replyMessage.trim(),
+      };
+      
+      const result = await sendHug(hugData);
+      
+      if (result) {
         setHugSentToUser(replyingToHug.sender.name || replyingToHug.sender.username);
         setShowHugSentToast(true);
         closeReplyDialog();
 
         // Refetch after a short delay
         setTimeout(() => {
-          refetch();
+          fetchReceivedHugs();
         }, 1000);
       }
     } catch (err) {
       console.error('Error sending reply hug:', err);
+    } finally {
+      setSendingHug(false);
     }
   };
 
@@ -589,13 +610,13 @@ const ReceivedHugsWidget = () => {
   const renderHugs = () => {
     if (loading) return <LoadingState>Loading received hugs...</LoadingState>;
     if (error) return <EmptyState>Couldn't load hugs. Please try again.</EmptyState>;
-    if (!data || !data.receivedHugs || data.receivedHugs.length === 0) {
+    if (!receivedHugs || receivedHugs.length === 0) {
       return <EmptyState>No hugs received yet. Send some to get the ball rolling!</EmptyState>;
     }
 
     return (
       <HugsList>
-        {data.receivedHugs.map(hug => (
+        {receivedHugs.map(hug => (
           <HugCard 
             key={hug.id}
             initial={{ opacity: 0, y: 20 }}
