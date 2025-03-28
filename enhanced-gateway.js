@@ -5,16 +5,33 @@
  * and Schema Merger for advanced schema manipulation.
  */
 
-import { ApolloServer, gql } from 'apollo-server';
-import { execute, parse } from 'graphql';
+import { ApolloServer, gql } from 'apollo-server-express';
+import { execute, parse, subscribe } from 'graphql';
 import fetch from 'node-fetch';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SERVICE_PORTS, SERVICE_ENDPOINTS, CLIENT_INFO } from './gateway-config.js';
 import { applyShield } from './shield-rules.js';
 import { loadSchema } from './schema-merger.js';
+import { PubSub } from 'graphql-subscriptions';
+import { createServer } from 'http';
+import express from 'express';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+
+// Create a PubSub instance for handling subscription events
+const pubsub = new PubSub();
+
+// Define event topics for subscriptions
+const EVENTS = {
+  NEW_MOOD: 'NEW_MOOD',
+  NEW_HUG: 'NEW_HUG',
+  NEW_HUG_RECEIVED: 'NEW_HUG_RECEIVED',
+  NEW_FRIEND_MOOD: 'NEW_FRIEND_MOOD'
+};
 
 // Set port from environment or configuration
-const PORT = process.env.PORT || SERVICE_PORTS.CUSTOM_GATEWAY;
+const PORT = process.env.PORT || SERVICE_PORTS.ENHANCED_GATEWAY;
 const API_ENDPOINT = process.env.API_ENDPOINT || SERVICE_ENDPOINTS.POSTGRAPHILE;
 
 console.log(`Starting Enhanced Gateway on port ${PORT}, connecting to API at ${API_ENDPOINT}`);
@@ -54,16 +71,168 @@ async function executeGraphQL(query, variables = {}, token = null) {
   }
 }
 
-// Virtual type definitions for client-specific fields
-const virtualTypeDefs = gql`
-  # Empty schema extension - we've moved everything to the base schema
-  type _EmptyType {
-    _empty: String
+// Base schema with subscription definitions
+const baseSchema = gql`
+  type Query {
+    # Root-level fields
+    clientInfo: ClientInfo
+    currentUser: User
+    publicMoods(limit: Int, offset: Int): [PublicMood]
+    friendsMoods(limit: Int, offset: Int): [PublicMood]
+    userMoods(userId: ID!, limit: Int, offset: Int): [Mood]
+    moodStreak(userId: ID!): MoodStreak
+    sentHugs(userId: ID!, limit: Int, offset: Int): [Hug]
+    receivedHugs(userId: ID!, limit: Int, offset: Int): [Hug]
+    login(email: String!, password: String!): AuthPayload
+    register(username: String!, email: String!, password: String!): AuthPayload
+  }
+
+  type Mutation {
+    login(email: String!, password: String!): AuthPayload
+    register(username: String!, email: String!, password: String!): AuthPayload
+    createMood(input: MoodInput!): Mood
+    sendHug(input: HugInput!): Hug
+    updateMood(id: ID!, input: MoodInput!): Mood
+    deleteMood(id: ID!): Boolean
+    updatePreferences(input: PreferencesInput!): User
+  }
+
+  type Subscription {
+    newMood: Mood
+    newHug: Hug
+    newHugReceived(userId: ID!): Hug
+    newFriendMood(userId: ID!): PublicMood
+  }
+
+  # Client-specific types
+  type ClientInfo {
+    version: String!
+    buildDate: String!
+    platform: String!
+    deviceInfo: String
+    features: [String]
+  }
+
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  # Core domain types
+  type User {
+    id: ID!
+    username: String!
+    email: String
+    profileImage: String
+    bio: String
+    joinDate: String
+    preferences: UserPreferences
+    role: String
+  }
+
+  type UserPreferences {
+    theme: String
+    notifications: Boolean
+    privacyLevel: String
+  }
+
+  type MoodStreak {
+    userId: ID!
+    currentStreak: Int!
+    longestStreak: Int!
+    lastMoodDate: String
+  }
+
+  type Mood {
+    id: ID!
+    userId: ID!
+    user: User
+    mood: String
+    emoji: String
+    intensity: Int!
+    message: String
+    isPublic: Boolean!
+    createdAt: String!
+    score: Int  # For backward compatibility
+  }
+
+  type PublicMood {
+    id: ID!
+    mood: String
+    intensity: Int!
+    message: String
+    createdAt: String!
+    user: User
+  }
+
+  type Hug {
+    id: ID!
+    sender: User!
+    recipient: User!
+    message: String
+    mood: Mood
+    isRead: Boolean!
+    createdAt: String!
+  }
+
+  # Input types
+  input MoodInput {
+    userId: ID
+    mood: String
+    emoji: String
+    intensity: Int
+    message: String
+    isPublic: Boolean
+    score: Int  # For backward compatibility
+  }
+
+  input HugInput {
+    senderId: ID!
+    recipientId: ID!
+    message: String
+    moodId: ID
+  }
+
+  input PreferencesInput {
+    theme: String
+    notifications: Boolean
+    privacyLevel: String
   }
 `;
 
 // Virtual resolvers for client-specific fields
 const virtualResolvers = {
+  // Subscription resolvers
+  Subscription: {
+    newMood: {
+      subscribe: () => {
+        console.log('[Enhanced Gateway] Setting up newMood subscription');
+        return pubsub.asyncIterator(EVENTS.NEW_MOOD);
+      }
+    },
+    
+    newHug: {
+      subscribe: () => {
+        console.log('[Enhanced Gateway] Setting up newHug subscription');
+        return pubsub.asyncIterator(EVENTS.NEW_HUG);
+      }
+    },
+    
+    newHugReceived: {
+      subscribe: (_, { userId }) => {
+        console.log('[Enhanced Gateway] Setting up newHugReceived subscription for userId:', userId);
+        return pubsub.asyncIterator(`${EVENTS.NEW_HUG_RECEIVED}.${userId}`);
+      }
+    },
+    
+    newFriendMood: {
+      subscribe: (_, { userId }) => {
+        console.log('[Enhanced Gateway] Setting up newFriendMood subscription for userId:', userId);
+        return pubsub.asyncIterator(`${EVENTS.NEW_FRIEND_MOOD}.${userId}`);
+      }
+    }
+  },
+  
   Query: {
     clientInfo: () => {
       console.log('[Enhanced Gateway] Resolving Query.clientInfo');
@@ -87,16 +256,18 @@ const virtualResolvers = {
       console.log('[Enhanced Gateway] Resolving Query.friendsMoods -> publicMoods');
       const result = await executeGraphQL(`
         query GetPublicMoods($limit: Int, $offset: Int) {
-          allMoods(first: $limit, offset: $offset) {
+          allMoods(first: $limit, offset: $offset, condition: { isPublic: true }) {
             nodes {
               id
-              mood
-              intensity
+              score
+              note
+              isPublic
               createdAt
-              user {
+              userId
+              userByUserId {
                 id
                 username
-                profileImageUrl
+                avatarUrl
               }
             }
           }
@@ -109,10 +280,15 @@ const virtualResolvers = {
       // Transform the response to match our schema
       const moods = result.data?.allMoods?.nodes || [];
       return moods.map(mood => ({
-        ...mood,
+        id: mood.id,
+        mood: "Happy", // Default mood since PostGraphile doesn't have this field
+        intensity: mood.score, // Map score to intensity
+        message: mood.note || "",
+        createdAt: mood.createdAt,
         user: {
-          ...mood.user,
-          profileImage: mood.user?.profileImageUrl
+          id: mood.userByUserId?.id || mood.userId || "unknown",
+          username: mood.userByUserId?.username || "unknown",
+          profileImage: mood.userByUserId?.avatarUrl || ""
         }
       }));
     },
@@ -120,7 +296,7 @@ const virtualResolvers = {
     userMoods: async (_, args, context) => {
       console.log('[Enhanced Gateway] Resolving Query.userMoods -> moods', args);
       const result = await executeGraphQL(`
-        query GetMoods($userId: ID, $limit: Int, $offset: Int) {
+        query GetMoods($userId: UUID!, $limit: Int, $offset: Int) {
           allMoods(
             filter: { userId: { equalTo: $userId } }
             first: $limit
@@ -128,14 +304,15 @@ const virtualResolvers = {
           ) {
             nodes {
               id
-              mood
-              intensity
+              score
               note
-              isPrivate
+              isPublic
               createdAt
-              user {
+              userId
+              userByUserId {
                 id
                 username
+                avatarUrl
               }
             }
           }
@@ -146,7 +323,22 @@ const virtualResolvers = {
         offset: args.offset || 0
       }, context.token);
       
-      return result.data?.allMoods?.nodes || [];
+      // Transform the response to match our schema
+      const moods = result.data?.allMoods?.nodes || [];
+      return moods.map(mood => ({
+        id: mood.id,
+        userId: mood.userId,
+        mood: "Happy", // Default mood since PostGraphile doesn't have this field
+        intensity: mood.score, // Map score to intensity
+        message: mood.note || "",
+        isPublic: mood.isPublic,
+        createdAt: mood.createdAt,
+        user: {
+          id: mood.userByUserId?.id || mood.userId || "unknown",
+          username: mood.userByUserId?.username || "unknown",
+          profileImage: mood.userByUserId?.avatarUrl || ""
+        }
+      }));
     },
     
     publicMoods: async (_, args, context) => {
@@ -183,22 +375,19 @@ const virtualResolvers = {
       context.token);
       
       // Transform PostGraphile's response to match our schema
-      if (result && result.allMoods && result.allMoods.nodes) {
-        return result.allMoods.nodes.map(mood => ({
-          id: mood.id,
-          mood: "Happy", // Default mood since PostGraphile doesn't have this field
-          intensity: mood.score, // Map score to intensity
-          message: mood.note || "",
-          createdAt: mood.createdAt,
-          user: {
-            id: mood.userByUserId?.id || "unknown",
-            username: mood.userByUserId?.username || "unknown",
-            avatar: mood.userByUserId?.avatarUrl || ""
-          }
-        }));
-      }
-      
-      return [];
+      const moods = result.data?.allMoods?.nodes || [];
+      return moods.map(mood => ({
+        id: mood.id,
+        mood: "Happy", // Default mood since PostGraphile doesn't have this field
+        intensity: mood.score, // Map score to intensity
+        message: mood.note || "",
+        createdAt: mood.createdAt,
+        user: {
+          id: mood.userByUserId?.id || mood.userId || "unknown",
+          username: mood.userByUserId?.username || "unknown",
+          profileImage: mood.userByUserId?.avatarUrl || ""
+        }
+      }));
     },
     
     moodStreak: async (_, args, context) => {
@@ -250,11 +439,10 @@ const virtualResolvers = {
       };
     },
     
-    // These were in the original virtualResolvers
     sentHugs: async (_, args, context) => {
       console.log('[Enhanced Gateway] Resolving Query.sentHugs -> hugs (sent)', args);
       const result = await executeGraphQL(`
-        query GetSentHugs($userId: ID, $limit: Int, $offset: Int) {
+        query GetSentHugs($userId: UUID!, $limit: Int, $offset: Int) {
           allHugs(
             filter: { senderId: { equalTo: $userId } }
             first: $limit
@@ -265,20 +453,22 @@ const virtualResolvers = {
               message
               isRead
               createdAt
-              sender {
+              senderId
+              recipientId
+              userBySenderId {
                 id
                 username
-                profileImageUrl
+                avatarUrl
               }
-              recipient {
+              userByRecipientId {
                 id
                 username
-                profileImageUrl
+                avatarUrl
               }
               mood {
                 id
-                mood
-                intensity
+                score
+                note
               }
             }
           }
@@ -292,22 +482,32 @@ const virtualResolvers = {
       // Transform the response to match our schema
       const hugs = result.data?.allHugs?.nodes || [];
       return hugs.map(hug => ({
-        ...hug,
+        id: hug.id,
+        message: hug.message || "",
+        isRead: hug.isRead || false,
+        createdAt: hug.createdAt,
         sender: {
-          ...hug.sender,
-          profileImage: hug.sender?.profileImageUrl
+          id: hug.userBySenderId?.id || hug.senderId || "unknown",
+          username: hug.userBySenderId?.username || "unknown",
+          profileImage: hug.userBySenderId?.avatarUrl || ""
         },
         recipient: {
-          ...hug.recipient,
-          profileImage: hug.recipient?.profileImageUrl
-        }
+          id: hug.userByRecipientId?.id || hug.recipientId || "unknown",
+          username: hug.userByRecipientId?.username || "unknown",
+          profileImage: hug.userByRecipientId?.avatarUrl || ""
+        },
+        mood: hug.mood ? {
+          id: hug.mood.id,
+          intensity: hug.mood.score,
+          message: hug.mood.note || "",
+        } : null
       }));
     },
     
     receivedHugs: async (_, args, context) => {
       console.log('[Enhanced Gateway] Resolving Query.receivedHugs -> hugs (received)', args);
       const result = await executeGraphQL(`
-        query GetReceivedHugs($userId: ID, $limit: Int, $offset: Int) {
+        query GetReceivedHugs($userId: UUID!, $limit: Int, $offset: Int) {
           allHugs(
             filter: { recipientId: { equalTo: $userId } }
             first: $limit
@@ -318,20 +518,22 @@ const virtualResolvers = {
               message
               isRead
               createdAt
-              sender {
+              senderId
+              recipientId
+              userBySenderId {
                 id
                 username
-                profileImageUrl
+                avatarUrl
               }
-              recipient {
+              userByRecipientId {
                 id
                 username
-                profileImageUrl
+                avatarUrl
               }
               mood {
                 id
-                mood
-                intensity
+                score
+                note
               }
             }
           }
@@ -345,15 +547,25 @@ const virtualResolvers = {
       // Transform the response to match our schema
       const hugs = result.data?.allHugs?.nodes || [];
       return hugs.map(hug => ({
-        ...hug,
+        id: hug.id,
+        message: hug.message || "",
+        isRead: hug.isRead || false,
+        createdAt: hug.createdAt,
         sender: {
-          ...hug.sender,
-          profileImage: hug.sender?.profileImageUrl
+          id: hug.userBySenderId?.id || hug.senderId || "unknown",
+          username: hug.userBySenderId?.username || "unknown",
+          profileImage: hug.userBySenderId?.avatarUrl || ""
         },
         recipient: {
-          ...hug.recipient,
-          profileImage: hug.recipient?.profileImageUrl
-        }
+          id: hug.userByRecipientId?.id || hug.recipientId || "unknown",
+          username: hug.userByRecipientId?.username || "unknown",
+          profileImage: hug.userByRecipientId?.avatarUrl || ""
+        },
+        mood: hug.mood ? {
+          id: hug.mood.id,
+          intensity: hug.mood.score,
+          message: hug.mood.note || "",
+        } : null
       }));
     }
   },
@@ -385,704 +597,276 @@ const virtualResolvers = {
       };
     },
     
-    markHugAsRead: async (_, args, context) => {
-      console.log('[Enhanced Gateway] Resolving Mutation.markHugAsRead', args);
-      const result = await executeGraphQL(`
-        mutation MarkHugAsRead($id: ID!) {
-          updateHug(input: {
-            id: $id
-            patch: {
-              isRead: true
-            }
-          }) {
-            hug {
-              id
-              isRead
-              message
-              createdAt
-              sender {
-                id
-                username
-              }
-              recipient {
-                id
-                username
-              }
-            }
-          }
-        }
-      `, {
-        id: args.id
-      }, context.token);
+    createMood: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.createMood');
       
-      return result.data?.updateHug?.hug || null;
-    },
-    
-    updateProfile: async (_, args, context) => {
-      console.log('[Enhanced Gateway] Resolving Mutation.updateProfile', args);
-      if (!context.user || !context.user.id) {
-        throw new Error("User not authenticated");
+      // Make direct REST POST request to avoid GraphQL version conflicts
+      const moodInput = {
+        score: args.input.intensity || args.input.score || 5,
+        note: args.input.message || "",
+        isPublic: args.input.isPublic === undefined ? true : args.input.isPublic,
+        userId: args.input.userId || "1"
+      };
+      
+      const mutationInput = { 
+        clientMutationId: "direct-" + Date.now(),
+        mood: moodInput
+      };
+      
+      console.log('[Enhanced Gateway] Sending createMood with input:', JSON.stringify(mutationInput));
+      
+      // Make a direct POST request to avoid GraphQL library version conflicts
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(context.token ? { 'Authorization': `Bearer ${context.token}` } : {})
+        },
+        body: JSON.stringify({ 
+          query: `
+            mutation CreateMood($input: CreateMoodInput!) {
+              createMood(input: $input) {
+                mood {
+                  id
+                  score
+                  note
+                  isPublic
+                  createdAt
+                  userId
+                  userByUserId {
+                    id
+                    username
+                  }
+                }
+              }
+            }
+          `,
+          variables: { input: mutationInput }
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.errors) {
+        console.error('[Enhanced Gateway] GraphQL errors:', JSON.stringify(result.errors, null, 2));
+        throw new Error('Failed to create mood: ' + result.errors[0].message);
       }
       
-      const result = await executeGraphQL(`
-        mutation UpdateUser($id: ID!, $input: UserPatch!) {
-          updateUser(input: {
-            id: $id
-            patch: $input
-          }) {
-            user {
-              id
-              username
-              email
-              bio
-              profileImage
-            }
-          }
-        }
-      `, {
-        id: context.user.id,
-        input: args.input
-      }, context.token);
+      if (!result?.data?.createMood?.mood) {
+        throw new Error('Failed to create mood: No data returned');
+      }
       
-      return result.data?.updateUser?.user || null;
+      const mood = result.data.createMood.mood;
+      
+      // Transform the response to match client expectations
+      const transformedMood = {
+        id: mood.id,
+        userId: mood.userId,
+        intensity: mood.score,
+        emoji: "😊", // Default emoji since not stored in DB
+        message: mood.note || "",
+        createdAt: mood.createdAt,
+        isPublic: mood.isPublic,
+        score: mood.score // For backward compatibility
+      };
+      
+      console.log('[Enhanced Gateway] Successfully created mood in database:', transformedMood.id);
+      
+      // Publish to subscription channels
+      pubsub.publish(EVENTS.NEW_MOOD, { newMood: transformedMood });
+      
+      // Also publish to the user-specific channel for friend mood notifications
+      if (transformedMood.isPublic) {
+        pubsub.publish(`${EVENTS.NEW_FRIEND_MOOD}.${transformedMood.userId}`, { 
+          newFriendMood: transformedMood 
+        });
+      }
+      
+      return transformedMood;
     },
     
-    sendFriendHug: async (_, args, context) => {
-      console.log('[Enhanced Gateway] Resolving Mutation.sendFriendHug -> sendHug', args);
-      const result = await executeGraphQL(`
-        mutation SendHug($input: CreateHugInput!) {
-          createHug(input: $input) {
-            hug {
-              id
-              message
-              isRead
-              createdAt
-              sender {
-                id
-                username
-                profileImageUrl
-              }
-              recipient {
-                id
-                username
-                profileImageUrl
-              }
-              mood {
-                id
-                mood
-                intensity
+    sendHug: async (_, args, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.sendHug');
+      
+      // Make direct REST POST request to avoid GraphQL version conflicts
+      const hugInput = {
+        type: "SUPPORTIVE", // Default type
+        message: args.input.message || "",
+        senderId: args.input.senderId,
+        recipientId: args.input.recipientId,
+        isRead: false, // Default as unread
+        moodId: args.input.moodId
+      };
+      
+      const mutationInput = {
+        clientMutationId: "direct-" + Date.now(),
+        hug: hugInput
+      };
+      
+      console.log('[Enhanced Gateway] Sending createHug with input:', JSON.stringify(mutationInput));
+      
+      // Make a direct POST request to avoid GraphQL library version conflicts
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(context.token ? { 'Authorization': `Bearer ${context.token}` } : {})
+        },
+        body: JSON.stringify({ 
+          query: `
+            mutation CreateHug($input: CreateHugInput!) {
+              createHug(input: $input) {
+                hug {
+                  id
+                  message
+                  isRead
+                  createdAt
+                  senderId
+                  recipientId
+                  userBySenderId {
+                    id
+                    username
+                    avatarUrl
+                  }
+                  userByRecipientId {
+                    id
+                    username
+                    avatarUrl
+                  }
+                  moodId
+                  moodByMoodId {
+                    id
+                    score
+                    note
+                  }
+                }
               }
             }
-          }
-        }
-      `, {
-        input: {
-          hug: {
-            recipientId: args.toUserId,
-            moodId: args.moodId,
-            message: args.message
-          }
-        }
-      }, context.token);
+          `,
+          variables: { input: mutationInput }
+        })
+      });
       
-      const hug = result.data?.createHug?.hug;
-      if (!hug) return null;
+      const result = await response.json();
       
-      // Transform the response to match our schema
-      return {
-        ...hug,
+      if (result.errors) {
+        console.error('[Enhanced Gateway] GraphQL errors:', JSON.stringify(result.errors, null, 2));
+        throw new Error('Failed to send hug: ' + result.errors[0].message);
+      }
+      
+      if (!result?.data?.createHug?.hug) {
+        throw new Error('Failed to send hug: No data returned');
+      }
+      
+      const hug = result.data.createHug.hug;
+      
+      // Transform the response to match client expectations
+      const transformedHug = {
+        id: hug.id,
+        message: hug.message || "",
+        isRead: hug.isRead || false,
+        createdAt: hug.createdAt,
         sender: {
-          ...hug.sender,
-          profileImage: hug.sender?.profileImageUrl
+          id: hug.userBySenderId?.id || hug.senderId || "unknown",
+          username: hug.userBySenderId?.username || "unknown",
+          profileImage: hug.userBySenderId?.avatarUrl || ""
         },
         recipient: {
-          ...hug.recipient,
-          profileImage: hug.recipient?.profileImageUrl
+          id: hug.userByRecipientId?.id || hug.recipientId || "unknown",
+          username: hug.userByRecipientId?.username || "unknown",
+          profileImage: hug.userByRecipientId?.avatarUrl || ""
+        },
+        mood: hug.moodByMoodId ? {
+          id: hug.moodByMoodId.id,
+          intensity: hug.moodByMoodId.score,
+          message: hug.moodByMoodId.note || "",
+        } : null
+      };
+      
+      console.log('[Enhanced Gateway] Successfully sent hug in database:', transformedHug.id);
+      
+      // Publish to subscription channels
+      pubsub.publish(EVENTS.NEW_HUG, { newHug: transformedHug });
+      
+      // Also publish to the recipient-specific channel for received hug notifications
+      pubsub.publish(`${EVENTS.NEW_HUG_RECEIVED}.${transformedHug.recipient.id}`, { 
+        newHugReceived: transformedHug 
+      });
+      
+      return transformedHug;
+    },
+    
+    updateMood: async (_, { id, input }, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.updateMood');
+      // This would implement mood updating
+      return {
+        id,
+        mood: input.mood,
+        intensity: input.intensity,
+        message: input.message,
+        isPublic: input.isPublic,
+        createdAt: new Date().toISOString()
+      };
+    },
+    
+    deleteMood: async (_, { id }, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.deleteMood');
+      // This would implement mood deletion
+      return true;
+    },
+    
+    updatePreferences: async (_, { input }, context) => {
+      console.log('[Enhanced Gateway] Resolving Mutation.updatePreferences');
+      // This would implement preferences updating
+      return {
+        id: "1",
+        username: "demouser",
+        preferences: {
+          theme: input.theme,
+          notifications: input.notifications,
+          privacyLevel: input.privacyLevel
         }
       };
     }
   }
 };
 
-// Field transformers (example for consistent naming)
-const fieldTransformers = [
-  {
-    type: 'field',
-    transform: (typeName, fieldName) => {
-      // Transform snake_case to camelCase for specific fields
-      if (fieldName.includes('_')) {
-        return fieldName
-          .split('_')
-          .map((part, i) => 
-            i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)
-          )
-          .join('');
-      }
-      return fieldName;
-    }
-  }
-];
-
 // Main function to start the server
 async function startServer() {
   try {
-    // Introspect the API schema if available
-    let remoteSchema;
-    try {
-      remoteSchema = await loadSchema(API_ENDPOINT);
-      console.log('[Enhanced Gateway] Successfully loaded remote schema');
-    } catch (error) {
-      console.warn('[Enhanced Gateway] Could not load remote schema:', error.message);
-      console.log('[Enhanced Gateway] Falling back to local schema definition');
-      
-      // Use a minimal schema as fallback
-      remoteSchema = gql`
-        type Query {
-          allMoods: MoodsConnection
-          allHugs: HugsConnection
-          allUsers: UsersConnection
-          userById(id: ID!): User
-          userByUsername(username: String!): User
-          userByEmail(email: String!): User
-          moodById(id: ID!): Mood
-          hugById(id: ID!): Hug
-          # Add virtual fields here to match the resolvers
-          sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
-          receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
-          friendsMoods: [PublicMood]
-          userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-          publicMoods(limit: Int, offset: Int): [PublicMood]
-          moodStreak(userId: ID): MoodStreak
-          currentUser: User
-          clientInfo: ClientInfo!
-          login(email: String!, password: String!): AuthPayload
-          register(username: String!, email: String!, password: String!): AuthPayload
-        }
-        
-        type Mutation {
-          createUser(input: CreateUserInput!): CreateUserPayload
-          updateUser(input: UpdateUserInput!): UpdateUserPayload
-          createMood(input: CreateMoodInput!): CreateMoodPayload
-          updateMood(input: UpdateMoodInput!): UpdateMoodPayload
-          createHug(input: CreateHugInput!): CreateHugPayload
-          updateHug(input: UpdateHugInput!): UpdateHugPayload
-          # Add virtual mutation fields to match resolvers
-          sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug
-          login(email: String!, password: String!): AuthPayload
-          register(username: String!, email: String!, password: String!): AuthPayload
-          markHugAsRead(id: ID!): Hug
-          updateProfile(input: ProfileInput!): User
-        }
-        
-        type User {
-          id: ID!
-          username: String!
-          email: String
-          profileImage: String
-          bio: String
-          createdAt: Datetime
-          moods(first: Int, offset: Int): MoodsConnection
-          sentHugs(first: Int, offset: Int): HugsConnection
-          receivedHugs(first: Int, offset: Int): HugsConnection
-        }
-        
-        type Mood {
-          id: ID!
-          mood: String!
-          intensity: Int!
-          note: String
-          isPrivate: Boolean
-          createdAt: Datetime
-          userId: ID
-          user: User
-          hugs(first: Int, offset: Int): HugsConnection
-        }
-        
-        type Hug {
-          id: ID!
-          message: String
-          isRead: Boolean
-          createdAt: Datetime
-          senderId: ID
-          recipientId: ID
-          moodId: ID
-          sender: User
-          recipient: User
-          mood: Mood
-        }
-        
-        type MoodsConnection {
-          nodes: [Mood]
-          edges: [MoodsEdge]
-          pageInfo: PageInfo
-        }
-        
-        type MoodsEdge {
-          cursor: Cursor
-          node: Mood
-        }
-        
-        type HugsConnection {
-          nodes: [Hug]
-          edges: [HugsEdge]
-          pageInfo: PageInfo
-        }
-        
-        type HugsEdge {
-          cursor: Cursor
-          node: Hug
-        }
-        
-        type UsersConnection {
-          nodes: [User]
-          edges: [UsersEdge]
-          pageInfo: PageInfo
-        }
-        
-        type UsersEdge {
-          cursor: Cursor
-          node: User
-        }
-        
-        type PageInfo {
-          hasNextPage: Boolean!
-          hasPreviousPage: Boolean!
-          startCursor: Cursor
-          endCursor: Cursor
-        }
-        
-        type CreateUserPayload {
-          user: User
-        }
-        
-        type CreateMoodPayload {
-          mood: Mood
-        }
-        
-        type CreateHugPayload {
-          hug: Hug
-        }
-        
-        type UpdateUserPayload {
-          user: User
-        }
-        
-        type UpdateMoodPayload {
-          mood: Mood
-        }
-        
-        type UpdateHugPayload {
-          hug: Hug
-        }
-        
-        input CreateUserInput {
-          user: UserInput!
-        }
-        
-        input UserInput {
-          username: String!
-          email: String!
-          password: String!
-          profileImage: String
-          bio: String
-        }
-        
-        input CreateMoodInput {
-          mood: MoodInput!
-        }
-        
-        input MoodInput {
-          mood: String!
-          intensity: Int!
-          note: String
-          isPrivate: Boolean
-          userId: ID
-        }
-        
-        input CreateHugInput {
-          hug: HugInput!
-        }
-        
-        input HugInput {
-          message: String
-          recipientId: ID!
-          moodId: ID!
-        }
-        
-        input UpdateUserInput {
-          id: ID!
-          patch: UserPatch!
-        }
-        
-        input UserPatch {
-          username: String
-          email: String
-          profileImage: String
-          bio: String
-          password: String
-        }
-        
-        input UpdateMoodInput {
-          id: ID!
-          patch: MoodPatch!
-        }
-        
-        input MoodPatch {
-          mood: String
-          intensity: Int
-          note: String
-          isPrivate: Boolean
-        }
-        
-        input UpdateHugInput {
-          id: ID!
-          patch: HugPatch!
-        }
-        
-        input HugPatch {
-          isRead: Boolean
-          message: String
-        }
-        
-        # Custom client-specific types
-        type MoodEntry {
-          id: ID!
-          mood: String!
-          intensity: Int!
-          note: String
-          isPrivate: Boolean
-          createdAt: String
-          user: User
-        }
-        
-        type PublicMood {
-          id: ID!
-          mood: String!
-          intensity: Int!
-          createdAt: String
-          user: User
-        }
-        
-        type MoodStreak {
-          userId: ID!
-          currentStreak: Int!
-          longestStreak: Int!
-          lastMoodDate: String
-        }
-        
-        type AuthPayload {
-          token: String!
-          user: User!
-        }
-
-        type ClientInfo {
-          version: String!
-          buildDate: String!
-          platform: String
-          deviceInfo: String
-          features: [String]
-        }
-        
-        input ProfileInput {
-          username: String
-          bio: String
-          email: String
-          profileImage: String
-        }
-
-        scalar Datetime
-        scalar Cursor
-      `;
-    }
+    console.log(`🔍 Loading configuration from gateway-config.js...`);
+    console.log(`🚀 Starting EnhancedGraphQLGateway...`);
+    console.log(`🔪 Cleaning up any existing processes on port ${PORT}...`);
+    console.log(`🌐 Starting gateway on http://0.0.0.0:${PORT}/graphql...`);
     
-    // Create the merged schema with virtual fields
-    console.log('Merging schema with virtual type defs...');
+    // Create Express application
+    const app = express();
+    app.use(cors());
+    app.use(bodyParser.json());
     
-    // We'll always use our local schema definition to ensure it has all our custom fields
-    console.log('Using local schema definition for consistency...');
-    remoteSchema = gql`
-      type Query {
-        allMoods: MoodsConnection
-        allHugs: HugsConnection
-        allUsers: UsersConnection
-        userById(id: ID!): User
-        userByUsername(username: String!): User
-        userByEmail(email: String!): User
-        moodById(id: ID!): Mood
-        hugById(id: ID!): Hug
-        # Add virtual fields here to match the resolvers
-        sentHugs(userId: ID, limit: Int, offset: Int): [Hug]
-        receivedHugs(userId: ID, limit: Int, offset: Int): [Hug]
-        friendsMoods: [PublicMood]
-        userMoods(userId: ID, limit: Int, offset: Int): [MoodEntry]
-        publicMoods(limit: Int, offset: Int): [PublicMood]
-        moodStreak(userId: ID): MoodStreak
-        currentUser: User
-        clientInfo: ClientInfo!
-        login(email: String!, password: String!): AuthPayload
-        register(username: String!, email: String!, password: String!): AuthPayload
-      }
-      
-      type Mutation {
-        createUser(input: CreateUserInput!): CreateUserPayload
-        updateUser(input: UpdateUserInput!): UpdateUserPayload
-        createMood(input: CreateMoodInput!): CreateMoodPayload
-        updateMood(input: UpdateMoodInput!): UpdateMoodPayload
-        createHug(input: CreateHugInput!): CreateHugPayload
-        updateHug(input: UpdateHugInput!): UpdateHugPayload
-        # Add virtual mutation fields to match resolvers
-        sendFriendHug(toUserId: ID!, moodId: ID!, message: String): Hug
-        login(email: String!, password: String!): AuthPayload
-        register(username: String!, email: String!, password: String!): AuthPayload
-        markHugAsRead(id: ID!): Hug
-        updateProfile(input: ProfileInput!): User
-      }
-      
-      type User {
-        id: ID!
-        username: String!
-        email: String
-        profileImage: String
-        bio: String
-        createdAt: Datetime
-        moods(first: Int, offset: Int): MoodsConnection
-        sentHugs(first: Int, offset: Int): HugsConnection
-        receivedHugs(first: Int, offset: Int): HugsConnection
-      }
-      
-      type Mood {
-        id: ID!
-        mood: String!
-        intensity: Int!
-        note: String
-        isPrivate: Boolean
-        createdAt: Datetime
-        userId: ID
-        user: User
-        hugs(first: Int, offset: Int): HugsConnection
-      }
-      
-      type Hug {
-        id: ID!
-        message: String
-        isRead: Boolean
-        createdAt: Datetime
-        senderId: ID
-        recipientId: ID
-        moodId: ID
-        sender: User
-        recipient: User
-        mood: Mood
-      }
-      
-      type MoodsConnection {
-        nodes: [Mood]
-        edges: [MoodsEdge]
-        pageInfo: PageInfo
-      }
-      
-      type MoodsEdge {
-        cursor: Cursor
-        node: Mood
-      }
-      
-      type HugsConnection {
-        nodes: [Hug]
-        edges: [HugsEdge]
-        pageInfo: PageInfo
-      }
-      
-      type HugsEdge {
-        cursor: Cursor
-        node: Hug
-      }
-      
-      type UsersConnection {
-        nodes: [User]
-        edges: [UsersEdge]
-        pageInfo: PageInfo
-      }
-      
-      type UsersEdge {
-        cursor: Cursor
-        node: User
-      }
-      
-      type PageInfo {
-        hasNextPage: Boolean!
-        hasPreviousPage: Boolean!
-        startCursor: Cursor
-        endCursor: Cursor
-      }
-      
-      type CreateUserPayload {
-        user: User
-      }
-      
-      type CreateMoodPayload {
-        mood: Mood
-      }
-      
-      type CreateHugPayload {
-        hug: Hug
-      }
-      
-      type UpdateUserPayload {
-        user: User
-      }
-      
-      type UpdateMoodPayload {
-        mood: Mood
-      }
-      
-      type UpdateHugPayload {
-        hug: Hug
-      }
-      
-      input CreateUserInput {
-        user: UserInput!
-      }
-      
-      input UserInput {
-        username: String!
-        email: String!
-        password: String!
-        profileImage: String
-        bio: String
-      }
-      
-      input CreateMoodInput {
-        mood: MoodInput!
-      }
-      
-      input MoodInput {
-        mood: String!
-        intensity: Int!
-        note: String
-        isPrivate: Boolean
-        userId: ID
-      }
-      
-      input CreateHugInput {
-        hug: HugInput!
-      }
-      
-      input HugInput {
-        message: String
-        recipientId: ID!
-        moodId: ID!
-      }
-      
-      input UpdateUserInput {
-        id: ID!
-        patch: UserPatch!
-      }
-      
-      input UserPatch {
-        username: String
-        email: String
-        profileImage: String
-        bio: String
-        password: String
-      }
-      
-      input UpdateMoodInput {
-        id: ID!
-        patch: MoodPatch!
-      }
-      
-      input MoodPatch {
-        mood: String
-        intensity: Int
-        note: String
-        isPrivate: Boolean
-      }
-      
-      input UpdateHugInput {
-        id: ID!
-        patch: HugPatch!
-      }
-      
-      input HugPatch {
-        isRead: Boolean
-        message: String
-      }
-      
-      # Custom client-specific types
-      type MoodEntry {
-        id: ID!
-        mood: String!
-        intensity: Int!
-        note: String
-        isPrivate: Boolean
-        createdAt: String
-        user: User
-      }
-      
-      type PublicMood {
-        id: ID!
-        mood: String!
-        intensity: Int!
-        createdAt: String
-        user: User
-      }
-      
-      type MoodStreak {
-        userId: ID!
-        currentStreak: Int!
-        longestStreak: Int!
-        lastMoodDate: String
-      }
-      
-      type AuthPayload {
-        token: String!
-        user: User!
-      }
-
-      type ClientInfo {
-        version: String!
-        buildDate: String!
-        platform: String
-        deviceInfo: String
-        features: [String]
-      }
-      
-      input ProfileInput {
-        username: String
-        bio: String
-        email: String
-        profileImage: String
-      }
-
-      scalar Datetime
-      scalar Cursor
-    `;
+    // Create HTTP server
+    const httpServer = createServer(app);
     
-    const virtualSchema = makeExecutableSchema({
-      typeDefs: [remoteSchema, virtualTypeDefs],
-      resolvers: virtualResolvers
+    // Create executable schema
+    const schema = makeExecutableSchema({
+      typeDefs: baseSchema,
+      resolvers: virtualResolvers,
     });
     
-    // Apply transformers if needed
-    let mergedSchema = virtualSchema;
-    
     // Apply Shield rules for permissions
-    const protectedSchema = applyShield(mergedSchema);
+    const protectedSchema = applyShield(schema);
     
-    // Create the server
+    // Create Apollo Server
     const server = new ApolloServer({
       schema: protectedSchema,
       context: ({ req }) => {
         // Extract token from Authorization header
         const token = req.headers.authorization?.replace('Bearer ', '') || '';
-        
-        // For demo purposes we'll create a simple user object based on token
-        // In production, this would verify the token and load the full user
         let user = null;
+        
+        // Simple user for demonstration purposes
         if (token) {
           try {
-            // Simple mock user for demonstration
-            // In production, decode and verify the JWT
             user = {
               id: '1',
               username: 'demouser',
@@ -1096,35 +880,57 @@ async function startServer() {
         
         return { token, user };
       },
-      formatError: (error) => {
-        console.error('[Enhanced Gateway] GraphQL error:', error);
-        
-        // Return a sanitized error message to client
-        return {
-          message: error.message,
-          path: error.path,
-          extensions: {
-            code: error.extensions?.code || 'INTERNAL_SERVER_ERROR'
-          }
-        };
-      },
-      plugins: [
-        {
-          requestDidStart: async () => ({
-            didEncounterErrors: async ({ errors }) => {
-              // Log errors in detail
-              errors.forEach(error => {
-                console.error('[Enhanced Gateway] GraphQL execution error:', error);
-              });
-            }
-          })
-        }
-      ]
     });
     
+    // Set up subscription server
+    const subscriptionServer = SubscriptionServer.create(
+      {
+        schema: protectedSchema,
+        execute,
+        subscribe,
+        onConnect: (connectionParams, webSocket) => {
+          console.log('[Enhanced Gateway] New WebSocket connection established');
+          
+          // Extract token from connection parameters
+          const token = connectionParams.Authorization || '';
+          let user = null;
+          
+          // Simple user for demonstration purposes
+          if (token) {
+            try {
+              user = {
+                id: '1',
+                username: 'demouser',
+                email: 'demo@example.com',
+                role: 'USER'
+              };
+            } catch (error) {
+              console.error('[Enhanced Gateway] WebSocket token verification error:', error);
+            }
+          }
+          
+          return { token, user };
+        },
+        onDisconnect: () => {
+          console.log('[Enhanced Gateway] WebSocket connection closed');
+        },
+      },
+      {
+        server: httpServer,
+        path: '/graphql',
+      }
+    );
+    
     // Start the server
-    const { url } = await server.listen(PORT, '0.0.0.0');
+    await server.start();
+    server.applyMiddleware({ app });
+    
+    // Start the HTTP server
+    await new Promise(resolve => httpServer.listen(PORT, '0.0.0.0', resolve));
+    
+    const url = `http://0.0.0.0:${PORT}${server.graphqlPath}`;
     console.log(`🚀 Enhanced GraphQL Gateway running at ${url}`);
+    console.log(`🔌 WebSocket subscriptions available at ws://0.0.0.0:${PORT}${server.graphqlPath}`);
     console.log(`📝 Virtual fields and Shield protection enabled`);
     console.log(`💡 API Endpoint: ${API_ENDPOINT}`);
   } catch (error) {

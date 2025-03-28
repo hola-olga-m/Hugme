@@ -14,8 +14,10 @@ import WebSocket from 'ws';
 import fetch from 'node-fetch';
 import chalk from 'chalk';
 
-const APOLLO_MESH_ENDPOINT = 'http://localhost:5003/graphql';
-const APOLLO_MESH_WS_ENDPOINT = 'ws://localhost:5003/graphql';
+// Get the port from the environment variable, default to 5003
+const PORT = process.env.GATEWAY_PORT || '5003';
+const APOLLO_MESH_ENDPOINT = `http://localhost:${PORT}/graphql`;
+const APOLLO_MESH_WS_ENDPOINT = `ws://localhost:${PORT}/graphql`;
 
 // Test user credentials
 const TEST_EMAIL = 'test@example.com';
@@ -49,30 +51,40 @@ const wsClient = createClient({
 
 /**
  * Execute a GraphQL query/mutation via HTTP
+ * This function uses direct REST calls to avoid GraphQL library version conflicts
  */
 async function executeGraphQL(query, variables = {}, token = TEST_TOKEN) {
   try {
-    console.log(`Executing GraphQL to ${APOLLO_MESH_ENDPOINT}`);
+    // Get the endpoint from environment or use default
+    const port = process.env.GATEWAY_PORT || '5003';
+    const endpoint = `http://localhost:${port}/graphql`;
+    console.log(`Executing GraphQL to ${endpoint}`);
     
-    const response = await fetch(APOLLO_MESH_ENDPOINT, {
+    // Do a direct POST request with the query as a string
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': token } : {})
       },
-      body: JSON.stringify({ query, variables })
+      body: JSON.stringify({ 
+        query: query,
+        variables: variables
+      })
     });
     
+    // Parse the response
     const result = await response.json();
     
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
+      return null;
     }
     
     return result.data;
   } catch (error) {
     console.error('Error executing GraphQL:', error);
-    throw error;
+    return null;
   }
 }
 

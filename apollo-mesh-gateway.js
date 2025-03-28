@@ -405,26 +405,22 @@ const resolvers = {
         : context.headers?.authorization;
       
       try {
-        // Transform the input to match PostGraphile's schema
-        // Important: PostGraphile expects a nested object structure with ClientMutationId
-        // The schema shows we need { input: { mood: { score, note, etc } } }
-        // Prevent GraphQL version conflicts by using string-only parameters
+        // Make a direct REST POST request to the PostGraphile API without using GraphQL libraries
+        // This avoids GraphQL version conflicts by not using any GraphQL types
         const moodInput = {
           score: args.input.intensity || args.input.score || 5,
           note: args.input.message || "",
           isPublic: args.input.isPublic === undefined ? true : args.input.isPublic,
-          userId: args.input.userId || "1" // Add userId from input
+          userId: args.input.userId || "1"
         };
         
         const mutationInput = { 
-          clientMutationId: "test-" + Date.now(),
+          clientMutationId: "direct-" + Date.now(),
           mood: moodInput
         };
         
-        console.log('[Gateway] Sending createMood with input:', JSON.stringify(mutationInput));
-        
-        const result = await executeGraphQL(
-          `mutation CreateMood($input: CreateMoodInput!) {
+        const queryString = `
+          mutation CreateMood($input: CreateMoodInput!) {
             createMood(input: $input) {
               mood {
                 id
@@ -439,14 +435,37 @@ const resolvers = {
                 }
               }
             }
-          }`,
-          { input: mutationInput },
-          authToken
-        );
+          }
+        `;
+        
+        console.log('[Gateway] Sending direct REST request to create mood');
+        
+        // Make a direct POST request to avoid GraphQL library version conflicts
+        const response = await fetch(TARGET_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken ? { 'Authorization': authToken } : {})
+          },
+          body: JSON.stringify({ 
+            query: queryString,
+            variables: { input: mutationInput }
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          console.error('[Gateway] GraphQL errors:', JSON.stringify(result.errors, null, 2));
+          throw new Error('Failed to create mood: ' + result.errors[0].message);
+        }
         
         if (!result?.data?.createMood?.mood) {
-          console.error('[Gateway] Error creating mood:', result?.errors);
-          throw new Error('Failed to create mood');
+          throw new Error('Failed to create mood: No data returned');
         }
         
         const mood = result.data.createMood.mood;
@@ -463,6 +482,8 @@ const resolvers = {
           score: mood.score // For backward compatibility
         };
         
+        console.log('[Gateway] Successfully created mood in database:', transformedMood.id);
+        
         // Publish the new mood event for subscriptions
         console.log('[Gateway] Publishing NEW_MOOD event:', transformedMood.id);
         pubsub.publish(EVENTS.NEW_MOOD, { newMood: transformedMood });
@@ -470,8 +491,6 @@ const resolvers = {
         // If the mood is public, also publish it as a friend mood event
         if (mood.isPublic) {
           console.log('[Gateway] Publishing NEW_FRIEND_MOOD event for user:', transformedMood.userId);
-          // In a real app, we'd loop through all friends of the user and publish to their channels
-          // For now, we'll publish to a user-specific channel for the creator (as a demonstration)
           pubsub.publish(`${EVENTS.NEW_FRIEND_MOOD}.${transformedMood.userId}`, { 
             newFriendMood: transformedMood
           });
@@ -499,11 +518,8 @@ const resolvers = {
         : context.headers?.authorization;
       
       try {
-        // Important: In PostGraphile, the mutation is createHug, not sendHug
-        // And it requires a properly formatted UUID for senderId and recipientId
-        // The HugInput doesn't have a moodId field, so we need to drop it
-        
-        // Prevent GraphQL version conflicts by using string-only parameters
+        // Make a direct REST POST request to the PostGraphile API without using GraphQL libraries
+        // This avoids GraphQL version conflicts by not using any GraphQL types
         const hugInput = {
           type: "SUPPORTIVE", // Default type
           message: args.input.message || "",
@@ -513,14 +529,12 @@ const resolvers = {
         };
         
         const mutationInput = {
-          clientMutationId: "test-" + Date.now(),
+          clientMutationId: "direct-" + Date.now(),
           hug: hugInput
         };
         
-        console.log('[Gateway] Sending createHug with input:', JSON.stringify(mutationInput));
-        
-        const result = await executeGraphQL(
-          `mutation CreateHug($input: CreateHugInput!) {
+        const queryString = `
+          mutation CreateHug($input: CreateHugInput!) {
             createHug(input: $input) {
               hug {
                 id
@@ -540,14 +554,37 @@ const resolvers = {
                 }
               }
             }
-          }`,
-          { input: mutationInput },
-          authToken
-        );
+          }
+        `;
+        
+        console.log('[Gateway] Sending direct REST request to create hug');
+        
+        // Make a direct POST request to avoid GraphQL library version conflicts
+        const response = await fetch(TARGET_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken ? { 'Authorization': authToken } : {})
+          },
+          body: JSON.stringify({
+            query: queryString,
+            variables: { input: mutationInput }
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          console.error('[Gateway] GraphQL errors:', JSON.stringify(result.errors, null, 2));
+          throw new Error('Failed to create hug: ' + result.errors[0].message);
+        }
         
         if (!result?.data?.createHug?.hug) {
-          console.error('[Gateway] Error sending hug:', result?.errors);
-          throw new Error('Failed to send hug');
+          throw new Error('Failed to create hug: No data returned');
         }
         
         const hug = result.data.createHug.hug;
@@ -563,6 +600,8 @@ const resolvers = {
           moodId: args.input.moodId, // Keep the original moodId from the input
           type: hug.type
         };
+        
+        console.log('[Gateway] Successfully created hug in database:', transformedHug.id);
         
         // Publish the new hug event for subscriptions
         console.log('[Gateway] Publishing NEW_HUG event:', transformedHug.id);

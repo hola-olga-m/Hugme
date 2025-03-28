@@ -88,7 +88,8 @@ const permissions = shield({
     publicMoods: canViewPublicContent,
     friendsMoods: canViewPublicContent,
     
-    // PostGraphile base queries
+    // PostGraphile base queries - these are commented out for now as they seem to not match the schema
+    /*
     allMoods: canViewPublicContent,
     allHugs: isAuthenticated,
     allUsers: isAuthenticated,
@@ -97,6 +98,7 @@ const permissions = shield({
     userByEmail: isAuthenticated,
     moodById: and(isAuthenticated, canViewPrivateContent),
     hugById: isAuthenticated,
+    */
     
     // Authenticated queries
     currentUser: isAuthenticated,
@@ -110,22 +112,39 @@ const permissions = shield({
     register: and(canViewPublicContent, isWithinRateLimit)
   },
   Mutation: {
-    // PostGraphile base mutations
+    // PostGraphile base mutations - these are commented out for now as they seem to not match the schema
+    /*
     createUser: allow,
     updateUser: and(isAuthenticated, isOwner),
-    createMood: and(isAuthenticated, isWithinRateLimit),
-    updateMood: and(isAuthenticated, isOwner, isWithinRateLimit),
     createHug: and(isAuthenticated, isWithinRateLimit),
     updateHug: and(isAuthenticated, isOwner),
+    */
+    
+    // Custom gateway mutations
+    createMood: and(isAuthenticated, isWithinRateLimit),
+    updateMood: and(isAuthenticated, isOwner, isWithinRateLimit),
+    deleteMood: and(isAuthenticated, isOwner),
+    sendHug: and(isAuthenticated, isWithinRateLimit),
+    updatePreferences: and(isAuthenticated, isOwner),
     
     // Public mutations
     login: allow,
     register: and(canViewPublicContent, isWithinRateLimit),
     
-    // Authenticated mutations
+    // Authenticated mutations - commenting out as they don't exist in our schema
+    /*
     markHugAsRead: and(isAuthenticated, isOwner),
     updateProfile: and(isAuthenticated, isOwner),
     sendFriendHug: and(isAuthenticated, isWithinRateLimit)
+    */
+  },
+  
+  // Subscription permissions
+  Subscription: {
+    newMood: allow,
+    newHug: allow,
+    newHugReceived: isAuthenticated,
+    newFriendMood: isAuthenticated
   },
   // Type-level permissions
   User: {
@@ -134,10 +153,10 @@ const permissions = shield({
     bio: allow
   },
   Mood: {
-    note: and(isAuthenticated, or(isAdmin, isOwner))
+    message: and(isAuthenticated, or(isAdmin, isOwner))
   },
-  MoodEntry: {
-    note: and(isAuthenticated, or(isAdmin, isOwner))
+  PublicMood: {
+    message: and(isAuthenticated, or(isAdmin, isOwner))
   }
 }, {
   allowExternalErrors: true,

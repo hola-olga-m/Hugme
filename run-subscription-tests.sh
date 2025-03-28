@@ -4,10 +4,13 @@ echo "Running GraphQL Subscription Tests for HugMeNow"
 echo "====================================================="
 echo ""
 
-# Ensure Apollo Mesh Gateway is running
-if ! curl -s http://localhost:5003/health > /dev/null; then
-  echo "Apollo Mesh Gateway is not running on port 5003!"
-  echo "Please start the gateway with: bash start-apollo-mesh.sh"
+# Default port is 5003, but can be overridden with GATEWAY_PORT env var
+PORT=${GATEWAY_PORT:-5003}
+
+# Ensure the Gateway is running on the specified port
+if ! curl -s http://localhost:$PORT/health > /dev/null; then
+  echo "GraphQL Gateway is not running on port $PORT!"
+  echo "Please start the gateway with the appropriate start script."
   exit 1
 fi
 
@@ -18,8 +21,8 @@ if ! curl -s http://localhost:3003/postgraphile/graphql -X POST -H "Content-Type
   exit 1
 fi
 
-echo "Running subscription tests..."
+echo "Running subscription tests against gateway on port $PORT..."
 echo ""
 
-# Run the test script
+# Run the test script, passing the gateway port as environment variable
 node test-subscriptions.js
