@@ -124,7 +124,7 @@ additionalTypeDefs: |
     intensity: Int
     note: String
     createdAt: String
-    score: Int  # Keep score field for backward compatibility
+    score: Int!  # Make score a required field to ensure it's always available
   }
 
   extend type Query {
