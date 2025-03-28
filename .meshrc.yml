@@ -128,10 +128,13 @@ middleware:
           respondToHugRequest: "isAuthenticated"
 
 cache:
-  type: inmemory
+  type: inmemory-lru
   options:
     # Default TTL settings
     ttl: 60 # 1 minute default TTL
+    
+    # Cache size and options
+    max: 1000 # Maximum number of entries in the cache
     
     # Operation-specific TTL values
     ttls:
@@ -139,6 +142,8 @@ cache:
         ttl: 120 # 2 minutes for public data
       - path: 'Query.userMoods'
         ttl: 60  # 1 minute for user-specific data
+      - path: 'Query.friendsMoods'
+        ttl: 120 # 2 minutes (same as publicMoods since it's basically the same data)
       - path: 'Query.moodStreak'
         ttl: 300 # 5 minutes for rarely changing data
       - path: 'Query.clientInfo'
@@ -164,6 +169,7 @@ plugins:
         - Query.userMoods
         - Query.receivedHugs
         - Query.pendingHugRequests
+        - Query.friendsMoods
   
   # Plugin for JWT authentication
   - name: jwtAuth
