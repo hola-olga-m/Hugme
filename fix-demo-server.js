@@ -26,7 +26,7 @@ app.get('/original', (req, res) => {
 });
 
 // Start server
-const PORT = 3000;
+const PORT = 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Live Query Demo server running at http://0.0.0.0:${PORT}`);
   console.log(`📱 Open your browser to see the demo`);

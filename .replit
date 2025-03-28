@@ -91,43 +91,11 @@ args = "HugMeNow"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "ApolloMeshGateway"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "PostGraphile"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "CustomGraphQLGateway"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "EnhancedGraphQLGateway"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "SimpleMeshGateway"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "SimpleGraphQLGateway"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "SimpleUnifiedGateway"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "VersionIndependentPostGraphile"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "DirectPostgresProxy"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "LiveQueryDemo"
 
 [[workflows.workflow]]
 name = "SyncGraphQLSchema"
@@ -199,21 +167,6 @@ task = "shell.exec"
 args = "bash restart-app.sh"
 
 [[workflows.workflow]]
-name = "ApolloMeshGateway"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-apollo-mesh.sh"
-waitForPort = 5003
-
-[[workflows.workflow]]
 name = "PostGraphile"
 author = "agent"
 
@@ -229,96 +182,6 @@ args = "bash start-postgraphile.sh"
 waitForPort = 3003
 
 [[workflows.workflow]]
-name = "CustomGraphQLGateway"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-custom-gateway.sh"
-waitForPort = 5002
-
-[[workflows.workflow]]
-name = "EnhancedGraphQLGateway"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-enhanced-gateway.sh"
-waitForPort = 5004
-
-[[workflows.workflow]]
-name = "SimpleMeshGateway"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-simple-mesh-gateway.sh"
-waitForPort = 5006
-
-[[workflows.workflow]]
-name = "SimpleGraphQLGateway"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-simple-gateway.sh"
-waitForPort = 5005
-
-[[workflows.workflow]]
-name = "SimpleUnifiedGateway"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-simple-unified-gateway.sh"
-waitForPort = 5007
-
-[[workflows.workflow]]
-name = "VersionIndependentPostGraphile"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-version-independent-postgraphile.sh"
-waitForPort = 3004
-
-[[workflows.workflow]]
 name = "DirectPostgresProxy"
 author = "agent"
 
@@ -332,18 +195,3 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-direct-postgres-proxy.sh"
 waitForPort = 3006
-
-[[workflows.workflow]]
-name = "LiveQueryDemo"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-demo.sh"
-waitForPort = 3000

@@ -1705,6 +1705,16 @@
           }
         }
       });
+      } catch (err) {
+        console.error('Error rendering mood chart:', err);
+        // Display error message in the chart container
+        document.getElementById('moodChart').parentNode.innerHTML = `
+          <div class="chart-error">
+            <p>Could not render mood chart. Please refresh the page.</p>
+            <p>Error: ${err.message}</p>
+          </div>
+        `;
+      }
     }
     
     // Render the tag distribution chart
