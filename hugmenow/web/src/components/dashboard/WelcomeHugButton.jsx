@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
-import { GET_USERS, SEND_HUG, SEND_FRIEND_REQUEST } from '../../graphql/queries';
+import { useMeshSdk } from '../../hooks/useMeshSdk';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiUserPlus, FiX, FiAlertCircle, FiUsers, FiSearch } from 'react-icons/fi';
@@ -304,33 +303,40 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
     }
   }, []);
   
-  // Fetch users list (potential friends)
-  const { loading, error, data } = useQuery(GET_USERS, {
-    variables: { search: searchTerm },
-    fetchPolicy: 'network-only',
-    skip: !showPopup,
-    onError: (error) => {
-      console.error("Error fetching users:", error);
-    }
-  });
+  // Use the Mesh SDK for API operations
+  const { getUsers, sendHug } = useMeshSdk();
   
-  // Send hug mutation
-  const [sendHug, { loading: sendingHug }] = useMutation(SEND_HUG, {
-    onError: (error) => {
-      console.error("Error sending hug:", error);
-      setErrorMessage(error.message?.split(':')[0] || 'Failed to send welcome hug');
-      setShowErrorToast(true);
+  // State for users data
+  const [usersData, setUsersData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [sendingHug, setSendingHug] = useState(false);
+  
+  // Load users when the popup is shown
+  useEffect(() => {
+    async function loadUsers() {
+      if (!showPopup) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const result = await getUsers();
+        if (result && result.users) {
+          setUsersData(result.users);
+        } else {
+          setUsersData([]);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
     }
-  });
-
-  // Send friend request mutation
-  const [sendFriendRequest, { loading: sendingFriendRequest }] = useMutation(SEND_FRIEND_REQUEST, {
-    onError: (error) => {
-      console.error("Error sending friend request:", error);
-      setErrorMessage(error.message?.split(':')[0] || 'Failed to send friend request');
-      setShowErrorToast(true);
-    }
-  });
+    
+    loadUsers();
+  }, [showPopup, searchTerm, getUsers]);
   
   // Close popup when clicking outside
   useEffect(() => {
@@ -413,44 +419,36 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
     return colors[index];
   };
   
-  // Send welcome hug and friend request
+  // Send welcome hug using Mesh SDK
+  // Note: Friend request functionality has been removed since it's not in the current schema
   const handleSendWelcomeHug = async () => {
     if (!selectedUser) return;
     
     try {
-      // First send the friend request
-      const friendResponse = await sendFriendRequest({
-        variables: {
-          createFriendshipInput: {
-            recipientId: selectedUser.id,
-            followMood: true, // Default to following their mood
-          }
-        }
-      });
+      setSendingHug(true);
       
-      if (friendResponse.data?.sendFriendRequest) {
-        // Then send the welcome hug
-        const hugResponse = await sendHug({
-          variables: {
-            hugInput: {
-              recipientId: selectedUser.id,
-              type: "WelcomeHug",
-              message: welcomeMessage || 'Hi there! I\'d like to connect and be friends on HugMeNow! Sending you a warm welcome hug.',
-            }
-          }
-        });
-        
-        if (hugResponse.data?.sendHug) {
-          setSentToUser(selectedUser.name || selectedUser.username);
-          setShowSuccessToast(true);
-          closePopup();
-          onSent(); // Callback to parent component
-        }
+      // Prepare the hug input with the proper parameter structure
+      const hugInput = {
+        recipientId: selectedUser.id,
+        type: "WelcomeHug",
+        message: welcomeMessage || 'Hi there! I\'d like to connect and be friends on HugMeNow! Sending you a warm welcome hug.',
+      };
+      
+      // Send the welcome hug
+      const result = await sendHug(hugInput);
+      
+      if (result) {
+        setSentToUser(selectedUser.name || selectedUser.username);
+        setShowSuccessToast(true);
+        closePopup();
+        onSent(); // Callback to parent component
       }
     } catch (err) {
       console.error('Error:', err);
       setErrorMessage(err.message || 'Something went wrong');
       setShowErrorToast(true);
+    } finally {
+      setSendingHug(false);
     }
   };
   
@@ -503,29 +501,35 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
                 Couldn't load users list. 
                 {error.message && <div>Error: {error.message.split(':')[0]}</div>}
               </ErrorState>
-            ) : !data || !data.users || data.users.length === 0 ? (
+            ) : !usersData || usersData.length === 0 ? (
               <EmptyState>No users found</EmptyState>
             ) : (
               <UsersList>
-                {data.users.map(user => (
-                  <UserOption
-                    key={user.id}
-                    selected={selectedUser && selectedUser.id === user.id}
-                    onClick={() => handleSelectUser(user)}
-                  >
-                    <Avatar bgColor={getRandomColor(user.id)}>
-                      {user.avatarUrl ? (
-                        <img src={user.avatarUrl} alt={user.name} />
-                      ) : (
-                        getInitials(user.name || user.username)
-                      )}
-                    </Avatar>
-                    <UserInfo>
-                      <UserName>{user.name || 'Unnamed User'}</UserName>
-                      <Username>@{user.username}</Username>
-                    </UserInfo>
-                  </UserOption>
-                ))}
+                {usersData
+                  .filter(user => searchTerm ? 
+                    (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                     user.username?.toLowerCase().includes(searchTerm.toLowerCase())) : 
+                    true)
+                  .map(user => (
+                    <UserOption
+                      key={user.id}
+                      selected={selectedUser && selectedUser.id === user.id}
+                      onClick={() => handleSelectUser(user)}
+                    >
+                      <Avatar bgColor={getRandomColor(user.id)}>
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.name} />
+                        ) : (
+                          getInitials(user.name || user.username)
+                        )}
+                      </Avatar>
+                      <UserInfo>
+                        <UserName>{user.name || 'Unnamed User'}</UserName>
+                        <Username>@{user.username}</Username>
+                      </UserInfo>
+                    </UserOption>
+                  ))
+                }
               </UsersList>
             )}
             
@@ -545,11 +549,11 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
             {/* Send Button */}
             <SendButton
               onClick={handleSendWelcomeHug}
-              disabled={!selectedUser || sendingHug || sendingFriendRequest}
+              disabled={!selectedUser || sendingHug}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {sendingHug || sendingFriendRequest ? 'Sending...' : 'Send Welcome Hug'}
+              {sendingHug ? 'Sending...' : 'Send Welcome Hug'}
               <FiSend size={16} />
             </SendButton>
           </WelcomeHugPopup>
@@ -565,7 +569,7 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
             exit={{ opacity: 0, y: 50 }}
           >
             <FiUserPlus size={16} />
-            Friend request and welcome hug sent to {sentToUser}!
+            Welcome hug sent to {sentToUser}!
           </SuccessToast>
         )}
         

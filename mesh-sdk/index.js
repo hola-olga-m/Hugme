@@ -177,15 +177,15 @@ function getSdk(options = {}) {
       `);
     },
 
-    async CreateMoodEntry(input) {
+    async CreateMoodEntry(moodInput) {
       return executeQuery(`
-        mutation CreateMoodEntry($input: MoodEntryInput!) {
-          createMoodEntry(moodInput: $input) {
+        mutation CreateMoodEntry($moodInput: MoodEntryInput!) {
+          createMoodEntry(moodInput: $moodInput) {
             ${MOOD_FRAGMENT}
             userId
           }
         }
-      `, { input });
+      `, { moodInput });
     },
 
     async GetMoodStreak() {
@@ -225,10 +225,10 @@ function getSdk(options = {}) {
       `);
     },
 
-    async SendHug(sendHugInput) {
+    async SendHug(hugInput) {
       return executeQuery(`
-        mutation SendHug($sendHugInput: SendHugInput!) {
-          sendHug(sendHugInput: $sendHugInput) {
+        mutation SendHug($hugInput: SendHugInput!) {
+          sendHug(hugInput: $hugInput) {
             ${HUG_FRAGMENT}
             sender {
               ${USER_FRAGMENT}
@@ -238,7 +238,7 @@ function getSdk(options = {}) {
             }
           }
         }
-      `, { sendHugInput });
+      `, { hugInput });
     },
 
     async MarkHugAsRead(hugId) {
@@ -289,26 +289,26 @@ function getSdk(options = {}) {
       `);
     },
 
-    async CreateHugRequest(createHugRequestInput) {
+    async CreateHugRequest(hugRequestInput) {
       return executeQuery(`
-        mutation CreateHugRequest($createHugRequestInput: CreateHugRequestInput!) {
-          createHugRequest(createHugRequestInput: $createHugRequestInput) {
+        mutation CreateHugRequest($hugRequestInput: HugRequestInput!) {
+          createHugRequest(hugRequestInput: $hugRequestInput) {
             ${HUG_REQUEST_FRAGMENT}
           }
         }
-      `, { createHugRequestInput });
+      `, { hugRequestInput });
     },
 
-    async RespondToHugRequest(respondToRequestInput) {
+    async RespondToHugRequest(params) {
       return executeQuery(`
-        mutation RespondToHugRequest($respondToRequestInput: RespondToRequestInput!) {
-          respondToHugRequest(respondToRequestInput: $respondToRequestInput) {
+        mutation RespondToHugRequest($requestId: ID!, $accept: Boolean!) {
+          respondToHugRequest(requestId: $requestId, accept: $accept) {
             id
             status
             respondedAt
           }
         }
-      `, { respondToRequestInput });
+      `, { requestId: params.requestId, accept: params.accept });
     },
 
     // Friendship operations

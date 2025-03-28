@@ -22,24 +22,6 @@ sources:
     
 # SDK Generation options
 generate:
-  # Specify SDK output paths
-  - targets:
-      - name: ESM
-        type: sdk
-        format: esm
-        output: ./mesh-sdk/index.js
-      - name: CJS
-        type: sdk
-        format: cjs
-        output: ./mesh-sdk/index.cjs
-      - name: TS
-        type: sdk
-        format: typescript
-        output: ./mesh-sdk/index.d.ts
-      - name: Schema
-        type: schema
-        output: ./mesh-sdk/schema.graphql
-  # SDK generation configuration
   sdk:
     # SDK generation options
     config:
@@ -57,60 +39,77 @@ generate:
       fragmentMasking:
         unmaskFunctionName: getFragmentData
         implements: { mappers: true }
-    # Define the operations we want to include in the SDK
-    operationsPaths:
-      - type: Query
-        path: me
-        name: Me
-      - type: Query
-        path: publicMoods
-        name: PublicMoods
-        arguments:
-          limit: Int = 10
-          offset: Int = 0
-      - type: Query
-        path: userMoods
-        name: UserMoods
-        arguments:
-          userId: ID!
-          limit: Int
-          offset: Int
-      - type: Query
-        path: receivedHugs
-        name: ReceivedHugs
-        arguments:
-          userId: ID!
-          limit: Int
-          offset: Int
-      - type: Query
-        path: sentHugs
-        name: SentHugs
-        arguments:
-          userId: ID!
-          limit: Int
-          offset: Int
-      - type: Query
-        path: friendsMoods
-        name: FriendsMoods
-        arguments:
-          userId: ID!
-          limit: Int = 10
-          offset: Int = 0
-      - type: Query
-        path: moodStreak
-        name: MoodStreak
-        arguments:
-          userId: ID!
-      - type: Mutation
-        path: createMood
-        name: CreateMoodEntry
-        arguments:
-          input: CreateMoodInput!
-      - type: Mutation
-        path: sendHug
-        name: SendHug
-        arguments:
-          input: SendHugInput!
+  # Define the operations we want to include in the SDK
+  operationsPaths:
+    - type: Query
+      path: me
+      name: Me
+    - type: Query
+      path: publicMoods
+      name: PublicMoods
+      arguments:
+        limit: Int = 10
+        offset: Int = 0
+    - type: Query
+      path: userMoods
+      name: UserMoods
+      arguments:
+        userId: ID!
+        limit: Int
+        offset: Int
+    - type: Query
+      path: receivedHugs
+      name: ReceivedHugs
+      arguments:
+        userId: ID!
+        limit: Int
+        offset: Int
+    - type: Query
+      path: sentHugs
+      name: SentHugs
+      arguments:
+        userId: ID!
+        limit: Int
+        offset: Int
+    - type: Query
+      path: friendsMoods
+      name: FriendsMoods
+      arguments:
+        userId: ID!
+        limit: Int = 10
+        offset: Int = 0
+    - type: Query
+      path: moodStreak
+      name: MoodStreak
+      arguments:
+        userId: ID!
+    - type: Mutation
+      path: createMoodEntry
+      name: CreateMoodEntry
+      arguments:
+        moodInput: MoodEntryInput!
+    - type: Mutation
+      path: sendHug
+      name: SendHug
+      arguments:
+        hugInput: SendHugInput!
+  # Specify SDK output paths
+  targets:
+    - name: ESM
+      type: sdk
+      format: esm
+      output: ./mesh-sdk/index.js
+    - name: CJS
+      type: sdk
+      format: cjs
+      output: ./mesh-sdk/index.cjs
+    - name: TS
+      type: sdk
+      format: typescript
+      output: ./mesh-sdk/index.d.ts
+    - name: Schema
+      type: schema
+      output: ./mesh-sdk/schema.graphql
 
 # Schema transformations - enhanced with additional plugins
 transforms:
@@ -429,23 +428,40 @@ plugins:
   - liveQuery:
       invalidations:
         # Invalidate friendsMoods and userMoods queries when a new mood is created
-        - field: Mutation.createMood
+        - field: Mutation.createMoodEntry
           invalidate:
             - Query.friendsMoods
             - Query.userMoods
-            - Mood:{args.input.userId}
+            - Mood:{args.moodInput.userId}
             
         # Invalidate sentHugs and receivedHugs queries when a new hug is sent
         - field: Mutation.sendHug
           invalidate:
             - Query.sentHugs
             - Query.receivedHugs
-            - Hug:{args.input.senderId}
-            - Hug:{args.input.recipientId}
+            - Hug:{args.hugInput.senderId}
+            - Hug:{args.hugInput.recipientId}
+            
+        # Invalidate hug request queries when a new hug request is created
+        - field: Mutation.createHugRequest
+          invalidate:
+            - Query.myHugRequests
+            - Query.pendingHugRequests
+            - Query.communityHugRequests
+            - HugRequest:{args.hugRequestInput.requesterId}
+            - HugRequest:{args.hugRequestInput.recipientId}
+            
+        # Invalidate hug request queries when responding to a request
+        - field: Mutation.respondToHugRequest
+          invalidate:
+            - Query.myHugRequests
+            - Query.pendingHugRequests
+            - Query.communityHugRequests
+            - HugRequest:{args.requestId}
             
         # Invalidate user-specific queries
         - field: Mutation.updateUser
           invalidate:
-            - User:{args.input.id}
+            - User:{args.updateUserInput.id}
 
 # Note: We need to handle GraphQL version conflicts differently

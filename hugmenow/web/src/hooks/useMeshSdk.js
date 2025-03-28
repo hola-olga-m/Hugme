@@ -68,8 +68,8 @@ export function useMeshSdk(options = {}) {
   const createMoodEntry = useCallback(async (moodInput) => {
     try {
       // Format the input according to the schema requirements - ensure mood is uppercase
-      const input = {
-        input: {
+      const formattedInput = {
+        moodInput: {
           mood: moodInput.mood.toUpperCase(),
           intensity: parseInt(moodInput.intensity, 10),
           note: moodInput.note || "",
@@ -77,7 +77,7 @@ export function useMeshSdk(options = {}) {
         }
       };
       
-      const result = await client.CreateMoodEntry(input);
+      const result = await client.CreateMoodEntry(formattedInput);
       return result.createMoodEntry || {};
     } catch (error) {
       console.error('Error creating mood entry:', error);
@@ -116,9 +116,18 @@ export function useMeshSdk(options = {}) {
     }
   }, [client]);
   
-  const sendHug = useCallback(async (sendHugInput) => {
+  const sendHug = useCallback(async (hugData) => {
     try {
-      const result = await client.SendHug(sendHugInput);
+      // Format the input according to the schema requirements
+      const formattedInput = {
+        hugInput: {
+          recipientId: hugData.recipientId,
+          type: hugData.type,
+          message: hugData.message || ""
+        }
+      };
+      
+      const result = await client.SendHug(formattedInput);
       return result.sendHug;
     } catch (error) {
       console.error('Error sending hug:', error);
@@ -167,9 +176,18 @@ export function useMeshSdk(options = {}) {
     }
   }, [client]);
   
-  const createHugRequest = useCallback(async (createHugRequestInput) => {
+  const createHugRequest = useCallback(async (requestData) => {
     try {
-      const result = await client.CreateHugRequest(createHugRequestInput);
+      // Format the input according to the schema requirements
+      const formattedInput = {
+        hugRequestInput: {
+          recipientId: requestData.recipientId,
+          message: requestData.message || "",
+          isCommunityRequest: requestData.isCommunityRequest || false
+        }
+      };
+      
+      const result = await client.CreateHugRequest(formattedInput);
       return result.createHugRequest;
     } catch (error) {
       console.error('Error creating hug request:', error);
@@ -177,9 +195,15 @@ export function useMeshSdk(options = {}) {
     }
   }, [client]);
   
-  const respondToHugRequest = useCallback(async (respondToRequestInput) => {
+  const respondToHugRequest = useCallback(async (requestData) => {
     try {
-      const result = await client.RespondToHugRequest(respondToRequestInput);
+      // The parameters should be requestId and accept according to the schema
+      const params = {
+        requestId: requestData.requestId,
+        accept: requestData.accept
+      };
+      
+      const result = await client.RespondToHugRequest(params);
       return result.respondToHugRequest;
     } catch (error) {
       console.error('Error responding to hug request:', error);
@@ -187,26 +211,9 @@ export function useMeshSdk(options = {}) {
     }
   }, [client]);
   
-  // Friendship operations
-  const sendFriendRequest = useCallback(async (createFriendshipInput) => {
-    try {
-      const result = await client.SendFriendRequest(createFriendshipInput);
-      return result.sendFriendRequest;
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      throw error;
-    }
-  }, [client]);
-  
-  const respondToFriendRequest = useCallback(async (updateFriendshipInput) => {
-    try {
-      const result = await client.RespondToFriendRequest(updateFriendshipInput);
-      return result.respondToFriendRequest;
-    } catch (error) {
-      console.error('Error responding to friend request:', error);
-      throw error;
-    }
-  }, [client]);
+  // Note: Friendship operations (sendFriendRequest and respondToFriendRequest)
+  // are removed as they are not in the current schema
+  // These will need to be added back when the schema supports friendship operations
   
   // Return all methods
   return {
@@ -235,10 +242,7 @@ export function useMeshSdk(options = {}) {
     getPendingHugRequests,
     getCommunityHugRequests,
     createHugRequest,
-    respondToHugRequest,
-    
-    // Friendship operations
-    sendFriendRequest,
-    respondToFriendRequest
+    respondToHugRequest
+    // Friendship operations are currently not supported in the schema
   };
 }
