@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_USERS, SEND_HUG } from '../../graphql/queries';
+import { GET_USERS } from '../../graphql/queries';
+import { SEND_HUG } from '../../graphql/mutations';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiHeart, FiX, FiAlertCircle } from 'react-icons/fi';

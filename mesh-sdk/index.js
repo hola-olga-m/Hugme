@@ -6,14 +6,14 @@
  */
 
 // Import document snippets from gql-fragments
-const { 
+import { 
   USER_FRAGMENT,
   MOOD_FRAGMENT,
   HUG_FRAGMENT,
   HUG_REQUEST_FRAGMENT,
   FRIENDSHIP_FRAGMENT,
   MOOD_STREAK_FRAGMENT
-} = require('./gql-fragments');
+} from './gql-fragments.js';
 
 /**
  * Create an SDK instance for interacting with the GraphQL API
@@ -351,4 +351,4 @@ function getSdk(options = {}) {
   };
 }
 
-module.exports = { getSdk };
+export { getSdk };

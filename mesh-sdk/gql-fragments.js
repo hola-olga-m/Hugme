@@ -62,7 +62,7 @@ const MOOD_STREAK_FRAGMENT = `
   totalMoods
 `;
 
-module.exports = {
+export {
   USER_FRAGMENT,
   MOOD_FRAGMENT,
   HUG_FRAGMENT,
