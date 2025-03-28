@@ -34,6 +34,10 @@ externalPort = 5000
 localPort = 5001
 
 [[ports]]
+localPort = 5002
+externalPort = 5173
+
+[[ports]]
 localPort = 5173
 externalPort = 80
 
@@ -166,7 +170,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash start-custom-gateway.sh"
-waitForPort = 5000
+waitForPort = 5002
 
 [[workflows.workflow]]
 name = "GraphQLMeshApollo"
@@ -181,7 +185,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash start-mesh-apollo.sh"
-waitForPort = 5001
+waitForPort = 5004
 
 [[workflows.workflow]]
 name = "SimpleGraphQLGateway"

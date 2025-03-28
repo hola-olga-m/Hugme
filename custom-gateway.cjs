@@ -5,6 +5,9 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { applyMiddleware } = require('graphql-middleware');
+const { shield, rule, allow, deny, and, or, not } = require('graphql-shield');
+const { mapSchema, getDirective, MapperKind } = require('@graphql-tools/utils');
 const http = require('http');
 const https = require('https');
 
@@ -146,6 +149,9 @@ const typeDefs = gql`
   type ClientInfo {
     version: String!
     buildDate: String!
+    platform: String
+    deviceInfo: String
+    features: [String]
   }
 `;
 
@@ -360,9 +366,19 @@ const resolvers = {
     // Client-specific resolvers
     clientInfo: () => {
       console.log('[Gateway] Resolving Query.clientInfo');
+      
+      // Parse features from environment variable if available
+      let features = ['mood-tracking', 'friend-moods', 'theme-support', 'streak-tracking'];
+      if (process.env.CLIENT_FEATURES) {
+        features = process.env.CLIENT_FEATURES.split(',');
+      }
+      
       return {
         version: process.env.CLIENT_VERSION || '1.0.0',
-        buildDate: new Date().toISOString()
+        buildDate: new Date().toISOString(),
+        platform: process.env.CLIENT_PLATFORM || 'web',
+        deviceInfo: 'HugMeNow Web Client',
+        features: features
       };
     },
     

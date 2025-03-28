@@ -5,9 +5,11 @@
 # between client and server schemas
 
 # Configuration
-PORT=5000
-API_ENDPOINT="http://localhost:3002/graphql"
+PORT=5002  # Changed to avoid conflicts with the SimpleGraphQLGateway
+API_ENDPOINT="http://localhost:3003/graphql"  # Updated to use the PostGraphile port
 CLIENT_VERSION="1.0.0"
+CLIENT_PLATFORM="web"
+CLIENT_FEATURES="mood-tracking,friend-moods,theme-support,streak-tracking"
 
 echo "🚀 Starting Custom GraphQL Gateway..."
 
@@ -15,6 +17,8 @@ echo "🚀 Starting Custom GraphQL Gateway..."
 export PORT=$PORT
 export API_ENDPOINT=$API_ENDPOINT
 export CLIENT_VERSION=$CLIENT_VERSION
+export CLIENT_PLATFORM=$CLIENT_PLATFORM
+export CLIENT_FEATURES=$CLIENT_FEATURES
 
 # Kill any existing node processes that might be using the port
 echo "🔪 Cleaning up any existing processes on port $PORT..."

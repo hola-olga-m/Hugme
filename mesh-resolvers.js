@@ -26,7 +26,10 @@ module.exports = {
       logResolver('Query.clientInfo');
       return {
         version: process.env.CLIENT_VERSION || '1.0.0',
-        buildDate: new Date().toISOString()
+        buildDate: new Date().toISOString(),
+        platform: 'web',
+        deviceInfo: 'HugMeNow Web Client',
+        features: ['mood-tracking', 'friend-moods', 'theme-support', 'streak-tracking']
       };
     },
     
