@@ -30,6 +30,12 @@ rm -rf ./hugmenow/web/.cache
 rm -rf ./hugmenow/web/dist/cache
 rm -rf ./hugmenow/web/node_modules/.cache
 
+# Rebuild npm packages to fix potential issues
+echo "🔄 Rebuilding npm packages..."
+cd hugmenow/web && npm rebuild
+cd ../../hugmenow/api && npm rebuild
+cd ../..
+
 # Start the application
 echo "🚀 Starting application..."
 bash start-hugmenow.sh
