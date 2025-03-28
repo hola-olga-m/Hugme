@@ -2244,6 +2244,17 @@ export type HMNClientInfo = {
   features?: Maybe<Array<Scalars['String']['output']>>;
 };
 
+export type HMNPublicMood = {
+  id?: Maybe<Scalars['ID']['output']>;
+  userId?: Maybe<Scalars['ID']['output']>;
+  user?: Maybe<User>;
+  mood?: Maybe<Scalars['String']['output']>;
+  intensity?: Maybe<Scalars['Int']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['String']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+};
+
 export type MoodStreak = {
   currentStreak: Scalars['Int']['output'];
   longestStreak: Scalars['Int']['output'];
@@ -2450,6 +2461,7 @@ export type ResolversTypes = ResolversObject<{
   HMNDeleteUserByUsernameInput: HMNDeleteUserByUsernameInput;
   HMNDeleteUserByEmailInput: HMNDeleteUserByEmailInput;
   HMNClientInfo: ResolverTypeWrapper<HMNClientInfo>;
+  HMNPublicMood: ResolverTypeWrapper<HMNPublicMood>;
   MoodStreak: ResolverTypeWrapper<MoodStreak>;
 }>;
 
@@ -2559,6 +2571,7 @@ export type ResolversParentTypes = ResolversObject<{
   HMNDeleteUserByUsernameInput: HMNDeleteUserByUsernameInput;
   HMNDeleteUserByEmailInput: HMNDeleteUserByEmailInput;
   HMNClientInfo: HMNClientInfo;
+  HMNPublicMood: HMNPublicMood;
   MoodStreak: MoodStreak;
 }>;
 
@@ -3019,6 +3032,18 @@ export type HMNClientInfoResolvers<ContextType = MeshContext, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type HMNPublicMoodResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['HMNPublicMood'] = ResolversParentTypes['HMNPublicMood']> = ResolversObject<{
+  id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  userId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  mood?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  intensity?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  note?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  score?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MoodStreakResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['MoodStreak'] = ResolversParentTypes['MoodStreak']> = ResolversObject<{
   currentStreak?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   longestStreak?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -3071,6 +3096,7 @@ export type Resolvers<ContextType = MeshContext> = ResolversObject<{
   HMNDeleteMoodPayload?: HMNDeleteMoodPayloadResolvers<ContextType>;
   HMNDeleteUserPayload?: HMNDeleteUserPayloadResolvers<ContextType>;
   HMNClientInfo?: HMNClientInfoResolvers<ContextType>;
+  HMNPublicMood?: HMNPublicMoodResolvers<ContextType>;
   MoodStreak?: MoodStreakResolvers<ContextType>;
 }>;
 
@@ -3135,7 +3161,7 @@ sources[0] = {
           handler: postGraphileApiHandler,
           transforms: postGraphileApiTransforms
         }
-const additionalTypeDefs = [parse("type ClientInfo {\n  version: String!\n  platform: String!\n  buildDate: String!\n  deviceInfo: String\n  features: [String!]\n}\n\nextend type Query {\n  clientInfo: ClientInfo!\n  publicMoods(limit: Int, offset: Int): [Mood!]!\n  userMoods(userId: ID, limit: Int, offset: Int): [Mood!]!\n  moodStreak(userId: ID!): MoodStreak!\n  communityHugRequests(limit: Int, offset: Int): [HugRequest!]!\n  receivedHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!\n  sentHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!\n  pendingHugRequests(userId: ID!): [HugRequest!]!\n  friendsMoods(limit: Int, offset: Int): [Mood!]!\n}\n\nextend type Mutation {\n  sendHug(input: HugInput!): Hug\n  createMoodEntry(moodInput: MoodInput!): Mood\n  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest\n}\n\ninput HugInput {\n  senderId: ID!\n  recipientId: ID!\n  message: String\n}\n\ninput MoodInput {\n  userId: ID!\n  intensity: Int!\n  note: String\n  private: Boolean\n}\n\ninput HugRequestInput {\n  requesterId: ID!\n  message: String\n}\n\ntype MoodStreak {\n  currentStreak: Int!\n  longestStreak: Int!\n  lastMoodDate: String\n}\n\nextend type Hug {\n  fromUser: User\n  toUser: User\n}\n\nextend type HugRequest {\n  requester: User\n}"),] as any[];
+const additionalTypeDefs = [parse("type ClientInfo {\n  version: String!\n  platform: String!\n  buildDate: String!\n  deviceInfo: String\n  features: [String!]\n}\n\ntype PublicMood {\n  id: ID\n  userId: ID\n  user: User\n  mood: String\n  intensity: Int\n  note: String\n  createdAt: String\n  score: Int\n}\n\nextend type Query {\n  clientInfo: ClientInfo!\n  publicMoods(limit: Int, offset: Int): [Mood!]!\n  userMoods(userId: ID, limit: Int, offset: Int): [Mood!]!\n  moodStreak(userId: ID!): MoodStreak!\n  communityHugRequests(limit: Int, offset: Int): [HugRequest!]!\n  receivedHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!\n  sentHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!\n  pendingHugRequests(userId: ID!): [HugRequest!]!\n  friendsMoods(limit: Int, offset: Int): [Mood!]!\n}\n\nextend type Mutation {\n  sendHug(input: HugInput!): Hug\n  createMoodEntry(moodInput: MoodInput!): Mood\n  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest\n}\n\ninput HugInput {\n  senderId: ID!\n  recipientId: ID!\n  message: String\n}\n\ninput MoodInput {\n  userId: ID!\n  intensity: Int!\n  note: String\n  private: Boolean\n}\n\ninput HugRequestInput {\n  requesterId: ID!\n  message: String\n}\n\ntype MoodStreak {\n  currentStreak: Int!\n  longestStreak: Int!\n  lastMoodDate: String\n}\n\nextend type Hug {\n  fromUser: User\n  toUser: User\n}\n\nextend type HugRequest {\n  requester: User\n}"),] as any[];
 const RootTransform_0 = await import("@graphql-mesh/transform-naming-convention").then(handleImport);
 transforms[0] = new RootTransform_0({
             apiName: '',
@@ -3178,6 +3204,8 @@ transforms[3] = new RootTransform_3({
           })
 const additionalResolvers = await Promise.all([
         import("../mesh-resolvers.js")
+            .then(m => m.resolvers || m.default || m),
+import("../module.exports = {\n  PublicMood: {\n    score: (parent) => {\n      console.log('[Mesh] Legacy PublicMood.score resolver called, returning intensity:', parent.intensity);\n      return parent.intensity;\n    }\n  }\n}\n")
             .then(m => m.resolvers || m.default || m)
       ]);
 const Merger = await import("@graphql-mesh/merger-bare").then(handleImport);

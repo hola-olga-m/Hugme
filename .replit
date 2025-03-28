@@ -83,10 +83,6 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "SyncGraphQLSchema"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "HugMeNow"
 
 [[workflows.workflow.tasks]]
@@ -96,20 +92,6 @@ args = "PostGraphile"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "DirectPostgresProxy"
-
-[[workflows.workflow]]
-name = "SyncGraphQLSchema"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash schema-sync-workflow.sh --full"
 
 [[workflows.workflow]]
 name = "HugMeNow"
@@ -127,38 +109,7 @@ args = "bash start-hugmenow.sh"
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "FixGraphQL"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node fix-graphql.js"
-
-[[workflows.workflow]]
-name = "FixAndRunApp"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node fix-graphql.js"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-hugmenow.sh"
-
-[[workflows.workflow]]
 name = "RestartHugMeNow"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash restart-app.sh"
-
-[[workflows.workflow]]
-name = "FixAndRestartHugMeNow"
 author = 40513268
 mode = "sequential"
 

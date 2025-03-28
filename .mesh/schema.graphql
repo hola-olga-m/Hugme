@@ -2235,6 +2235,17 @@ type HMNClientInfo {
   features: [String!]
 }
 
+type HMNPublicMood {
+  id: ID
+  userId: ID
+  user: User
+  mood: String
+  intensity: Int
+  note: String
+  createdAt: String
+  score: Int
+}
+
 type MoodStreak {
   currentStreak: Int!
   longestStreak: Int!

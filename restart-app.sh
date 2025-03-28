@@ -20,10 +20,6 @@ if pgrep -f "node.*hugmenow" > /dev/null || pgrep -f "node.*simple-server.js" > 
   sleep 1
 fi
 
-# Run the GraphQL fixes to ensure all queries are compatible
-echo "🔧 Applying GraphQL fixes..."
-node fix-graphql.js
-
 # Clear error logs and cache
 echo "🧹 Clearing application error logs and cache..."
 mkdir -p ./hugmenow/web/src/graphql/
@@ -34,6 +30,8 @@ rm -rf ./hugmenow/web/.cache
 rm -rf ./hugmenow/web/dist/cache
 rm -rf ./hugmenow/web/node_modules/.cache
 
+cd hugmenow/web && npx run start
+cd hugmenow/api && npx run start
 # Start the application
 echo "🚀 Starting application..."
 bash start-hugmenow.sh

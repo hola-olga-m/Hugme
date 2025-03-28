@@ -10,7 +10,7 @@ const MoodHistoryPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
-    score: 5,
+    intensity: 5,
     note: '',
     isPublic: false
   });
@@ -60,7 +60,7 @@ const MoodHistoryPage = () => {
   const handleEditMood = (mood) => {
     setCurrentMood(mood);
     setEditFormData({
-      score: mood.score,
+      intensity: mood.intensity,
       note: mood.note || '',
       isPublic: mood.isPublic
     });
@@ -91,7 +91,7 @@ const MoodHistoryPage = () => {
         variables: {
           updateMoodInput: {
             id: currentMood.id,
-            score: editFormData.score,
+            intensity: editFormData.intensity,
             note: editFormData.note,
             isPublic: editFormData.isPublic
           }
@@ -116,7 +116,7 @@ const MoodHistoryPage = () => {
     }
   };
 
-  const getMoodLabel = (score) => {
+  const getMoodLabel = (intensity) => {
     const labels = {
       1: 'Very Bad',
       2: 'Bad',
@@ -129,10 +129,10 @@ const MoodHistoryPage = () => {
       9: 'Great',
       10: 'Excellent'
     };
-    return labels[score] || 'Unknown';
+    return labels[intensity] || 'Unknown';
   };
 
-  const getMoodEmoji = (score) => {
+  const getMoodEmoji = (intensity) => {
     const emojis = {
       1: '😭',
       2: '😢',
@@ -145,7 +145,7 @@ const MoodHistoryPage = () => {
       9: '😁',
       10: '🤩'
     };
-    return emojis[score] || '';
+    return emojis[intensity] || '';
   };
 
   const getFormattedDate = (dateString) => {
@@ -181,8 +181,8 @@ const MoodHistoryPage = () => {
           <div key={mood.id} className="mood-card">
             <div className="mood-header">
               <div className="mood-score">
-                <span className="mood-emoji">{getMoodEmoji(mood.score)}</span>
-                <span className="mood-label">{getMoodLabel(mood.score)}</span>
+                <span className="mood-emoji">{getMoodEmoji(mood.intensity)}</span>
+                <span className="mood-label">{getMoodLabel(mood.intensity)}</span>
               </div>
               <div className="mood-date">
                 {getFormattedDate(mood.createdAt)}
@@ -238,20 +238,20 @@ const MoodHistoryPage = () => {
           
           <form onSubmit={handleEditSubmit} className="edit-mood-form">
             <div className="form-group">
-              <label htmlFor="score" className="form-label">Mood Score</label>
+              <label htmlFor="intensity" className="form-label">Mood Intensity</label>
               <div className="mood-slider-container">
                 <div className="mood-display">
-                  <span className="mood-emoji">{getMoodEmoji(editFormData.score)}</span>
-                  <span className="mood-label">{getMoodLabel(editFormData.score)}</span>
+                  <span className="mood-emoji">{getMoodEmoji(editFormData.intensity)}</span>
+                  <span className="mood-label">{getMoodLabel(editFormData.intensity)}</span>
                 </div>
                 
                 <input
                   type="range"
-                  id="score"
-                  name="score"
+                  id="intensity"
+                  name="intensity"
                   min="1"
                   max="10"
-                  value={editFormData.score}
+                  value={editFormData.intensity}
                   onChange={handleEditFormChange}
                   className="mood-slider"
                 />
@@ -331,8 +331,8 @@ const MoodHistoryPage = () => {
           <div className="modal-body">
             <p>Are you sure you want to delete this mood record?</p>
             <p className="mood-summary">
-              <span className="mood-emoji">{getMoodEmoji(currentMood.score)}</span>
-              <span className="mood-label">{getMoodLabel(currentMood.score)}</span>
+              <span className="mood-emoji">{getMoodEmoji(currentMood.intensity)}</span>
+              <span className="mood-label">{getMoodLabel(currentMood.intensity)}</span>
               <span className="mood-date">
                 from {getFormattedDate(currentMood.createdAt)}
               </span>

@@ -185,10 +185,10 @@ async function testCreateMood(token) {
   console.log('\n========== TESTING CREATE MOOD ==========');
   
   const query = `
-    mutation CreateMood($input: CreateMoodInput!) {
-      createMood(createMoodInput: $input) {
+    mutation CreateMood($input: MoodEntryInput!) {
+      createMoodEntry(moodInput: $input) {
         id
-        score
+        intensity
         note
         createdAt
         isPublic
@@ -198,7 +198,8 @@ async function testCreateMood(token) {
   
   const variables = {
     input: {
-      score: 8,
+      mood: "Happy",
+      intensity: 8,
       note: "Feeling good for testing!",
       isPublic: true
     }
@@ -212,8 +213,8 @@ async function testCreateMood(token) {
     return null;
   } else {
     console.log('✅ Creating mood successful');
-    console.log(`Created mood with ID: ${result.data.createMood.id}`);
-    return result.data.createMood;
+    console.log(`Created mood with ID: ${result.data.createMoodEntry.id}`);
+    return result.data.createMoodEntry;
   }
 }
 
@@ -224,9 +225,9 @@ async function testGetUserMoods(token, userId) {
   // Based on our schema analysis, we should use 'userMoods' query
   const query = `
     query {
-      userMoods {
+      moods {
         id
-        score
+        intensity
         note
         createdAt
         isPublic
@@ -243,8 +244,8 @@ async function testGetUserMoods(token, userId) {
     return null;
   } else {
     console.log('✅ Fetching user moods successful');
-    console.log(`Found ${result.data.userMoods.length} mood entries`);
-    return result.data.userMoods;
+    console.log(`Found ${result.data.moods.length} mood entries`);
+    return result.data.moods;
   }
 }
 
@@ -255,7 +256,12 @@ async function testGetMoodStreak(token, userId) {
   // Based on our schema analysis, moodStreak returns a Float value
   const query = `
     query {
-      moodStreak
+      moodStreak {
+        currentStreak
+        longestStreak
+        lastMoodDate
+        totalMoods
+      }
     }
   `;
   
@@ -267,7 +273,7 @@ async function testGetMoodStreak(token, userId) {
     return null;
   } else {
     console.log('✅ Fetching mood streak successful');
-    console.log(`Mood streak: ${result.data.moodStreak}`);
+    console.log(`Current streak: ${result.data.moodStreak.currentStreak}, Longest streak: ${result.data.moodStreak.longestStreak}, Total moods: ${result.data.moodStreak.totalMoods}`);
     return result.data.moodStreak;
   }
 }
@@ -435,7 +441,7 @@ async function testGetPublicMoods(token) {
     query {
       publicMoods {
         id
-        score
+        intensity
         note
         createdAt
         user {

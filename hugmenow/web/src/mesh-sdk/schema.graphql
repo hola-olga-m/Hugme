@@ -90,6 +90,7 @@ type PublicMood {
   intensity: Int
   note: String
   createdAt: String
+  score: Int
 }
 
 type HugRequest {

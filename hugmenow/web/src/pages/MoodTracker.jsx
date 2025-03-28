@@ -313,14 +313,14 @@ const EmptyState = styled.div`
 `;
 
 // Helper functions
-const getMoodEmoji = (score) => {
+const getMoodEmoji = (intensity) => {
   const emojis = ['😢', '😟', '😐', '🙂', '😄'];
-  return emojis[Math.min(Math.floor(score) - 1, 4)];
+  return emojis[Math.min(Math.floor(intensity) - 1, 4)];
 };
 
-const getMoodLabel = (score) => {
+const getMoodLabel = (intensity) => {
   const labels = ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
-  return labels[Math.min(Math.floor(score) - 1, 4)];
+  return labels[Math.min(Math.floor(intensity) - 1, 4)];
 };
 
 const getFormattedDate = (dateString) => {
@@ -339,7 +339,7 @@ const MoodTracker = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [moodScore, setMoodScore] = useState(3);
+  const [moodIntensity, setMoodIntensity] = useState(3);
   const [moodNote, setMoodNote] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [editingMood, setEditingMood] = useState(null);
@@ -389,7 +389,7 @@ const MoodTracker = () => {
   }, [moodsLoading, streakLoading, moodsError, streakError]);
   
   const resetForm = () => {
-    setMoodScore(3);
+    setMoodIntensity(3);
     setMoodNote('');
     setIsPublic(true);
     setEditingMood(null);
@@ -403,7 +403,7 @@ const MoodTracker = () => {
         variables: {
           updateMoodInput: {
             id: editingMood.id,
-            score: moodScore,
+            intensity: moodIntensity,
             note: moodNote,
             isPublic
           }
@@ -413,7 +413,7 @@ const MoodTracker = () => {
       await createMood({
         variables: {
           createMoodInput: {
-            score: moodScore,
+            intensity: moodIntensity,
             note: moodNote,
             isPublic
           }
@@ -424,7 +424,7 @@ const MoodTracker = () => {
   
   const handleEditMood = (mood) => {
     setEditingMood(mood);
-    setMoodScore(mood.score);
+    setMoodIntensity(mood.intensity);
     setMoodNote(mood.note || '');
     setIsPublic(mood.isPublic);
     
@@ -484,11 +484,11 @@ const MoodTracker = () => {
                   min="1"
                   max="5"
                   step="1"
-                  value={moodScore}
-                  onChange={(e) => setMoodScore(parseInt(e.target.value))}
+                  value={moodIntensity}
+                  onChange={(e) => setMoodIntensity(parseInt(e.target.value))}
                 />
                 <div className="mood-label">
-                  {getMoodEmoji(moodScore)} {getMoodLabel(moodScore)}
+                  {getMoodEmoji(moodIntensity)} {getMoodLabel(moodIntensity)}
                 </div>
               </div>
             </MoodSlider>
@@ -563,9 +563,9 @@ const MoodTracker = () => {
                   </MoodItemHeader>
                   
                   <MoodItemContent>
-                    <div className="emoji">{getMoodEmoji(mood.score)}</div>
+                    <div className="emoji">{getMoodEmoji(mood.intensity)}</div>
                     <div className="mood-details">
-                      <div className="mood-score">{getMoodLabel(mood.score)}</div>
+                      <div className="mood-score">{getMoodLabel(mood.intensity)}</div>
                       {mood.note && <div className="mood-note">{mood.note}</div>}
                       <div className="is-public">
                         {mood.isPublic ? 'Shared with community' : 'Private'}

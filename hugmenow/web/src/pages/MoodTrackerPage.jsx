@@ -5,15 +5,15 @@ import MainLayout from '../layouts/MainLayout';
 import { CREATE_MOOD } from '../graphql/mutations';
 import { GET_USER_MOODS } from '../graphql/queries';
 
-function MoodTrackerPage {
-  const [moodScore, setMoodScore] = useState(5);
+function MoodTrackerPage() {
+  const [moodIntensity, setMoodIntensity] = useState(5);
   const [moodNote, setMoodNote] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [todaysMood, setTodaysMood] = useState(null);
-  const navigate = useNavigate;
+  const navigate = useNavigate();
 
   // Fetch user's moods
   const { data: moodsData, loading: moodsLoading } = useQuery(GET_USER_MOODS, {
@@ -54,7 +54,7 @@ function MoodTrackerPage {
       await createMood({
         variables: {
           createMoodInput: {
-            score: moodScore,
+            intensity: moodIntensity,
             note: moodNote.trim || undefined,
             isPublic
           }
@@ -76,30 +76,30 @@ function MoodTrackerPage {
   };
 
   const handleMoodChange = (value) => {
-    setMoodScore(parseInt(value, 10));
+    setMoodIntensity(parseInt(value, 10));
   };
 
-  const getMoodLabel = (score) => {
-    if (score <= 2) return 'Very Low';
-    if (score <= 4) return 'Low';
-    if (score <= 6) return 'Neutral';
-    if (score <= 8) return 'Good';
+  const getMoodLabel = (intensity) => {
+    if (intensity <= 2) return 'Very Low';
+    if (intensity <= 4) return 'Low';
+    if (intensity <= 6) return 'Neutral';
+    if (intensity <= 8) return 'Good';
     return 'Excellent';
   };
 
-  const getMoodEmoji = (score) => {
-    if (score <= 2) return '😢';
-    if (score <= 4) return '😔';
-    if (score <= 6) return '😐';
-    if (score <= 8) return '🙂';
+  const getMoodEmoji = (intensity) => {
+    if (intensity <= 2) return '😢';
+    if (intensity <= 4) return '😔';
+    if (intensity <= 6) return '😐';
+    if (intensity <= 8) return '🙂';
     return '😁';
   };
 
-  const getMoodColor = (score) => {
-    if (score <= 2) return '#dc3545';  // red
-    if (score <= 4) return '#fd7e14';  // orange
-    if (score <= 6) return '#ffc107';  // yellow
-    if (score <= 8) return '#20c997';  // teal
+  const getMoodColor = (intensity) => {
+    if (intensity <= 2) return '#dc3545';  // red
+    if (intensity <= 4) return '#fd7e14';  // orange
+    if (intensity <= 6) return '#ffc107';  // yellow
+    if (intensity <= 8) return '#20c997';  // teal
     return '#28a745';  // green
   };
 
@@ -116,12 +116,12 @@ function MoodTrackerPage {
         ) : todaysMood ? (
           <div className="mood-already-logged">
             <div className="mood-info">
-              <div className="mood-emoji-large">{getMoodEmoji(todaysMood.score)}</div>
+              <div className="mood-emoji-large">{getMoodEmoji(todaysMood.intensity)}</div>
               <h2>You've already logged your mood today</h2>
               <div className="mood-details">
                 <p className="mood-score">
-                  Score: <span style={{ color: getMoodColor(todaysMood.score) }}>{todaysMood.score}/10</span> 
-                  <span className="mood-label"> - {getMoodLabel(todaysMood.score)}</span>
+                  Intensity: <span style={{ color: getMoodColor(todaysMood.intensity) }}>{todaysMood.intensity}/10</span> 
+                  <span className="mood-label"> - {getMoodLabel(todaysMood.intensity)}</span>
                 </p>
                 {todaysMood.note && (
                   <blockquote className="mood-note">"{todaysMood.note}"</blockquote>
@@ -161,22 +161,22 @@ function MoodTrackerPage {
 
               <div className="mood-tracker-content">
                 <div className="mood-slider-container">
-                  <div className="mood-emoji-display" style={{ color: getMoodColor(moodScore) }}>
-                    {getMoodEmoji(moodScore)}
+                  <div className="mood-emoji-display" style={{ color: getMoodColor(moodIntensity) }}>
+                    {getMoodEmoji(moodIntensity)}
                   </div>
                   <div className="mood-label-display">
-                    {getMoodLabel(moodScore)} <span className="mood-score-display">({moodScore}/10)</span>
+                    {getMoodLabel(moodIntensity)} <span className="mood-intensity-display">({moodIntensity}/10)</span>
                   </div>
                   <input
                     type="range"
                     min="1"
                     max="10"
-                    value={moodScore}
+                    value={moodIntensity}
                     onChange={(e) => handleMoodChange(e.target.value)}
                     className="mood-slider"
                     style={{ 
-                      '--track-color': getMoodColor(moodScore),
-                      '--thumb-color': getMoodColor(moodScore)
+                      '--track-color': getMoodColor(moodIntensity),
+                      '--thumb-color': getMoodColor(moodIntensity)
                     }}
                   />
                   <div className="mood-range-labels">

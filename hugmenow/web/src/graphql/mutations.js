@@ -15,6 +15,32 @@ export const CREATE_MOOD = gql`
   }
 `;
 
+// Mutation to update a mood entry
+export const UPDATE_MOOD = gql`
+  mutation updateMood($updateMoodInput: UpdateMoodInput!) {
+    updateMood(input: $updateMoodInput) {
+      mood {
+        id
+        intensity
+        note
+        createdAt
+        isPublic
+      }
+    }
+  }
+`;
+
+// Mutation to remove a mood entry
+export const REMOVE_MOOD = gql`
+  mutation removeMood($id: ID!) {
+    deleteMood(input: { id: $id }) {
+      mood {
+        id
+      }
+    }
+  }
+`;
+
 // Mutation to send a hug to a user
 export const SEND_HUG = gql`
   mutation sendHug($input: CreateHugInput!) {

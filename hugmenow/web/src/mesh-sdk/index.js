@@ -156,8 +156,12 @@ function getSdk(options = {}) {
       return executeQuery(`
         query PublicMoods {
           publicMoods {
-            ${MOOD_FRAGMENT}
+            id
             userId
+            mood
+            intensity
+            note
+            createdAt
             user {
               ${USER_FRAGMENT}
             }
