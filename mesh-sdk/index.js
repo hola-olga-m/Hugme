@@ -156,21 +156,6 @@ function getSdk(options = {}) {
         query PublicMoods {
           publicMoods {
             ${MOOD_FRAGMENT}
-            user {
-              ${USER_FRAGMENT}
-            }
-          }
-        }
-      `);
-    },
-
-    async FriendsMoods() {
-      // Since we don't have a dedicated friendsMoods field in the schema,
-      // we use publicMoods as a proxy for friends' moods
-      return executeQuery(`
-        query PublicMoods {
-          publicMoods {
-            ${MOOD_FRAGMENT}
             userId
             user {
               ${USER_FRAGMENT}
@@ -179,6 +164,8 @@ function getSdk(options = {}) {
         }
       `);
     },
+
+    // Removed FriendsMoods function since it's redundant with PublicMoods
 
     async CreateMoodEntry(moodInput) {
       return executeQuery(`
