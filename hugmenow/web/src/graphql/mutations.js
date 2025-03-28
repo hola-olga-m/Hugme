@@ -110,8 +110,8 @@ export const REMOVE_MOOD = gql`
 
 // Hug mutations
 export const SEND_HUG = gql`
-  mutation sendHug($sendHugInput: SendHugInput!) {
-    sendHug(sendHugInput: $sendHugInput) {
+  mutation sendHug($hugInput: SendHugInput!) {
+    sendHug(hugInput: $hugInput) {
       id
       type
       message

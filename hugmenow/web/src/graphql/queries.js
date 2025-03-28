@@ -74,7 +74,7 @@ export const GET_USER_PROFILE = gql`
 // Dashboard stats - simplified version using individual queries
 export const GET_USER_STATS = gql`
   query GetUserStats {
-    userMoods {
+    moods {
       id
       score
     }
@@ -83,7 +83,7 @@ export const GET_USER_STATS = gql`
 
 export const GET_USER_MOODS_COUNT = gql`
   query GetUserMoodsCount {
-    userMoods {
+    moods {
       id
     }
   }
@@ -91,7 +91,7 @@ export const GET_USER_MOODS_COUNT = gql`
 
 export const GET_SENT_HUGS_COUNT = gql`
   query GetSentHugsCount {
-    sentHugs {
+    hugs(senderId: "current") {
       id
     }
   }
@@ -99,7 +99,7 @@ export const GET_SENT_HUGS_COUNT = gql`
 
 export const GET_RECEIVED_HUGS_COUNT = gql`
   query GetReceivedHugsCount {
-    receivedHugs {
+    hugs(recipientId: "current") {
       id
     }
   }
@@ -112,6 +112,10 @@ export const GET_MOOD_STREAK = gql`
       longestStreak
       lastMoodDate
       totalMoods
+      user {
+        id
+        username
+      }
     }
   }
 `;
@@ -221,27 +225,7 @@ export const GET_SENT_HUGS = gql`
   }
 `;
 
-export const SEND_HUG = gql`
-  mutation SendHug($hugInput: SendHugInput!) {
-    sendHug(hugInput: $hugInput) {
-      id
-      type
-      message
-      isRead
-      createdAt
-      sender {
-        id
-        username
-        name
-      }
-      recipient {
-        id
-        username
-        name
-      }
-    }
-  }
-`;
+// SEND_HUG mutation moved to mutations.js
 
 export const MARK_HUG_AS_READ = gql`
   mutation MarkHugAsRead($hugId: ID!) {

@@ -412,7 +412,7 @@ const QuickHugButton = ({ onSent = () => {} }) => {
     try {
       const response = await sendHug({
         variables: {
-          sendHugInput: {
+          hugInput: {
             recipientId: selectedFriend.id,
             type: selectedHugType,
             message: `Sending you a quick ${selectedHugType.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}!`,

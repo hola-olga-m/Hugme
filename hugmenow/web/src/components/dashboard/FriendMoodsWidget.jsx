@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_FRIENDS_MOODS, SEND_HUG } from '../../graphql/queries';
+import { GET_FRIENDS_MOODS } from '../../graphql/queries';
+import { SEND_HUG } from '../../graphql/mutations';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiClock, FiSend, FiHeart, FiAlertCircle, FiBell } from 'react-icons/fi';
@@ -352,7 +353,7 @@ const FriendMoodsWidget = () => {
     try {
       const response = await sendHug({
         variables: {
-          sendHugInput: {
+          hugInput: {
             recipientId: mood.user.id,
             type: mood.intensity <= 4 ? 'ComfortingHug' : 'StandardHug',
             message: mood.intensity <= 4 

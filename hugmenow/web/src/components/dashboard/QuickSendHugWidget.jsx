@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_USERS, SEND_HUG } from '../../graphql/queries';
+import { GET_USERS } from '../../graphql/queries';
+import { SEND_HUG } from '../../graphql/mutations';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiSearch, FiUsers, FiX, FiCheck, FiHeart, FiMail } from 'react-icons/fi';
@@ -458,7 +459,7 @@ const QuickSendHugWidget = () => {
       if (selectedTab === 'friends' && selectedRecipient) {
         const response = await sendHug({
           variables: {
-            sendHugInput: {
+            hugInput: {
               recipientId: selectedRecipient.id,
               type: selectedHugType,
               message: message.trim(),
@@ -476,7 +477,7 @@ const QuickSendHugWidget = () => {
       else if (selectedTab === 'external' && isExternalValid) {
         const response = await sendHug({
           variables: {
-            sendHugInput: {
+            hugInput: {
               externalRecipient: {
                 type: externalType,
                 contact: externalRecipient.trim(),

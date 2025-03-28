@@ -560,7 +560,7 @@ const HugCenter = () => {
     
     await sendHug({
       variables: {
-        sendHugInput: {
+        hugInput: {
           recipientId: selectedRecipient,
           type: hugType,
           message: hugMessage

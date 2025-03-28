@@ -432,7 +432,7 @@ const WelcomeHugButton = ({ onSent = () => {} }) => {
         // Then send the welcome hug
         const hugResponse = await sendHug({
           variables: {
-            sendHugInput: {
+            hugInput: {
               recipientId: selectedUser.id,
               type: "WelcomeHug",
               message: welcomeMessage || 'Hi there! I\'d like to connect and be friends on HugMeNow! Sending you a warm welcome hug.',

@@ -106,7 +106,7 @@ function HugCenterPage() {
     
     sendHug({
       variables: {
-        sendHugInput: {
+        hugInput: {
           recipientId: selectedUserId,
           type: hugType,
           message: hugMessage.trim() || undefined
