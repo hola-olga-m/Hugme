@@ -50,7 +50,7 @@ export const createApolloClient = () => {
       typePolicies: {
         Query: {
           fields: {
-            userMoods: {
+            moods: {
               merge(existing = [], incoming) {
                 return [...incoming];
               }
@@ -65,12 +65,7 @@ export const createApolloClient = () => {
                 return [...incoming];
               }
             },
-            sentHugs: {
-              merge(existing = [], incoming) {
-                return [...incoming];
-              }
-            },
-            receivedHugs: {
+            hugs: {
               merge(existing = [], incoming) {
                 return [...incoming];
               }

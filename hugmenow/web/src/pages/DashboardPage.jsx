@@ -28,8 +28,8 @@ function DashboardPage() {
   const [hugGroups, setHugGroups] = useState({});
   
   useEffect(() => {
-    if (hugsData?.receivedHugs && hugsData.receivedHugs.length > 0) {
-      const groups = hugsData.receivedHugs.reduce((acc, hug) => {
+    if (hugsData?.hugs && hugsData.hugs.length > 0) {
+      const groups = hugsData.hugs.reduce((acc, hug) => {
         const type = hug.type || 'Standard';
         if (!acc[type]) {
           acc[type] = [];
@@ -53,9 +53,9 @@ function DashboardPage() {
 
   // Calculate average mood score from last 7 days
   useEffect(() => {
-    if (moodsData && moodsData.userMoods && moodsData.userMoods.length > 0) {
-      const sum = moodsData.userMoods.reduce((acc, mood) => acc + mood.score, 0);
-      setMoodScore((sum / moodsData.userMoods.length).toFixed(1));
+    if (moodsData && moodsData.moods && moodsData.moods.length > 0) {
+      const sum = moodsData.moods.reduce((acc, mood) => acc + mood.intensity, 0);
+      setMoodScore((sum / moodsData.moods.length).toFixed(1));
     }
   }, [moodsData]);
 
@@ -92,7 +92,7 @@ function DashboardPage() {
               delay: 0.2
             }}
           >
-            <ReceivedHugCarousel hugs={hugsData?.receivedHugs || []} />
+            <ReceivedHugCarousel hugs={hugsData?.hugs || []} />
           </motion.div>
         )}
         
@@ -204,12 +204,12 @@ function DashboardPage() {
                       }}
                     >
                       <Icon type="heart" size={32} />
-                      <span className="count-number">{hugsData?.receivedHugs?.length || 0}</span>
+                      <span className="count-number">{hugsData?.hugs?.length || 0}</span>
                     </motion.div>
-                    <span className="count-label">unread {hugsData?.receivedHugs?.length === 1 ? 'hug' : 'hugs'}</span>
+                    <span className="count-label">unread {hugsData?.hugs?.length === 1 ? 'hug' : 'hugs'}</span>
                   </div>
                 </div>
-                {hugsData?.receivedHugs?.length > 0 ? (
+                {hugsData?.hugs?.length > 0 ? (
                   <motion.div 
                     className="hugs-preview"
                     initial={{ opacity: 0, y: 10 }}
@@ -218,7 +218,7 @@ function DashboardPage() {
                   >
                     <p>You have unread hugs from:</p>
                     <ul className="hugs-list">
-                      {hugsData.receivedHugs.slice(0, 3).map((hug, index) => (
+                      {hugsData.hugs.slice(0, 3).map((hug, index) => (
                         <motion.li 
                           key={hug.id}
                           initial={{ opacity: 0, x: -10 }}
@@ -236,14 +236,14 @@ function DashboardPage() {
                           </div>
                         </motion.li>
                       ))}
-                      {hugsData.receivedHugs.length > 3 && (
+                      {hugsData.hugs.length > 3 && (
                         <motion.li 
                           className="and-more"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.8 }}
                         >
-                          And {hugsData.receivedHugs.length - 3} more...
+                          And {hugsData.hugs.length - 3} more...
                         </motion.li>
                       )}
                     </ul>
@@ -511,7 +511,7 @@ function DashboardPage() {
             </h3>
             {hugsLoading ? (
               <div className="loading-indicator">Loading hugs gallery...</div>
-            ) : hugsData?.receivedHugs?.length > 0 ? (
+            ) : hugsData?.hugs?.length > 0 ? (
               <div className="carousel-container">
                 <motion.div 
                   className="carousel-track"

@@ -130,14 +130,14 @@ const EmptyState = styled.div`
 `;
 
 // Helper functions
-const getMoodEmoji = (score) => {
+const getMoodEmoji = (intensity) => {
   const emojis = ['😢', '😟', '😐', '🙂', '😄'];
-  return emojis[Math.min(Math.floor(score) - 1, 4)];
+  return emojis[Math.min(Math.floor(intensity/2) - 1, 4)];
 };
 
-const getMoodLabel = (score) => {
+const getMoodLabel = (intensity) => {
   const labels = ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
-  return labels[Math.min(Math.floor(score) - 1, 4)];
+  return labels[Math.min(Math.floor(intensity/2) - 1, 4)];
 };
 
 const getFormattedDate = (dateString) => {
@@ -199,8 +199,8 @@ const PublicMoodList = () => {
           <MoodCard key={mood.id}>
             <MoodHeader>
               <MoodScore>
-                <span className="emoji">{getMoodEmoji(mood.score)}</span>
-                <span className="label">{getMoodLabel(mood.score)}</span>
+                <span className="emoji">{getMoodEmoji(mood.intensity)}</span>
+                <span className="label">{getMoodLabel(mood.intensity)}</span>
               </MoodScore>
               <MoodDate>{getFormattedDate(mood.createdAt)}</MoodDate>
             </MoodHeader>

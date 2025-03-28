@@ -129,6 +129,10 @@ export const GET_USER_MOODS = gql`
       intensity
       note
       createdAt
+      user {
+        id
+        username
+      }
     }
   }
 `;
@@ -190,7 +194,7 @@ export const CREATE_MOOD_ENTRY = gql`
 // receivedHugs is not available in the schema - use hugs query with filters
 export const GET_RECEIVED_HUGS = gql`
   query GetReceivedHugs {
-    hugs(recipientId: "current") {
+    hugs(userId: "current") {
       id
       type
       message
@@ -209,7 +213,7 @@ export const GET_RECEIVED_HUGS = gql`
 // sentHugs is not available in the schema - use hugs query with filters
 export const GET_SENT_HUGS = gql`
   query GetSentHugs {
-    hugs(senderId: "current") {
+    hugs(userId: "current") {
       id
       type
       message
