@@ -16,7 +16,7 @@ import bodyParser from 'body-parser';
 const { json } = bodyParser;
 
 // Read env variables
-const PORT = parseInt(process.env.PORT || '5000');
+const PORT = parseInt(process.env.PORT || '5005');
 const TARGET_API = process.env.TARGET_API || 'http://localhost:3003/postgraphile/graphql';
 const CLIENT_VERSION = process.env.CLIENT_VERSION || '1.0.0';
 

@@ -27,7 +27,7 @@ else
   echo "⚠️ gateway-config.js not found, using default configuration..."
   
   # Default configuration
-  PORT="${PORT:-5000}"
+  PORT="${PORT:-5005}"
   TARGET_API="${TARGET_API:-http://localhost:3003/graphql}"
   SERVICE_NAME="${SERVICE_NAME:-SimpleGraphQLGateway}"
   UPSTREAM_SERVICE="${UPSTREAM_SERVICE:-PostGraphile}"
@@ -46,13 +46,13 @@ fuser -k $PORT/tcp 2>/dev/null || true
 
 # Set environment variables
 export PORT=$PORT
-export TARGET_API=$TARGET_API
+export API_ENDPOINT=$TARGET_API
 export CLIENT_VERSION=$CLIENT_VERSION
 export CLIENT_PLATFORM=$CLIENT_PLATFORM
 export CLIENT_FEATURES=$CLIENT_FEATURES
 export SERVICE_NAME=$SERVICE_NAME
 export UPSTREAM_SERVICE=$UPSTREAM_SERVICE
 
-# Start the Gateway
+# Start the Gateway using live-query-gateway.js instead
 echo "🌐 Starting Gateway on http://0.0.0.0:$PORT/graphql..."
-exec node simple-gateway.js
+exec node live-query-gateway.js

@@ -1042,6 +1042,16 @@ async function startServer() {
       }
     });
     
+    // Add a health check endpoint
+    app.get('/health', (req, res) => {
+      res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        version: process.env.CLIENT_VERSION || '1.0.0',
+        gateway: 'CustomGraphQLGateway'
+      });
+    });
+    
     // Start the server
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Custom GraphQL Gateway running at http://0.0.0.0:${PORT}${server.graphqlPath}`);

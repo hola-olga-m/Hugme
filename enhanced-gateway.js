@@ -1017,6 +1017,16 @@ async function startServer() {
     await server.start();
     server.applyMiddleware({ app });
     
+    // Add a health check endpoint
+    app.get('/health', (req, res) => {
+      res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        version: process.env.CLIENT_VERSION || '1.0.0',
+        gateway: 'EnhancedGraphQLGateway'
+      });
+    });
+    
     // Start the HTTP server
     await new Promise(resolve => httpServer.listen(PORT, '0.0.0.0', resolve));
     

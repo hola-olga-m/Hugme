@@ -327,6 +327,16 @@ async function startServer() {
     await server.start();
     server.applyMiddleware({ app, path: '/graphql', cors: { origin: '*' } });
     
+    // Add a health check endpoint
+    app.get('/health', (req, res) => {
+      res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        version: process.env.CLIENT_VERSION || '1.0.0',
+        gateway: 'CustomGraphQLGateway'
+      });
+    });
+    
     // Forward all other GraphQL requests to the API
     app.post('/api/graphql', async (req, res) => {
       try {

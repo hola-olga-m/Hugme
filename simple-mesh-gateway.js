@@ -351,7 +351,8 @@ query PublicMoods @live {
       res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        version: process.env.CLIENT_VERSION || '2.0.0'
+        version: process.env.CLIENT_VERSION || '2.0.0',
+        gateway: 'SimpleMeshGateway'
       });
     });
     
