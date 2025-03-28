@@ -38,7 +38,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "FixAndRunApp"
+runButton = "RestartHugMeNow"
 
 [[workflows.workflow]]
 name = "Project"
@@ -122,3 +122,12 @@ args = "node fix-graphql.js"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash start-hugmenow.sh"
+
+[[workflows.workflow]]
+name = "RestartHugMeNow"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash restart-app.sh"
