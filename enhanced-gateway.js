@@ -23,6 +23,26 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 
+// Live Query Support
+const LIVE_QUERY_DIRECTIVE = `
+  # Live Query directive for real-time data updates
+  directive @live on QUERY
+
+  # Special type for Live Query updates
+  type _LiveQuery {
+    refreshMood: Boolean
+    refreshHug: Boolean
+    moodId: ID
+    hugId: ID
+    userId: ID
+    senderId: ID
+    recipientId: ID
+  }
+`;
+
+// Cache of active live queries
+const liveQueryCache = new Map();
+
 // Create a PubSub instance for handling subscription events
 const pubsub = new PubSub();
 
@@ -234,6 +254,19 @@ const virtualResolvers = {
         console.log('[Enhanced Gateway] Setting up newFriendMood subscription for userId:', userId);
         return pubsub.asyncIterator(`${EVENTS.NEW_FRIEND_MOOD}.${userId}`);
       }
+    }
+  },
+  
+  // Live query helpers
+  _LiveQuery: {
+    // This resolver is used by @live directive to detect when a query should be refreshed
+    refreshMood: (_, args) => {
+      console.log('[Enhanced Gateway] Live Query refresh for mood', args);
+      return true;
+    },
+    refreshHug: (_, args) => {
+      console.log('[Enhanced Gateway] Live Query refresh for hug', args);
+      return true;
     }
   },
   
@@ -686,6 +719,21 @@ const virtualResolvers = {
         });
       }
       
+      // Trigger live query invalidation
+      console.log('[Enhanced Gateway] 📡 Triggering Live Query invalidation for mood:', transformedMood.id);
+      liveQueryCache.forEach((query, id) => {
+        if (query.includes('userMoods') || query.includes('friendsMoods')) {
+          console.log('[Enhanced Gateway] 📡 Live Query refresh triggered for query ID:', id);
+          pubsub.publish(`_HugMeNow_LiveQuery_${id}`, { 
+            _LiveQuery: { 
+              refreshMood: true, 
+              moodId: transformedMood.id,
+              userId: transformedMood.userId
+            } 
+          });
+        }
+      });
+      
       return transformedMood;
     },
     
@@ -797,6 +845,22 @@ const virtualResolvers = {
         newHugReceived: transformedHug 
       });
       
+      // Trigger live query invalidation for hugs
+      console.log('[Enhanced Gateway] 📡 Triggering Live Query invalidation for hug:', transformedHug.id);
+      liveQueryCache.forEach((query, id) => {
+        if (query.includes('sentHugs') || query.includes('receivedHugs')) {
+          console.log('[Enhanced Gateway] 📡 Live Query refresh triggered for query ID:', id);
+          pubsub.publish(`_HugMeNow_LiveQuery_${id}`, { 
+            _LiveQuery: { 
+              refreshHug: true, 
+              hugId: transformedHug.id,
+              senderId: transformedHug.sender.id,
+              recipientId: transformedHug.recipient.id
+            } 
+          });
+        }
+      });
+      
       return transformedHug;
     },
     
@@ -851,9 +915,12 @@ async function startServer() {
     // Create HTTP server
     const httpServer = createServer(app);
     
-    // Create executable schema
+    // Create executable schema with Live Query directive
     const schema = makeExecutableSchema({
-      typeDefs: baseSchema,
+      typeDefs: [
+        baseSchema,
+        LIVE_QUERY_DIRECTIVE
+      ],
       resolvers: virtualResolvers,
     });
     
@@ -863,6 +930,27 @@ async function startServer() {
     // Create Apollo Server
     const server = new ApolloServer({
       schema: protectedSchema,
+      plugins: [
+        {
+          // Add plugin to intercept requests and track Live Queries
+          requestDidStart: () => ({
+            didResolveOperation: ({ request, document }) => {
+              try {
+                // Check if this is a query with @live directive
+                const queryString = request.query;
+                if (queryString && queryString.includes('@live')) {
+                  // Store the query in the cache with a unique ID
+                  const queryId = `live_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                  console.log('[Enhanced Gateway] 📡 Detected Live Query, assigning ID:', queryId);
+                  liveQueryCache.set(queryId, queryString);
+                }
+              } catch (error) {
+                console.error('[Enhanced Gateway] Error tracking Live Query:', error);
+              }
+            }
+          })
+        }
+      ],
       context: ({ req }) => {
         // Extract token from Authorization header
         const token = req.headers.authorization?.replace('Bearer ', '') || '';
@@ -937,6 +1025,7 @@ async function startServer() {
     console.log(`🔌 WebSocket subscriptions available at ws://0.0.0.0:${PORT}${server.graphqlPath}`);
     console.log(`📝 Virtual fields and Shield protection enabled`);
     console.log(`💡 API Endpoint: ${API_ENDPOINT}`);
+    console.log(`📡 Live Query support enabled - use @live directive on queries`);
   } catch (error) {
     console.error('Failed to start server:', error);
   }

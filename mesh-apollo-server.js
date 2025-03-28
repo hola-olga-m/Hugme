@@ -20,6 +20,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 import chalk from 'chalk';
+// Import LiveQuery plugin (installed via @graphql-mesh/plugin-live-query)
+import { LiveQueryPlugin } from '@graphql-mesh/plugin-live-query';
 
 // Getting current file's directory
 const __filename = fileURLToPath(import.meta.url);
@@ -83,8 +85,38 @@ async function main() {
       }
     });
     
-    // Initialize the GraphQL Mesh instance
-    console.log(chalk.cyan('⚙️ Initializing GraphQL Mesh...'));
+    // Initialize the GraphQL Mesh instance with Live Query support
+    console.log(chalk.cyan('⚙️ Initializing GraphQL Mesh with Live Query support...'));
+    
+    // Register Live Query plugin before initializing the mesh
+    if (!meshConfig.plugins) {
+      meshConfig.plugins = [];
+    }
+    
+    // Add LiveQuery plugin if not already added in the config
+    const hasLiveQueryPlugin = meshConfig.plugins.some(p => 
+      typeof p === 'object' && p.liveQuery !== undefined
+    );
+    
+    if (!hasLiveQueryPlugin) {
+      console.log(chalk.cyan('📡 Adding Live Query plugin to Mesh configuration...'));
+      meshConfig.plugins.push({
+        liveQuery: {
+          // Default invalidation configuration if not specified in .meshrc.yml
+          invalidations: [
+            {
+              field: 'Mutation.createMood',
+              invalidate: ['Query.userMoods', 'Query.friendsMoods']
+            },
+            {
+              field: 'Mutation.sendHug',
+              invalidate: ['Query.sentHugs', 'Query.receivedHugs']
+            }
+          ]
+        }
+      });
+    }
+    
     const { schema, contextBuilder, cache } = await getMesh(meshConfig);
     
     // Create Apollo Server with the Mesh schema and enhanced configuration
@@ -198,6 +230,7 @@ async function main() {
     console.log(chalk.green(`📝 Proxying API requests to ${ENV.API_ENDPOINT}`));
     console.log(chalk.green(`✨ Enhanced GraphQL schema with Mesh transformations`));
     console.log(chalk.green(`🔧 Cache TTL: ${ENV.DISABLE_CACHE ? 'Disabled' : `${ENV.CACHE_TTL}s`}`));
+    console.log(chalk.blue(`📡 Live Query support enabled - use @live directive on queries`));
     
     // Listen for process termination signals
     ['SIGINT', 'SIGTERM'].forEach(signal => {

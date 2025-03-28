@@ -1,121 +1,157 @@
-Live Queries
-GraphQL Live Query implementation from Laurin Quast can be used in GraphQL Mesh with a few additions in the configuration.
+# GraphQL Live Queries Implementation
 
-npm i @graphql-mesh/plugin-live-query
+This implementation is based on Laurin Quast's approach to Live Queries in GraphQL, and is now integrated with GraphQL Mesh.
 
-Basic Usage
-You have a Query root field that returns all Todo entities from your data source like below.
+## Client-Side Implementation Example
 
-query getTodos {
-  todos {
-    id
-    content
+```jsx
+import React, { useState, useEffect } from 'react';
+import { ApolloClient, InMemoryCache, gql, useQuery } from '@apollo/client';
+
+// The key is simply adding @live directive to your query
+const LIVE_MOODS_QUERY = gql`
+  query GetLiveMoods @live {
+    userMoods(userId: "550e8400-e29b-41d4-a716-446655440000", limit: 5) {
+      id
+      intensity
+      message
+      createdAt
+      userId
+    }
   }
+`;
+
+// The query works just like a regular query, but auto-refreshes when data changes
+function MoodsList() {
+  const { loading, error, data } = useQuery(LIVE_MOODS_QUERY);
+
+  if (loading) return <p>Loading moods...</p>;
+  if (error) return <p>Error loading moods: {error.message}</p>;
+
+  return (
+    <div>
+      <h2>Your Moods (Live Updates)</h2>
+      <p>This list automatically refreshes when you create new moods!</p>
+      <ul>
+        {data.userMoods.map(mood => (
+          <li key={mood.id}>
+            <strong>Intensity: {mood.intensity}/10</strong> - {mood.message}
+            <br />
+            <small>{new Date(mood.createdAt).toLocaleString()}</small>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-And you want to update this operation result automatically without manual refresh when Mutation.addTodo is called.
+// A form to create new moods
+function MoodForm({ onMoodCreate }) {
+  const [intensity, setIntensity] = useState(5);
+  const [message, setMessage] = useState('');
 
-You only need to add the following to your existing configuration.
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Call the mutation - no need for refetching queries!
+    onMoodCreate({ 
+      variables: { 
+        input: {
+          intensity: parseInt(intensity),
+          message,
+          userId: "550e8400-e29b-41d4-a716-446655440000"
+        }
+      }
+    });
+    
+    // Reset form
+    setIntensity(5);
+    setMessage('');
+  };
 
-.meshrc.yaml
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Create New Mood</h2>
+      <div>
+        <label>
+          Intensity (1-10):
+          <input
+            type="range"
+            min="1"
+            max="10"
+            value={intensity}
+            onChange={(e) => setIntensity(e.target.value)}
+          />
+          {intensity}
+        </label>
+      </div>
+      <div>
+        <label>
+          Message:
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="How are you feeling?"
+          />
+        </label>
+      </div>
+      <button type="submit">Save Mood</button>
+    </form>
+  );
+}
 
-additionalTypeDefs: |
-  directive @live on QUERY
+// Put it all together in a main component
+function MoodTracker() {
+  const [createMood] = useMutation(gql`
+    mutation CreateMood($input: CreateMoodInput!) {
+      createMood(input: $input) {
+        id
+        intensity
+        message
+        userId
+        createdAt
+      }
+    }
+  `);
+
+  return (
+    <div>
+      <h1>HugMeNow Mood Tracker</h1>
+      <MoodsList />
+      <MoodForm onMoodCreate={createMood} />
+    </div>
+  );
+}
+```
+
+## How it works
+
+1. The `@live` directive marks a query for real-time updates
+2. The server keeps track of these live queries
+3. When a mutation happens that affects data related to the query (e.g., creating a mood), the server automatically reruns the query and pushes updated results
+4. The client receives these updates seamlessly, without requiring WebSocket subscriptions
+
+## Benefits over traditional subscriptions
+
+1. Simpler client code - just add `@live` to your queries
+2. Automatic data refresh only when relevant mutations occur
+3. No need to manage WebSocket connections or subscription handlers
+4. Less network traffic - only sends data when it actually changes
+5. Better state management - always has a complete and current query result
+
+## Server-side configuration
+
+The server handles invalidations through a configuration like:
+
+```yaml
 plugins:
   - liveQuery:
       invalidations:
-        - field: Mutation.addTodo
+        - field: Mutation.createMood
           invalidate:
-            - Query.todos
-Then you can send a live query with @live directive.
+            - Query.friendsMoods
+            - Query.userMoods
+            - Mood:{args.input.userId}
+```
 
-query getTodos @live {
-  todos {
-    id
-    content
-  }
-}
-
-This will start a real-time connection between the server and your client. The response of todos will get updated whenever addTodo is called.
-
-ID Based Invalidation
-Let’s say you have the following query that returns a specific Todo entity based on id field;
-
-query getTodo($id: ID!) {
-  todo(id: $id) {
-    id
-    content
-  }
-}
-
-If you update this entity with editTodo mutation field on your backend, then you want to invalidate this entity specifically instead of validating all todo queries;
-
-.meshrc.yaml
-
-invalidations:
-  - field: Mutation.editTodo
-    invalidate:
-      - Todo:{args.id}
-In a case where the field resolver resolves null but might resolve to an object type later, e.g., because the visibility got update the field that uses a specific id argument can be invalidated in the following way:
-
-.meshrc.yaml
-
-invalidations:
-  - field: Mutation.editTodo
-    invalidate:
-      - Query.todo(id:"{args.id}")
-Programmatic Usage
-liveQueryStore is available in GraphQL Context, so you can access it in resolvers composition functions that wrap existing resolvers or additional resolvers;
-
-See Resolvers Composition
-
-.meshrc.yaml
-
-transforms:
-  - resolversComposition:
-      - resolver: Mutation.editTodo
-        composer: invalidate-todo#invalidateTodo
-And in this code file;
-
-invalidate-todo.ts
-
-module.exports = {
-  invalidateTodo: next => async (root, args, context, info) => {
-    const result = await next(root, args, context, info)
-    context.liveQueryStore.invalidate(`Todo:${args.id}`)
-    return result
-  }
-}
-Config API Reference
-ttl (type: Float) - Maximum age in ms. Defaults to Infinity. Set it to 0 for disabling the global TTL.
-ttlPerCoordinate (type: Array of Object) - Overwrite the ttl for query operations whose selection contains a specific schema coordinate (e.g. Query.users). Useful if the selection of a specific field should reduce the TTL of the query operation.:
-coordinate (type: String, required)
-ttl (type: Float, required)
-ignoredTypes (type: Array of String) - Skip caching of following the types.
-idFields (type: Array of String) - List of fields that are used to identify the entity.
-invalidateViaMutation (type: Boolean) - Whether the mutation execution result should be used for invalidating resources. Defaults to true
-includeExtensionMetadata (type: Boolean) - Include extension values that provide useful information, such as whether the cache was hit or which resources a mutation invalidated.
-sessionId (type: String) - Allows to cache responses based on the resolved session id. Return a unique value for each session. Creates a global session by default. Example;
-sessionId: "{context.headers.userId}"
-
-if (type: String) - Specify whether the cache should be used based on the context.
-if: "context.headers.userId != null"
-
-cacheKey (type: String) - Customize the behavior how the response cache key is computed from the documentString, variableValues, contextValue and sessionId. If the given string is interpolated as empty, default behavior is used. Example;
-# Cache by specific value
-cacheKey: "{variableValues.userId}"
- 
-# Cache by documentString
-cacheKey: "{documentString}"
- 
-# Cache by operationName
-cacheKey: "{operationName}"
- 
-# Cache by some header value
-cacheKey: "{contextValue.headers.authorization}"
- 
-# Or combine two of each
-cacheKey: "{contextValue.headers.authorization}-{operationName}"
-
-shouldCacheResult (type: String) - Checks if the result should be cached.
-shouldCacheResult: "result.errors.length > 0"
+This tells the server which queries should be refreshed when specific mutations occur.

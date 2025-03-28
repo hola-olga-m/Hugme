@@ -133,6 +133,11 @@ transforms:
 # Additional type definitions - Enhanced for better client integration
 additionalTypeDefs: |
   """
+  Live query directive for real-time data updates
+  """
+  directive @live on QUERY
+  
+  """
   Client-specific fields for the Query type
   Provides virtual fields that map to the PostGraphile schema
   """
@@ -336,5 +341,29 @@ logger:
   level: info
   format: colorized
   timestamp: true
+
+# Live Query plugin configuration
+plugins:
+  - liveQuery:
+      invalidations:
+        # Invalidate friendsMoods and userMoods queries when a new mood is created
+        - field: Mutation.createMood
+          invalidate:
+            - Query.friendsMoods
+            - Query.userMoods
+            - Mood:{args.input.userId}
+            
+        # Invalidate sentHugs and receivedHugs queries when a new hug is sent
+        - field: Mutation.sendHug
+          invalidate:
+            - Query.sentHugs
+            - Query.receivedHugs
+            - Hug:{args.input.senderId}
+            - Hug:{args.input.recipientId}
+            
+        # Invalidate user-specific queries
+        - field: Mutation.updateUser
+          invalidate:
+            - User:{args.input.id}
 
 # Note: We need to handle GraphQL version conflicts differently
