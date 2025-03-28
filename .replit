@@ -38,7 +38,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "Project"
+runButton = "FixAndRunApp"
 
 [[workflows.workflow]]
 name = "Project"
@@ -109,3 +109,16 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node fix-graphql.js"
+
+[[workflows.workflow]]
+name = "FixAndRunApp"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node fix-graphql.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-hugmenow.sh"
