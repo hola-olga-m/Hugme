@@ -16,6 +16,7 @@
     "@graphql-mesh/config": "^0.108.2",
     "@graphql-mesh/graphql": "^0.104.2",
     "@graphql-mesh/http": "^0.106.2",
+    "@graphql-mesh/plugin-jwt-auth": "^1.5.2",
     "@graphql-mesh/plugin-live-query": "^0.104.2",
     "@graphql-mesh/runtime": "^0.106.2",
     "@graphql-mesh/transform-filter-schema": "^0.104.2",

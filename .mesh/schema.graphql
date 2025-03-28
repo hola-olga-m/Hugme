@@ -1,0 +1,2242 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+"""The root query type which gives access points into the data universe."""
+type Query implements HMNNode {
+  """
+  Exposes the root query type nested one level down. This is helpful for Relay 1
+  which can only query top level fields if they are in a particular form.
+  """
+  query: Query!
+  """
+  The root query type must be a `Node` to work well with Relay 1 mutations. This just resolves to `query`.
+  """
+  nodeId: ID!
+  """Fetches an object given its globally unique `ID`."""
+  node(
+    """The globally unique `ID`."""
+    nodeId: ID!
+  ): HMNNode
+  """Reads and enables pagination through a set of `Friendship`."""
+  allFriendships(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Friendship`."""
+    orderBy: [HMNFriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNFriendshipCondition
+  ): HMNFriendshipsConnection
+  """Reads and enables pagination through a set of `HugRequest`."""
+  allHugRequests(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `HugRequest`."""
+    orderBy: [HMNHugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNHugRequestCondition
+  ): HMNHugRequestsConnection
+  """Reads and enables pagination through a set of `Hug`."""
+  allHugs(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Hug`."""
+    orderBy: [HMNHugsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNHugCondition
+  ): HMNHugsConnection
+  """Reads and enables pagination through a set of `Migration`."""
+  allMigrations(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Migration`."""
+    orderBy: [HMNMigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNMigrationCondition
+  ): HMNMigrationsConnection
+  """Reads and enables pagination through a set of `Mood`."""
+  allMoods(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Mood`."""
+    orderBy: [HMNMoodsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNMoodCondition
+  ): HMNMoodsConnection
+  """Reads and enables pagination through a set of `User`."""
+  allUsers(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `User`."""
+    orderBy: [HMNUsersOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNUserCondition
+  ): HMNUsersConnection
+  friendshipById(id: UUID!): Friendship
+  friendshipByRequesterIdAndRecipientId(requesterId: UUID!, recipientId: UUID!): Friendship
+  hugRequestById(id: UUID!): HugRequest
+  hugById(id: UUID!): Hug
+  migrationById(id: Int!): HMNMigration
+  migrationByName(name: String!): HMNMigration
+  moodById(id: UUID!): Mood
+  userById(id: UUID!): User
+  userByUsername(username: String!): User
+  userByEmail(email: String!): User
+  """Reads a single `Friendship` using its globally unique `ID`."""
+  friendship(
+    """
+    The globally unique `ID` to be used in selecting a single `Friendship`.
+    """
+    nodeId: ID!
+  ): Friendship
+  """Reads a single `HugRequest` using its globally unique `ID`."""
+  hugRequest(
+    """
+    The globally unique `ID` to be used in selecting a single `HugRequest`.
+    """
+    nodeId: ID!
+  ): HugRequest
+  """Reads a single `Hug` using its globally unique `ID`."""
+  hug(
+    """The globally unique `ID` to be used in selecting a single `Hug`."""
+    nodeId: ID!
+  ): Hug
+  """Reads a single `Migration` using its globally unique `ID`."""
+  migration(
+    """The globally unique `ID` to be used in selecting a single `Migration`."""
+    nodeId: ID!
+  ): HMNMigration
+  """Reads a single `Mood` using its globally unique `ID`."""
+  mood(
+    """The globally unique `ID` to be used in selecting a single `Mood`."""
+    nodeId: ID!
+  ): Mood
+  """Reads a single `User` using its globally unique `ID`."""
+  user(
+    """The globally unique `ID` to be used in selecting a single `User`."""
+    nodeId: ID!
+  ): User
+  clientInfo: HMNClientInfo!
+  publicMoods(limit: Int, offset: Int): [Mood!]!
+  userMoods(userId: ID, limit: Int, offset: Int): [Mood!]!
+  moodStreak(userId: ID!): HMNMoodStreak!
+  communityHugRequests(limit: Int, offset: Int): [HugRequest!]!
+  receivedHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!
+  sentHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!
+  pendingHugRequests(userId: ID!): [HugRequest!]!
+  friendsMoods(limit: Int, offset: Int): [Mood!]!
+}
+
+"""
+The root mutation type which contains root level fields which mutate data.
+"""
+type Mutation {
+  """Creates a single `Friendship`."""
+  createFriendship(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNCreateFriendshipInput!
+  ): HMNCreateFriendshipPayload
+  """Creates a single `HugRequest`."""
+  createHugRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNCreateHugRequestInput!
+  ): HMNCreateHugRequestPayload
+  """Creates a single `Hug`."""
+  createHug(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNCreateHugInput!
+  ): HMNCreateHugPayload
+  """Creates a single `Migration`."""
+  createMigration(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNCreateMigrationInput!
+  ): HMNCreateMigrationPayload
+  """Creates a single `Mood`."""
+  createMood(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNCreateMoodInput!
+  ): HMNCreateMoodPayload
+  """Creates a single `User`."""
+  createUser(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNCreateUserInput!
+  ): HMNCreateUserPayload
+  """
+  Updates a single `Friendship` using its globally unique id and a patch.
+  """
+  updateFriendship(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateFriendshipInput!
+  ): HMNUpdateFriendshipPayload
+  """Updates a single `Friendship` using a unique key and a patch."""
+  updateFriendshipById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateFriendshipByIdInput!
+  ): HMNUpdateFriendshipPayload
+  """Updates a single `Friendship` using a unique key and a patch."""
+  updateFriendshipByRequesterIdAndRecipientId(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateFriendshipByRequesterIdAndRecipientIdInput!
+  ): HMNUpdateFriendshipPayload
+  """
+  Updates a single `HugRequest` using its globally unique id and a patch.
+  """
+  updateHugRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateHugRequestInput!
+  ): HMNUpdateHugRequestPayload
+  """Updates a single `HugRequest` using a unique key and a patch."""
+  updateHugRequestById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateHugRequestByIdInput!
+  ): HMNUpdateHugRequestPayload
+  """Updates a single `Hug` using its globally unique id and a patch."""
+  updateHug(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateHugInput!
+  ): HMNUpdateHugPayload
+  """Updates a single `Hug` using a unique key and a patch."""
+  updateHugById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateHugByIdInput!
+  ): HMNUpdateHugPayload
+  """Updates a single `Migration` using its globally unique id and a patch."""
+  updateMigration(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateMigrationInput!
+  ): HMNUpdateMigrationPayload
+  """Updates a single `Migration` using a unique key and a patch."""
+  updateMigrationById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateMigrationByIdInput!
+  ): HMNUpdateMigrationPayload
+  """Updates a single `Migration` using a unique key and a patch."""
+  updateMigrationByName(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateMigrationByNameInput!
+  ): HMNUpdateMigrationPayload
+  """Updates a single `Mood` using its globally unique id and a patch."""
+  updateMood(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateMoodInput!
+  ): HMNUpdateMoodPayload
+  """Updates a single `Mood` using a unique key and a patch."""
+  updateMoodById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateMoodByIdInput!
+  ): HMNUpdateMoodPayload
+  """Updates a single `User` using its globally unique id and a patch."""
+  updateUser(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateUserInput!
+  ): HMNUpdateUserPayload
+  """Updates a single `User` using a unique key and a patch."""
+  updateUserById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateUserByIdInput!
+  ): HMNUpdateUserPayload
+  """Updates a single `User` using a unique key and a patch."""
+  updateUserByUsername(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateUserByUsernameInput!
+  ): HMNUpdateUserPayload
+  """Updates a single `User` using a unique key and a patch."""
+  updateUserByEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNUpdateUserByEmailInput!
+  ): HMNUpdateUserPayload
+  """Deletes a single `Friendship` using its globally unique id."""
+  deleteFriendship(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteFriendshipInput!
+  ): HMNDeleteFriendshipPayload
+  """Deletes a single `Friendship` using a unique key."""
+  deleteFriendshipById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteFriendshipByIdInput!
+  ): HMNDeleteFriendshipPayload
+  """Deletes a single `Friendship` using a unique key."""
+  deleteFriendshipByRequesterIdAndRecipientId(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteFriendshipByRequesterIdAndRecipientIdInput!
+  ): HMNDeleteFriendshipPayload
+  """Deletes a single `HugRequest` using its globally unique id."""
+  deleteHugRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteHugRequestInput!
+  ): HMNDeleteHugRequestPayload
+  """Deletes a single `HugRequest` using a unique key."""
+  deleteHugRequestById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteHugRequestByIdInput!
+  ): HMNDeleteHugRequestPayload
+  """Deletes a single `Hug` using its globally unique id."""
+  deleteHug(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteHugInput!
+  ): HMNDeleteHugPayload
+  """Deletes a single `Hug` using a unique key."""
+  deleteHugById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteHugByIdInput!
+  ): HMNDeleteHugPayload
+  """Deletes a single `Migration` using its globally unique id."""
+  deleteMigration(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteMigrationInput!
+  ): HMNDeleteMigrationPayload
+  """Deletes a single `Migration` using a unique key."""
+  deleteMigrationById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteMigrationByIdInput!
+  ): HMNDeleteMigrationPayload
+  """Deletes a single `Migration` using a unique key."""
+  deleteMigrationByName(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteMigrationByNameInput!
+  ): HMNDeleteMigrationPayload
+  """Deletes a single `Mood` using its globally unique id."""
+  deleteMood(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteMoodInput!
+  ): HMNDeleteMoodPayload
+  """Deletes a single `Mood` using a unique key."""
+  deleteMoodById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteMoodByIdInput!
+  ): HMNDeleteMoodPayload
+  """Deletes a single `User` using its globally unique id."""
+  deleteUser(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteUserInput!
+  ): HMNDeleteUserPayload
+  """Deletes a single `User` using a unique key."""
+  deleteUserById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteUserByIdInput!
+  ): HMNDeleteUserPayload
+  """Deletes a single `User` using a unique key."""
+  deleteUserByUsername(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteUserByUsernameInput!
+  ): HMNDeleteUserPayload
+  """Deletes a single `User` using a unique key."""
+  deleteUserByEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: HMNDeleteUserByEmailInput!
+  ): HMNDeleteUserPayload
+  sendHug(input: HMNHugInput!): Hug
+  createMoodEntry(moodInput: HMNMoodInput!): Mood
+  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
+}
+
+"""An object with a globally unique `ID`."""
+interface HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+}
+
+"""A connection to a list of `Friendship` values."""
+type HMNFriendshipsConnection {
+  """A list of `Friendship` objects."""
+  nodes: [Friendship!]!
+  """
+  A list of edges which contains the `Friendship` and cursor to aid in pagination.
+  """
+  edges: [HMNFriendshipsEdge!]!
+  """Information to aid in pagination."""
+  pageInfo: HMNPageInfo!
+  """The count of *all* `Friendship` you could get from the connection."""
+  totalCount: Int!
+}
+
+type Friendship implements HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: UUID!
+  requesterId: UUID!
+  recipientId: UUID!
+  status: String!
+  followsMood: Boolean!
+  createdAt: HMNDatetime!
+  updatedAt: HMNDatetime
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRecipientId: User
+}
+
+"""
+A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
+"""
+scalar UUID
+
+"""
+A point in time as described by the [ISO
+8601](https://en.wikipedia.org/wiki/ISO_8601) standard. May or may not include a timezone.
+"""
+scalar HMNDatetime
+
+"""A user of the application"""
+type User implements HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  """The primary unique identifier for the user"""
+  id: UUID!
+  """The username used to login"""
+  username: String!
+  """The email address of the user"""
+  email: String!
+  """The display name of the user"""
+  name: String!
+  password: String!
+  avatarUrl: String
+  """Whether this user is anonymous"""
+  isAnonymous: Boolean!
+  createdAt: HMNDatetime!
+  updatedAt: HMNDatetime!
+  """Reads and enables pagination through a set of `Mood`."""
+  moodsByUserId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Mood`."""
+    orderBy: [HMNMoodsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNMoodCondition
+  ): HMNMoodsConnection!
+  """Reads and enables pagination through a set of `Hug`."""
+  hugsBySenderId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Hug`."""
+    orderBy: [HMNHugsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNHugCondition
+  ): HMNHugsConnection!
+  """Reads and enables pagination through a set of `Hug`."""
+  hugsByRecipientId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Hug`."""
+    orderBy: [HMNHugsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNHugCondition
+  ): HMNHugsConnection!
+  """Reads and enables pagination through a set of `HugRequest`."""
+  hugRequestsByRequesterId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `HugRequest`."""
+    orderBy: [HMNHugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNHugRequestCondition
+  ): HMNHugRequestsConnection!
+  """Reads and enables pagination through a set of `HugRequest`."""
+  hugRequestsByRecipientId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `HugRequest`."""
+    orderBy: [HMNHugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNHugRequestCondition
+  ): HMNHugRequestsConnection!
+  """Reads and enables pagination through a set of `Friendship`."""
+  friendshipsByRequesterId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Friendship`."""
+    orderBy: [HMNFriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNFriendshipCondition
+  ): HMNFriendshipsConnection!
+  """Reads and enables pagination through a set of `Friendship`."""
+  friendshipsByRecipientId(
+    """Only read the first `n` values of the set."""
+    first: Int
+    """Only read the last `n` values of the set."""
+    last: Int
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+    """Read all values in the set before (above) this cursor."""
+    before: HMNCursor
+    """Read all values in the set after (below) this cursor."""
+    after: HMNCursor
+    """The method to use when ordering `Friendship`."""
+    orderBy: [HMNFriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: HMNFriendshipCondition
+  ): HMNFriendshipsConnection!
+}
+
+"""A connection to a list of `Mood` values."""
+type HMNMoodsConnection {
+  """A list of `Mood` objects."""
+  nodes: [Mood!]!
+  """
+  A list of edges which contains the `Mood` and cursor to aid in pagination.
+  """
+  edges: [HMNMoodsEdge!]!
+  """Information to aid in pagination."""
+  pageInfo: HMNPageInfo!
+  """The count of *all* `Mood` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A mood entry recorded by a user"""
+type Mood implements HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: UUID!
+  """The mood score from 1-10"""
+  score: Int!
+  note: String
+  """Whether this mood entry is publicly visible"""
+  isPublic: Boolean!
+  userId: UUID!
+  createdAt: HMNDatetime!
+  """Reads a single `User` that is related to this `Mood`."""
+  userByUserId: User
+}
+
+"""A `Mood` edge in the connection."""
+type HMNMoodsEdge {
+  """A cursor for use in pagination."""
+  cursor: HMNCursor
+  """The `Mood` at the end of the edge."""
+  node: Mood!
+}
+
+"""A location in a connection that can be used for resuming pagination."""
+scalar HMNCursor
+
+"""Information about pagination in a connection."""
+type HMNPageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+  """When paginating backwards, the cursor to continue."""
+  startCursor: HMNCursor
+  """When paginating forwards, the cursor to continue."""
+  endCursor: HMNCursor
+}
+
+"""Methods to use when ordering `Mood`."""
+enum HMNMoodsOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  SCORE_ASC
+  SCORE_DESC
+  NOTE_ASC
+  NOTE_DESC
+  IS_PUBLIC_ASC
+  IS_PUBLIC_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+}
+
+"""
+A condition to be used against `Mood` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input HMNMoodCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: UUID
+  """Checks for equality with the object’s `score` field."""
+  score: Int
+  """Checks for equality with the object’s `note` field."""
+  note: String
+  """Checks for equality with the object’s `isPublic` field."""
+  isPublic: Boolean
+  """Checks for equality with the object’s `userId` field."""
+  userId: UUID
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: HMNDatetime
+}
+
+"""A connection to a list of `Hug` values."""
+type HMNHugsConnection {
+  """A list of `Hug` objects."""
+  nodes: [Hug!]!
+  """
+  A list of edges which contains the `Hug` and cursor to aid in pagination.
+  """
+  edges: [HMNHugsEdge!]!
+  """Information to aid in pagination."""
+  pageInfo: HMNPageInfo!
+  """The count of *all* `Hug` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A virtual hug sent from one user to another"""
+type Hug implements HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: UUID!
+  """The type of hug (QUICK, WARM, SUPPORTIVE, etc)"""
+  type: String!
+  message: String
+  senderId: UUID!
+  recipientId: UUID!
+  """Whether the recipient has read the hug"""
+  isRead: Boolean!
+  createdAt: HMNDatetime!
+  """Reads a single `User` that is related to this `Hug`."""
+  userBySenderId: User
+  """Reads a single `User` that is related to this `Hug`."""
+  userByRecipientId: User
+  fromUser: User
+  toUser: User
+}
+
+"""A `Hug` edge in the connection."""
+type HMNHugsEdge {
+  """A cursor for use in pagination."""
+  cursor: HMNCursor
+  """The `Hug` at the end of the edge."""
+  node: Hug!
+}
+
+"""Methods to use when ordering `Hug`."""
+enum HMNHugsOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  TYPE_ASC
+  TYPE_DESC
+  MESSAGE_ASC
+  MESSAGE_DESC
+  SENDER_ID_ASC
+  SENDER_ID_DESC
+  RECIPIENT_ID_ASC
+  RECIPIENT_ID_DESC
+  IS_READ_ASC
+  IS_READ_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+}
+
+"""
+A condition to be used against `Hug` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input HMNHugCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: UUID
+  """Checks for equality with the object’s `type` field."""
+  type: String
+  """Checks for equality with the object’s `message` field."""
+  message: String
+  """Checks for equality with the object’s `senderId` field."""
+  senderId: UUID
+  """Checks for equality with the object’s `recipientId` field."""
+  recipientId: UUID
+  """Checks for equality with the object’s `isRead` field."""
+  isRead: Boolean
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: HMNDatetime
+}
+
+"""A connection to a list of `HugRequest` values."""
+type HMNHugRequestsConnection {
+  """A list of `HugRequest` objects."""
+  nodes: [HugRequest!]!
+  """
+  A list of edges which contains the `HugRequest` and cursor to aid in pagination.
+  """
+  edges: [HMNHugRequestsEdge!]!
+  """Information to aid in pagination."""
+  pageInfo: HMNPageInfo!
+  """The count of *all* `HugRequest` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A request for a hug from another user or the community"""
+type HugRequest implements HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: UUID!
+  message: String
+  requesterId: UUID!
+  recipientId: UUID
+  """Whether this is a request to the community rather than a specific user"""
+  isCommunityRequest: Boolean!
+  """
+  The status of the request (PENDING, ACCEPTED, DECLINED, EXPIRED, CANCELLED)
+  """
+  status: String!
+  createdAt: HMNDatetime!
+  respondedAt: HMNDatetime
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRecipientId: User
+  requester: User
+}
+
+"""A `HugRequest` edge in the connection."""
+type HMNHugRequestsEdge {
+  """A cursor for use in pagination."""
+  cursor: HMNCursor
+  """The `HugRequest` at the end of the edge."""
+  node: HugRequest!
+}
+
+"""Methods to use when ordering `HugRequest`."""
+enum HMNHugRequestsOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  MESSAGE_ASC
+  MESSAGE_DESC
+  REQUESTER_ID_ASC
+  REQUESTER_ID_DESC
+  RECIPIENT_ID_ASC
+  RECIPIENT_ID_DESC
+  IS_COMMUNITY_REQUEST_ASC
+  IS_COMMUNITY_REQUEST_DESC
+  STATUS_ASC
+  STATUS_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  RESPONDED_AT_ASC
+  RESPONDED_AT_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+}
+
+"""
+A condition to be used against `HugRequest` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input HMNHugRequestCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: UUID
+  """Checks for equality with the object’s `message` field."""
+  message: String
+  """Checks for equality with the object’s `requesterId` field."""
+  requesterId: UUID
+  """Checks for equality with the object’s `recipientId` field."""
+  recipientId: UUID
+  """Checks for equality with the object’s `isCommunityRequest` field."""
+  isCommunityRequest: Boolean
+  """Checks for equality with the object’s `status` field."""
+  status: String
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: HMNDatetime
+  """Checks for equality with the object’s `respondedAt` field."""
+  respondedAt: HMNDatetime
+}
+
+"""Methods to use when ordering `Friendship`."""
+enum HMNFriendshipsOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  REQUESTER_ID_ASC
+  REQUESTER_ID_DESC
+  RECIPIENT_ID_ASC
+  RECIPIENT_ID_DESC
+  STATUS_ASC
+  STATUS_DESC
+  FOLLOWS_MOOD_ASC
+  FOLLOWS_MOOD_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+}
+
+"""
+A condition to be used against `Friendship` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input HMNFriendshipCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: UUID
+  """Checks for equality with the object’s `requesterId` field."""
+  requesterId: UUID
+  """Checks for equality with the object’s `recipientId` field."""
+  recipientId: UUID
+  """Checks for equality with the object’s `status` field."""
+  status: String
+  """Checks for equality with the object’s `followsMood` field."""
+  followsMood: Boolean
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: HMNDatetime
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: HMNDatetime
+}
+
+"""A `Friendship` edge in the connection."""
+type HMNFriendshipsEdge {
+  """A cursor for use in pagination."""
+  cursor: HMNCursor
+  """The `Friendship` at the end of the edge."""
+  node: Friendship!
+}
+
+"""A connection to a list of `Migration` values."""
+type HMNMigrationsConnection {
+  """A list of `Migration` objects."""
+  nodes: [HMNMigration!]!
+  """
+  A list of edges which contains the `Migration` and cursor to aid in pagination.
+  """
+  edges: [HMNMigrationsEdge!]!
+  """Information to aid in pagination."""
+  pageInfo: HMNPageInfo!
+  """The count of *all* `Migration` you could get from the connection."""
+  totalCount: Int!
+}
+
+type HMNMigration implements HMNNode {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  nodeId: ID!
+  id: Int!
+  name: String!
+  appliedAt: HMNDatetime
+}
+
+"""A `Migration` edge in the connection."""
+type HMNMigrationsEdge {
+  """A cursor for use in pagination."""
+  cursor: HMNCursor
+  """The `Migration` at the end of the edge."""
+  node: HMNMigration!
+}
+
+"""Methods to use when ordering `Migration`."""
+enum HMNMigrationsOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  NAME_ASC
+  NAME_DESC
+  APPLIED_AT_ASC
+  APPLIED_AT_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+}
+
+"""
+A condition to be used against `Migration` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input HMNMigrationCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: Int
+  """Checks for equality with the object’s `name` field."""
+  name: String
+  """Checks for equality with the object’s `appliedAt` field."""
+  appliedAt: HMNDatetime
+}
+
+"""A connection to a list of `User` values."""
+type HMNUsersConnection {
+  """A list of `User` objects."""
+  nodes: [User!]!
+  """
+  A list of edges which contains the `User` and cursor to aid in pagination.
+  """
+  edges: [HMNUsersEdge!]!
+  """Information to aid in pagination."""
+  pageInfo: HMNPageInfo!
+  """The count of *all* `User` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `User` edge in the connection."""
+type HMNUsersEdge {
+  """A cursor for use in pagination."""
+  cursor: HMNCursor
+  """The `User` at the end of the edge."""
+  node: User!
+}
+
+"""Methods to use when ordering `User`."""
+enum HMNUsersOrderBy {
+  NATURAL
+  ID_ASC
+  ID_DESC
+  USERNAME_ASC
+  USERNAME_DESC
+  EMAIL_ASC
+  EMAIL_DESC
+  NAME_ASC
+  NAME_DESC
+  PASSWORD_ASC
+  PASSWORD_DESC
+  AVATAR_URL_ASC
+  AVATAR_URL_DESC
+  IS_ANONYMOUS_ASC
+  IS_ANONYMOUS_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+}
+
+"""
+A condition to be used against `User` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input HMNUserCondition {
+  """Checks for equality with the object’s `id` field."""
+  id: UUID
+  """Checks for equality with the object’s `username` field."""
+  username: String
+  """Checks for equality with the object’s `email` field."""
+  email: String
+  """Checks for equality with the object’s `name` field."""
+  name: String
+  """Checks for equality with the object’s `password` field."""
+  password: String
+  """Checks for equality with the object’s `avatarUrl` field."""
+  avatarUrl: String
+  """Checks for equality with the object’s `isAnonymous` field."""
+  isAnonymous: Boolean
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: HMNDatetime
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: HMNDatetime
+}
+
+"""The output of our create `Friendship` mutation."""
+type HMNCreateFriendshipPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Friendship` that was created by this mutation."""
+  friendship: Friendship
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRecipientId: User
+  """An edge for our `Friendship`. May be used by Relay 1."""
+  friendshipEdge(
+    """The method to use when ordering `Friendship`."""
+    orderBy: [HMNFriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNFriendshipsEdge
+}
+
+"""All input for the create `Friendship` mutation."""
+input HMNCreateFriendshipInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The `Friendship` to be created by this mutation."""
+  friendship: HMNFriendshipInput!
+}
+
+"""An input for mutations affecting `Friendship`"""
+input HMNFriendshipInput {
+  id: UUID!
+  requesterId: UUID!
+  recipientId: UUID!
+  status: String
+  followsMood: Boolean
+  createdAt: HMNDatetime
+  updatedAt: HMNDatetime
+}
+
+"""The output of our create `HugRequest` mutation."""
+type HMNCreateHugRequestPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `HugRequest` that was created by this mutation."""
+  hugRequest: HugRequest
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRecipientId: User
+  """An edge for our `HugRequest`. May be used by Relay 1."""
+  hugRequestEdge(
+    """The method to use when ordering `HugRequest`."""
+    orderBy: [HMNHugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNHugRequestsEdge
+}
+
+"""All input for the create `HugRequest` mutation."""
+input HMNCreateHugRequestInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The `HugRequest` to be created by this mutation."""
+  hugRequest: HMNHugRequestInput!
+}
+
+input HMNHugRequestInput {
+  id: UUID
+  message: String
+  requesterId: ID!
+  recipientId: UUID
+  """Whether this is a request to the community rather than a specific user"""
+  isCommunityRequest: Boolean
+  """
+  The status of the request (PENDING, ACCEPTED, DECLINED, EXPIRED, CANCELLED)
+  """
+  status: String
+  createdAt: HMNDatetime
+  respondedAt: HMNDatetime
+}
+
+"""The output of our create `Hug` mutation."""
+type HMNCreateHugPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Hug` that was created by this mutation."""
+  hug: Hug
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Hug`."""
+  userBySenderId: User
+  """Reads a single `User` that is related to this `Hug`."""
+  userByRecipientId: User
+  """An edge for our `Hug`. May be used by Relay 1."""
+  hugEdge(
+    """The method to use when ordering `Hug`."""
+    orderBy: [HMNHugsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNHugsEdge
+}
+
+"""All input for the create `Hug` mutation."""
+input HMNCreateHugInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The `Hug` to be created by this mutation."""
+  hug: HMNHugInput!
+}
+
+input HMNHugInput {
+  id: UUID
+  """The type of hug (QUICK, WARM, SUPPORTIVE, etc)"""
+  type: String!
+  message: String
+  senderId: ID!
+  recipientId: ID!
+  """Whether the recipient has read the hug"""
+  isRead: Boolean
+  createdAt: HMNDatetime
+}
+
+"""The output of our create `Migration` mutation."""
+type HMNCreateMigrationPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Migration` that was created by this mutation."""
+  migration: HMNMigration
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """An edge for our `Migration`. May be used by Relay 1."""
+  migrationEdge(
+    """The method to use when ordering `Migration`."""
+    orderBy: [HMNMigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNMigrationsEdge
+}
+
+"""All input for the create `Migration` mutation."""
+input HMNCreateMigrationInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The `Migration` to be created by this mutation."""
+  migration: HMNMigrationInput!
+}
+
+"""An input for mutations affecting `Migration`"""
+input HMNMigrationInput {
+  id: Int
+  name: String!
+  appliedAt: HMNDatetime
+}
+
+"""The output of our create `Mood` mutation."""
+type HMNCreateMoodPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Mood` that was created by this mutation."""
+  mood: Mood
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Mood`."""
+  userByUserId: User
+  """An edge for our `Mood`. May be used by Relay 1."""
+  moodEdge(
+    """The method to use when ordering `Mood`."""
+    orderBy: [HMNMoodsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNMoodsEdge
+}
+
+"""All input for the create `Mood` mutation."""
+input HMNCreateMoodInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The `Mood` to be created by this mutation."""
+  mood: HMNMoodInput!
+}
+
+input HMNMoodInput {
+  id: UUID
+  """The mood score from 1-10"""
+  score: Int!
+  note: String
+  """Whether this mood entry is publicly visible"""
+  isPublic: Boolean
+  userId: ID!
+  createdAt: HMNDatetime
+  intensity: Int!
+  private: Boolean
+}
+
+"""The output of our create `User` mutation."""
+type HMNCreateUserPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `User` that was created by this mutation."""
+  user: User
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """An edge for our `User`. May be used by Relay 1."""
+  userEdge(
+    """The method to use when ordering `User`."""
+    orderBy: [HMNUsersOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNUsersEdge
+}
+
+"""All input for the create `User` mutation."""
+input HMNCreateUserInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The `User` to be created by this mutation."""
+  user: HMNUserInput!
+}
+
+"""An input for mutations affecting `User`"""
+input HMNUserInput {
+  """The primary unique identifier for the user"""
+  id: UUID
+  """The username used to login"""
+  username: String!
+  """The email address of the user"""
+  email: String!
+  """The display name of the user"""
+  name: String!
+  password: String!
+  avatarUrl: String
+  """Whether this user is anonymous"""
+  isAnonymous: Boolean
+  createdAt: HMNDatetime
+  updatedAt: HMNDatetime
+}
+
+"""The output of our update `Friendship` mutation."""
+type HMNUpdateFriendshipPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Friendship` that was updated by this mutation."""
+  friendship: Friendship
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRecipientId: User
+  """An edge for our `Friendship`. May be used by Relay 1."""
+  friendshipEdge(
+    """The method to use when ordering `Friendship`."""
+    orderBy: [HMNFriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNFriendshipsEdge
+}
+
+"""All input for the `updateFriendship` mutation."""
+input HMNUpdateFriendshipInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Friendship` to be updated.
+  """
+  nodeId: ID!
+  """
+  An object where the defined keys will be set on the `Friendship` being updated.
+  """
+  friendshipPatch: HMNFriendshipPatch!
+}
+
+"""
+Represents an update to a `Friendship`. Fields that are set will be updated.
+"""
+input HMNFriendshipPatch {
+  id: UUID
+  requesterId: UUID
+  recipientId: UUID
+  status: String
+  followsMood: Boolean
+  createdAt: HMNDatetime
+  updatedAt: HMNDatetime
+}
+
+"""All input for the `updateFriendshipById` mutation."""
+input HMNUpdateFriendshipByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `Friendship` being updated.
+  """
+  friendshipPatch: HMNFriendshipPatch!
+  id: UUID!
+}
+
+"""
+All input for the `updateFriendshipByRequesterIdAndRecipientId` mutation.
+"""
+input HMNUpdateFriendshipByRequesterIdAndRecipientIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `Friendship` being updated.
+  """
+  friendshipPatch: HMNFriendshipPatch!
+  requesterId: UUID!
+  recipientId: UUID!
+}
+
+"""The output of our update `HugRequest` mutation."""
+type HMNUpdateHugRequestPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `HugRequest` that was updated by this mutation."""
+  hugRequest: HugRequest
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRecipientId: User
+  """An edge for our `HugRequest`. May be used by Relay 1."""
+  hugRequestEdge(
+    """The method to use when ordering `HugRequest`."""
+    orderBy: [HMNHugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNHugRequestsEdge
+}
+
+"""All input for the `updateHugRequest` mutation."""
+input HMNUpdateHugRequestInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `HugRequest` to be updated.
+  """
+  nodeId: ID!
+  """
+  An object where the defined keys will be set on the `HugRequest` being updated.
+  """
+  hugRequestPatch: HMNHugRequestPatch!
+}
+
+"""
+Represents an update to a `HugRequest`. Fields that are set will be updated.
+"""
+input HMNHugRequestPatch {
+  id: UUID
+  message: String
+  requesterId: UUID
+  recipientId: UUID
+  """Whether this is a request to the community rather than a specific user"""
+  isCommunityRequest: Boolean
+  """
+  The status of the request (PENDING, ACCEPTED, DECLINED, EXPIRED, CANCELLED)
+  """
+  status: String
+  createdAt: HMNDatetime
+  respondedAt: HMNDatetime
+}
+
+"""All input for the `updateHugRequestById` mutation."""
+input HMNUpdateHugRequestByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `HugRequest` being updated.
+  """
+  hugRequestPatch: HMNHugRequestPatch!
+  id: UUID!
+}
+
+"""The output of our update `Hug` mutation."""
+type HMNUpdateHugPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Hug` that was updated by this mutation."""
+  hug: Hug
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Hug`."""
+  userBySenderId: User
+  """Reads a single `User` that is related to this `Hug`."""
+  userByRecipientId: User
+  """An edge for our `Hug`. May be used by Relay 1."""
+  hugEdge(
+    """The method to use when ordering `Hug`."""
+    orderBy: [HMNHugsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNHugsEdge
+}
+
+"""All input for the `updateHug` mutation."""
+input HMNUpdateHugInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Hug` to be updated.
+  """
+  nodeId: ID!
+  """
+  An object where the defined keys will be set on the `Hug` being updated.
+  """
+  hugPatch: HMNHugPatch!
+}
+
+"""Represents an update to a `Hug`. Fields that are set will be updated."""
+input HMNHugPatch {
+  id: UUID
+  """The type of hug (QUICK, WARM, SUPPORTIVE, etc)"""
+  type: String
+  message: String
+  senderId: UUID
+  recipientId: UUID
+  """Whether the recipient has read the hug"""
+  isRead: Boolean
+  createdAt: HMNDatetime
+}
+
+"""All input for the `updateHugById` mutation."""
+input HMNUpdateHugByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `Hug` being updated.
+  """
+  hugPatch: HMNHugPatch!
+  id: UUID!
+}
+
+"""The output of our update `Migration` mutation."""
+type HMNUpdateMigrationPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Migration` that was updated by this mutation."""
+  migration: HMNMigration
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """An edge for our `Migration`. May be used by Relay 1."""
+  migrationEdge(
+    """The method to use when ordering `Migration`."""
+    orderBy: [HMNMigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNMigrationsEdge
+}
+
+"""All input for the `updateMigration` mutation."""
+input HMNUpdateMigrationInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Migration` to be updated.
+  """
+  nodeId: ID!
+  """
+  An object where the defined keys will be set on the `Migration` being updated.
+  """
+  migrationPatch: HMNMigrationPatch!
+}
+
+"""
+Represents an update to a `Migration`. Fields that are set will be updated.
+"""
+input HMNMigrationPatch {
+  id: Int
+  name: String
+  appliedAt: HMNDatetime
+}
+
+"""All input for the `updateMigrationById` mutation."""
+input HMNUpdateMigrationByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `Migration` being updated.
+  """
+  migrationPatch: HMNMigrationPatch!
+  id: Int!
+}
+
+"""All input for the `updateMigrationByName` mutation."""
+input HMNUpdateMigrationByNameInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `Migration` being updated.
+  """
+  migrationPatch: HMNMigrationPatch!
+  name: String!
+}
+
+"""The output of our update `Mood` mutation."""
+type HMNUpdateMoodPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Mood` that was updated by this mutation."""
+  mood: Mood
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Mood`."""
+  userByUserId: User
+  """An edge for our `Mood`. May be used by Relay 1."""
+  moodEdge(
+    """The method to use when ordering `Mood`."""
+    orderBy: [HMNMoodsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNMoodsEdge
+}
+
+"""All input for the `updateMood` mutation."""
+input HMNUpdateMoodInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Mood` to be updated.
+  """
+  nodeId: ID!
+  """
+  An object where the defined keys will be set on the `Mood` being updated.
+  """
+  moodPatch: HMNMoodPatch!
+}
+
+"""Represents an update to a `Mood`. Fields that are set will be updated."""
+input HMNMoodPatch {
+  id: UUID
+  """The mood score from 1-10"""
+  score: Int
+  note: String
+  """Whether this mood entry is publicly visible"""
+  isPublic: Boolean
+  userId: UUID
+  createdAt: HMNDatetime
+}
+
+"""All input for the `updateMoodById` mutation."""
+input HMNUpdateMoodByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `Mood` being updated.
+  """
+  moodPatch: HMNMoodPatch!
+  id: UUID!
+}
+
+"""The output of our update `User` mutation."""
+type HMNUpdateUserPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `User` that was updated by this mutation."""
+  user: User
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """An edge for our `User`. May be used by Relay 1."""
+  userEdge(
+    """The method to use when ordering `User`."""
+    orderBy: [HMNUsersOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNUsersEdge
+}
+
+"""All input for the `updateUser` mutation."""
+input HMNUpdateUserInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `User` to be updated.
+  """
+  nodeId: ID!
+  """
+  An object where the defined keys will be set on the `User` being updated.
+  """
+  userPatch: HMNUserPatch!
+}
+
+"""Represents an update to a `User`. Fields that are set will be updated."""
+input HMNUserPatch {
+  """The primary unique identifier for the user"""
+  id: UUID
+  """The username used to login"""
+  username: String
+  """The email address of the user"""
+  email: String
+  """The display name of the user"""
+  name: String
+  password: String
+  avatarUrl: String
+  """Whether this user is anonymous"""
+  isAnonymous: Boolean
+  createdAt: HMNDatetime
+  updatedAt: HMNDatetime
+}
+
+"""All input for the `updateUserById` mutation."""
+input HMNUpdateUserByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `User` being updated.
+  """
+  userPatch: HMNUserPatch!
+  """The primary unique identifier for the user"""
+  id: UUID!
+}
+
+"""All input for the `updateUserByUsername` mutation."""
+input HMNUpdateUserByUsernameInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `User` being updated.
+  """
+  userPatch: HMNUserPatch!
+  """The username used to login"""
+  username: String!
+}
+
+"""All input for the `updateUserByEmail` mutation."""
+input HMNUpdateUserByEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  An object where the defined keys will be set on the `User` being updated.
+  """
+  userPatch: HMNUserPatch!
+  """The email address of the user"""
+  email: String!
+}
+
+"""The output of our delete `Friendship` mutation."""
+type HMNDeleteFriendshipPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Friendship` that was deleted by this mutation."""
+  friendship: Friendship
+  deletedFriendshipId: ID
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `Friendship`."""
+  userByRecipientId: User
+  """An edge for our `Friendship`. May be used by Relay 1."""
+  friendshipEdge(
+    """The method to use when ordering `Friendship`."""
+    orderBy: [HMNFriendshipsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNFriendshipsEdge
+}
+
+"""All input for the `deleteFriendship` mutation."""
+input HMNDeleteFriendshipInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Friendship` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""All input for the `deleteFriendshipById` mutation."""
+input HMNDeleteFriendshipByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""
+All input for the `deleteFriendshipByRequesterIdAndRecipientId` mutation.
+"""
+input HMNDeleteFriendshipByRequesterIdAndRecipientIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  requesterId: UUID!
+  recipientId: UUID!
+}
+
+"""The output of our delete `HugRequest` mutation."""
+type HMNDeleteHugRequestPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `HugRequest` that was deleted by this mutation."""
+  hugRequest: HugRequest
+  deletedHugRequestId: ID
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRequesterId: User
+  """Reads a single `User` that is related to this `HugRequest`."""
+  userByRecipientId: User
+  """An edge for our `HugRequest`. May be used by Relay 1."""
+  hugRequestEdge(
+    """The method to use when ordering `HugRequest`."""
+    orderBy: [HMNHugRequestsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNHugRequestsEdge
+}
+
+"""All input for the `deleteHugRequest` mutation."""
+input HMNDeleteHugRequestInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `HugRequest` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""All input for the `deleteHugRequestById` mutation."""
+input HMNDeleteHugRequestByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `Hug` mutation."""
+type HMNDeleteHugPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Hug` that was deleted by this mutation."""
+  hug: Hug
+  deletedHugId: ID
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Hug`."""
+  userBySenderId: User
+  """Reads a single `User` that is related to this `Hug`."""
+  userByRecipientId: User
+  """An edge for our `Hug`. May be used by Relay 1."""
+  hugEdge(
+    """The method to use when ordering `Hug`."""
+    orderBy: [HMNHugsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNHugsEdge
+}
+
+"""All input for the `deleteHug` mutation."""
+input HMNDeleteHugInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Hug` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""All input for the `deleteHugById` mutation."""
+input HMNDeleteHugByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `Migration` mutation."""
+type HMNDeleteMigrationPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Migration` that was deleted by this mutation."""
+  migration: HMNMigration
+  deletedMigrationId: ID
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """An edge for our `Migration`. May be used by Relay 1."""
+  migrationEdge(
+    """The method to use when ordering `Migration`."""
+    orderBy: [HMNMigrationsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNMigrationsEdge
+}
+
+"""All input for the `deleteMigration` mutation."""
+input HMNDeleteMigrationInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Migration` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""All input for the `deleteMigrationById` mutation."""
+input HMNDeleteMigrationByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: Int!
+}
+
+"""All input for the `deleteMigrationByName` mutation."""
+input HMNDeleteMigrationByNameInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  name: String!
+}
+
+"""The output of our delete `Mood` mutation."""
+type HMNDeleteMoodPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `Mood` that was deleted by this mutation."""
+  mood: Mood
+  deletedMoodId: ID
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """Reads a single `User` that is related to this `Mood`."""
+  userByUserId: User
+  """An edge for our `Mood`. May be used by Relay 1."""
+  moodEdge(
+    """The method to use when ordering `Mood`."""
+    orderBy: [HMNMoodsOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNMoodsEdge
+}
+
+"""All input for the `deleteMood` mutation."""
+input HMNDeleteMoodInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `Mood` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""All input for the `deleteMoodById` mutation."""
+input HMNDeleteMoodByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `User` mutation."""
+type HMNDeleteUserPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+  """The `User` that was deleted by this mutation."""
+  user: User
+  deletedUserId: ID
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  """An edge for our `User`. May be used by Relay 1."""
+  userEdge(
+    """The method to use when ordering `User`."""
+    orderBy: [HMNUsersOrderBy!] = [PRIMARY_KEY_ASC]
+  ): HMNUsersEdge
+}
+
+"""All input for the `deleteUser` mutation."""
+input HMNDeleteUserInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """
+  The globally unique `ID` which will identify a single `User` to be deleted.
+  """
+  nodeId: ID!
+}
+
+"""All input for the `deleteUserById` mutation."""
+input HMNDeleteUserByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The primary unique identifier for the user"""
+  id: UUID!
+}
+
+"""All input for the `deleteUserByUsername` mutation."""
+input HMNDeleteUserByUsernameInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The username used to login"""
+  username: String!
+}
+
+"""All input for the `deleteUserByEmail` mutation."""
+input HMNDeleteUserByEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  """The email address of the user"""
+  email: String!
+}
+
+type HMNClientInfo {
+  version: String!
+  platform: String!
+  buildDate: String!
+  deviceInfo: String
+  features: [String!]
+}
+
+type HMNMoodStreak {
+  currentStreak: Int!
+  longestStreak: Int!
+  lastMoodDate: String
+}

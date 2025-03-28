@@ -10,13 +10,11 @@ sources:
           Authorization: "{context.headers.authorization}"
 
 transforms:
-  # Transform field and type names to camelCase
   - namingConvention:
       typeNames: pascalCase
       fieldNames: camelCase
       enumValues: upperCase
   
-  # Prefix types to avoid conflicts
   - prefix:
       includeRootOperations: false
       value: HMN
@@ -27,13 +25,11 @@ transforms:
         - HugRequest
         - Friendship
     
-  # Filter the schema to only include specific entities
   - filterSchema:
       filters:
         - Query.!(_*|metadata|schema|clientInfo)
         - Mutation.!(_*|metadata|deleteNode|registerUser)
 
-  # Rename fields to match client expectations
   - rename:
       renames:
         - from: 
@@ -48,38 +44,31 @@ transforms:
             type: Hug
             field: isRead
           to: read
-          
-  # Authentication transform commented out until we fix the transform names
-  # Removing for now to get basic functionality working
 
-  # Support for Live Queries
-  - liveQuery:
-      invalidations:
-        - field: "Query.publicMoods"
-          invalidatedBy:
-            - "Mutation.createMoodEntry"
-        - field: "Query.friendsMoods"
-          invalidatedBy:
-            - "Mutation.createMoodEntry"
-        - field: "Query.userMoods"
-          invalidatedBy:
-            - "Mutation.createMoodEntry"
-        - field: "Query.receivedHugs"
-          invalidatedBy:
-            - "Mutation.sendHug"
-        - field: "Query.sentHugs"
-          invalidatedBy:
-            - "Mutation.sendHug"
-        - field: "Query.communityHugRequests"
-          invalidatedBy:
-            - "Mutation.createHugRequest"
-            - "Mutation.respondToHugRequest"
-
-# Dynamic resolvers from a JavaScript file
 additionalResolvers:
   - ./mesh-resolvers.js
 
-# Schema extensions with custom types and virtual fields
+middleware:
+  - shield:
+      resolvers: ./shield-rules.js
+      rules:
+        Query: 
+          "*": true
+          userMoods: "isAuthenticated"
+          receivedHugs: "isAuthenticated"
+          sentHugs: "isAuthenticated"
+          pendingHugRequests: "isAuthenticated"
+        Mutation:
+          "*": "isAuthenticated"
+
+plugins:
+  - liveQuery:
+      pollingInterval: 3000
+      invalidateClosedConnections: true
+      enableLiveBackwardCompatibility: true
+      localStorage:
+        enabled: true
+
 additionalTypeDefs: |
   type ClientInfo {
     version: String!
@@ -110,7 +99,8 @@ additionalTypeDefs: |
     # Virtual mutations that map to the actual PostGraphile mutations
     sendHug(input: HugInput!): Hug
     createMoodEntry(moodInput: MoodInput!): Mood
-    createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
+    # createHugRequest - commented out as it exists in the base schema
+    # createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
     respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
   }
 
@@ -147,7 +137,6 @@ additionalTypeDefs: |
     requester: User
   }
 
-# Enable SDL generation
 sdl:
   generate: true
   filepath: ./schema.graphql
@@ -159,7 +148,6 @@ sdk:
   operations:
     - ./hugmenow/web/src/graphql/operations.graphql
 
-# Configure how Mesh is served
 serve:
   browser: false
   playground: true

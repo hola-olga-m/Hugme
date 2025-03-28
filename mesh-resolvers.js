@@ -6,7 +6,18 @@
  * 2. Virtual fields that map client field names to server field names
  * 3. Custom resolver logic for transforming data between formats
  * 4. Enhanced data transformation and processing
+ * 5. Live query support for real-time updates
  */
+ 
+// Live query directives support
+const LIVE_QUERY_FIELDS = {
+  'Query.publicMoods': true,
+  'Query.userMoods': true,
+  'Query.receivedHugs': true,
+  'Query.communityHugRequests': true,
+  'Query.friendsMoods': true,
+  'Query.pendingHugRequests': true
+};
 
 // Enhanced helper functions for logging, error handling, and performance tracking
 const logResolver = (path, args = {}) => {
@@ -70,6 +81,40 @@ const transformHugNode = (node) => {
 
 // Export resolvers as CommonJS module
 module.exports = {
+  // LiveQuery support - mark which fields should use live query
+  $live: {
+    liveQueries: LIVE_QUERY_FIELDS,
+    // The cache won't be updated after this resolver is called
+    invalidate: (typeName, fieldName) => {
+      // Check if this is a mutation that should invalidate the cache
+      if (typeName === 'Mutation') {
+        // For createMoodEntry, invalidate publicMoods and userMoods
+        if (fieldName === 'createMoodEntry') {
+          return [
+            'Query.publicMoods',
+            'Query.userMoods',
+            'Query.friendsMoods'
+          ];
+        }
+        // For sendHug, invalidate receivedHugs and sentHugs
+        if (fieldName === 'sendHug') {
+          return [
+            'Query.receivedHugs',
+            'Query.sentHugs'
+          ];
+        }
+        // For createHugRequest, invalidate communityHugRequests and pendingHugRequests
+        if (fieldName === 'createHugRequest' || fieldName === 'respondToHugRequest') {
+          return [
+            'Query.communityHugRequests',
+            'Query.pendingHugRequests'
+          ];
+        }
+      }
+      // By default, don't invalidate anything
+      return [];
+    }
+  },
   Query: {
     // Client information - client-only field providing version info
     clientInfo: () => {
