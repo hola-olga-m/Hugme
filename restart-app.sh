@@ -24,10 +24,15 @@ fi
 echo "🔧 Applying GraphQL fixes..."
 node fix-graphql.js
 
-# Clear error logs 
-echo "🧹 Clearing application error logs..."
+# Clear error logs and cache
+echo "🧹 Clearing application error logs and cache..."
 mkdir -p ./hugmenow/web/src/graphql/
 > ./hugmenow/web/src/graphql/error.log
+
+# Remove any cached data that might be causing issues
+rm -rf ./hugmenow/web/.cache
+rm -rf ./hugmenow/web/dist/cache
+rm -rf ./hugmenow/web/node_modules/.cache
 
 # Start the application
 echo "🚀 Starting application..."
