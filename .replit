@@ -38,7 +38,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "FixAllGraphQLErrors"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -87,79 +87,6 @@ args = "./start-postgraphile.sh"
 waitForPort = 3003
 
 [[workflows.workflow]]
-name = "FixGraphQLSchema"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = '''node fix-schema-mismatches.js "$(cat hugmenow/web/src/graphql/error.log || echo '[GraphQL error]: Message: Unknown argument \"limit\" on field \"Query.publicMoods\"')"'''
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node sync-schema.js"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "echo \"Schema fixes generated. You may need to restart the application to apply changes.\""
-
-[[workflows.workflow]]
-name = "FixSchemaAndRestart"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = '''node fix-schema-mismatches.js "$(cat hugmenow/web/src/graphql/error.log || echo '[GraphQL error]: Message: Unknown argument \"limit\" on field \"Query.publicMoods\".\n[GraphQL error]: Message: Unknown argument \"search\" on field \"Query.users\".\n[GraphQL error]: Message: Unknown argument \"limit\" on field \"Query.users\".\n[GraphQL error]: Message: Unknown argument \"offset\" on field \"Query.users\".\n[GraphQL error]: Message: Unknown argument \"offset\" on field \"Query.friendsMoods\".\n[GraphQL error]: Message: Variable \"$limit\" of type \"Int\" used in position expecting type \"Float\".')"'''
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node sync-schema.js"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node restart-app.js"
-
-[[workflows.workflow]]
-name = "FixGraphQLErrors"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node collect-errors.js"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node fix-schema-mismatches.js \"$(cat hugmenow/web/src/graphql/error.log)\""
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node sync-schema.js"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node restart-app.js"
-
-[[workflows.workflow]]
-name = "FixAllGraphQLErrors"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node fix-graphql-errors.js"
-
-[[workflows.workflow]]
-name = "FixClientPagination"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node fix-client-pagination.js"
-
-[[workflows.workflow]]
 name = "HugMeNow"
 author = "agent"
 
@@ -173,3 +100,12 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-hugmenow.sh"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "FixGraphQL"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node fix-graphql.js"
