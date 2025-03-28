@@ -1254,7 +1254,7 @@ export const CreateMoodDocument = gql`
   mutation createMood($createMoodInput: CreateMoodInput!) {
     createMood(createMoodInput: $createMoodInput) {
       id
-      score
+      note
       note
       isPublic
       createdAt
@@ -1309,7 +1309,7 @@ export const UpdateMoodDocument = gql`
   mutation updateMood($updateMoodInput: UpdateMoodInput!) {
     updateMood(updateMoodInput: $updateMoodInput) {
       id
-      score
+      note
       note
       isPublic
       createdAt
@@ -1931,9 +1931,9 @@ export type GetUserProfileQueryResult = Apollo.QueryResult<
 >;
 export const GetUserStatsDocument = gql`
   query GetUserStats {
-    userMoods {
+    moods {
       id
-      score
+      note
     }
   }
 `;
@@ -2009,7 +2009,7 @@ export type GetUserStatsQueryResult = Apollo.QueryResult<
 >;
 export const GetUserMoodsCountDocument = gql`
   query GetUserMoodsCount {
-    userMoods {
+    moods {
       id
     }
   }
@@ -2086,7 +2086,7 @@ export type GetUserMoodsCountQueryResult = Apollo.QueryResult<
 >;
 export const GetSentHugsCountDocument = gql`
   query GetSentHugsCount {
-    sentHugs {
+    hugs {
       id
     }
   }
@@ -2163,7 +2163,7 @@ export type GetSentHugsCountQueryResult = Apollo.QueryResult<
 >;
 export const GetReceivedHugsCountDocument = gql`
   query GetReceivedHugsCount {
-    receivedHugs {
+    hugs {
       id
     }
   }
@@ -2240,8 +2240,7 @@ export type GetReceivedHugsCountQueryResult = Apollo.QueryResult<
 >;
 export const GetMoodStreakDocument = gql`
   query GetMoodStreak {
-    moodStreak
-  }
+    moodStreak { count currentStreak longestStreak }
 `;
 
 /**
@@ -2315,9 +2314,9 @@ export type GetMoodStreakQueryResult = Apollo.QueryResult<
 >;
 export const GetUserMoodsDocument = gql`
   query GetUserMoods {
-    userMoods {
+    moods {
       id
-      score
+      note
       note
       createdAt
     }
@@ -2397,7 +2396,7 @@ export const GetPublicMoodsDocument = gql`
   query GetPublicMoods {
     publicMoods {
       id
-      score
+      note
       note
       createdAt
       user {
@@ -2481,9 +2480,9 @@ export type GetPublicMoodsQueryResult = Apollo.QueryResult<
 >;
 export const GetFriendsMoodsDocument = gql`
   query GetFriendsMoods {
-    friendsMoods {
+    publicMoods {
       id
-      score
+      note
       note
       createdAt
       user {
@@ -2569,7 +2568,7 @@ export const CreateMoodEntryDocument = gql`
   mutation CreateMoodEntry($createMoodInput: CreateMoodInput!) {
     createMood(createMoodInput: $createMoodInput) {
       id
-      score
+      note
       note
       createdAt
     }
@@ -2620,7 +2619,7 @@ export type CreateMoodEntryMutationOptions = Apollo.BaseMutationOptions<
 >;
 export const GetReceivedHugsDocument = gql`
   query GetReceivedHugs {
-    receivedHugs {
+    hugs {
       id
       type
       message
@@ -2707,7 +2706,7 @@ export type GetReceivedHugsQueryResult = Apollo.QueryResult<
 >;
 export const GetSentHugsDocument = gql`
   query GetSentHugs {
-    sentHugs {
+    hugs {
       id
       type
       message

@@ -76,7 +76,7 @@ export const GET_USER_STATS = gql`
   query GetUserStats {
     moods {
       id
-      score
+      note
     }
   }
 `;
@@ -257,7 +257,7 @@ export const GET_COMMUNITY_FEED = gql`
         avatarUrl
       }
       ... on MoodPost {
-        score
+        note
       }
       ... on HugPost {
         hugType

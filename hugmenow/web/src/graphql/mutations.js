@@ -80,7 +80,7 @@ export const CREATE_MOOD = gql`
   mutation createMood($createMoodInput: CreateMoodInput!) {
     createMood(createMoodInput: $createMoodInput) {
       id
-      score
+      note
       note
       isPublic
       createdAt
@@ -93,7 +93,7 @@ export const UPDATE_MOOD = gql`
   mutation updateMood($updateMoodInput: UpdateMoodInput!) {
     updateMood(updateMoodInput: $updateMoodInput) {
       id
-      score
+      note
       note
       isPublic
       createdAt
