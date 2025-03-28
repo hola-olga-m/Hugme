@@ -8,7 +8,7 @@ function MeshSdkExample() {
   const [moods, setMoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [newMood, setNewMood] = useState({ mood: 'happy', intensity: 7, note: '', isPublic: true });
+  const [newMood, setNewMood] = useState({ mood: 'HAPPY', intensity: 7, note: '' });
   
   // Get the Mesh SDK hook
   const sdk = useMeshSdk();
@@ -52,7 +52,7 @@ function MeshSdkExample() {
         setMoods(publicMoods);
         
         // Reset the form
-        setNewMood({ mood: 'happy', intensity: 7, note: '', isPublic: true });
+        setNewMood({ mood: 'HAPPY', intensity: 7, note: '' });
       }
     } catch (err) {
       console.error('Error creating mood:', err);
@@ -95,12 +95,14 @@ function MeshSdkExample() {
             value={newMood.mood} 
             onChange={handleInputChange}
           >
-            <option value="happy">Happy</option>
-            <option value="sad">Sad</option>
-            <option value="excited">Excited</option>
-            <option value="calm">Calm</option>
-            <option value="anxious">Anxious</option>
-            <option value="angry">Angry</option>
+            <option value="HAPPY">Happy</option>
+            <option value="SAD">Sad</option>
+            <option value="EXCITED">Excited</option>
+            <option value="CALM">Calm</option>
+            <option value="ANXIOUS">Anxious</option>
+            <option value="ANGRY">Angry</option>
+            <option value="GRATEFUL">Grateful</option>
+            <option value="PEACEFUL">Peaceful</option>
           </select>
         </div>
         

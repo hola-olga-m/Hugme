@@ -141,11 +141,7 @@ const App = () => {
                     <PublicHugGallery />
                   </StaticRoute>
                 } />
-                <Route path="/mesh-sdk-demo" element={
-                  <StaticRoute>
-                    <MeshSdkDemo />
-                  </StaticRoute>
-                } />
+                <Route path="/mesh-sdk-demo" element={<MeshSdkDemo />} />
                 
                 {/* Not found route */}
                 <Route path="*" element={<NotFound />} />

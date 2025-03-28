@@ -20,7 +20,6 @@ const MOOD_FRAGMENT = `
   mood
   intensity
   note
-  isPublic
   createdAt
 `;
 
