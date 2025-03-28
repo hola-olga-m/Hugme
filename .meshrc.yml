@@ -72,10 +72,9 @@ generate:
         limit: Int
         offset: Int
     - type: Query
-      path: friendsMoods
-      name: FriendsMoods
+      path: publicMoods
+      name: PublicMoods
       arguments:
-        userId: ID!
         limit: Int = 10
         offset: Int = 0
     - type: Query
@@ -125,12 +124,6 @@ transforms:
       # Query field mappings
       - from:
           type: Query
-          field: friendsMoods
-        to:
-          type: Query
-          field: allMoods
-      - from:
-          type: Query
           field: userMoods
         to:
           type: Query
@@ -147,6 +140,12 @@ transforms:
         to:
           type: Query
           field: allHugs
+      - from:
+          type: Query
+          field: publicMoods
+        to:
+          type: Query
+          field: allPublicMoods
       
       # Type field mappings
       - from:
@@ -427,10 +426,10 @@ logger:
 plugins:
   - liveQuery:
       invalidations:
-        # Invalidate friendsMoods and userMoods queries when a new mood is created
+        # Invalidate publicMoods and userMoods queries when a new mood is created
         - field: Mutation.createMoodEntry
           invalidate:
-            - Query.friendsMoods
+            - Query.publicMoods
             - Query.userMoods
             - Mood:{args.moodInput.userId}
             
