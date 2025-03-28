@@ -86,7 +86,12 @@ export const createApolloClient = () => {
                 return [...incoming];
               }
             },
-            // All references to friendsMoods have been completely removed from the codebase
+            friendsMoods: {
+              merge(existing = [], incoming) {
+                return [...incoming];
+              }
+            },
+            // friendsMoods field is kept for backward compatibility
             hugs: {
               merge(existing = [], incoming) {
                 return [...incoming];

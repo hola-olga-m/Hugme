@@ -4,10 +4,189 @@ sources:
       graphql:
         endpoint: http://localhost:3003/postgraphile/graphql
         batch: true
+        operationHeaders:
+          Authorization: "{context.headers.authorization}"
+        schemaHeaders:
+          Authorization: "{context.headers.authorization}"
 
-documents:
-  - ./hugmenow/web/src/graphql/operations.graphql
+transforms:
+  # Transform field and type names to camelCase
+  - namingConvention:
+      typeNames: pascalCase
+      fieldNames: camelCase
+      enumValues: upperCase
+  
+  # Prefix types to avoid conflicts
+  - prefix:
+      includeRootOperations: false
+      value: HMN
+      ignore:
+        - User
+        - Mood
+        - Hug
+        - HugRequest
+        - Friendship
+    
+  # Filter the schema to only include specific entities
+  - filterSchema:
+      filters:
+        - Query.!(_*|metadata|schema|clientInfo)
+        - Mutation.!(_*|metadata|deleteNode|registerUser)
 
+  # Rename fields to match client expectations
+  - rename:
+      renames:
+        - from: 
+            type: Mood
+            field: score
+          to: intensity
+        - from:
+            type: Mood
+            field: isPublic
+          to: public
+        - from:
+            type: Hug
+            field: isRead
+          to: read
+
+# Dynamic resolvers from a JavaScript file
+additionalResolvers:
+  - ./mesh-resolvers.js
+
+# Schema extensions with custom types and virtual fields
+additionalTypeDefs: |
+  type ClientInfo {
+    version: String!
+    platform: String!
+    buildDate: String!
+    deviceInfo: String
+    features: [String!]
+  }
+
+  extend type Query {
+    # Client information
+    clientInfo: ClientInfo!
+  
+    # Virtual fields that map to transformed queries
+    publicMoods(limit: Int, offset: Int): [Mood!]!
+    userMoods(userId: ID, limit: Int, offset: Int): [Mood!]!
+    moodStreak(userId: ID!): MoodStreak!
+    communityHugRequests(limit: Int, offset: Int): [HugRequest!]!
+    receivedHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!
+    sentHugs(userId: ID!, limit: Int, offset: Int): [Hug!]!
+    pendingHugRequests(userId: ID!): [HugRequest!]!
+    
+    # Legacy field kept for backward compatibility
+    friendsMoods(limit: Int, offset: Int): [Mood!]!
+  }
+
+  extend type Mutation {
+    # Virtual mutations that map to the actual PostGraphile mutations
+    sendHug(input: HugInput!): Hug
+    createMoodEntry(moodInput: MoodInput!): Mood
+    createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
+    respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
+  }
+
+  input HugInput {
+    senderId: ID!
+    recipientId: ID!
+    message: String
+  }
+
+  input MoodInput {
+    userId: ID!
+    intensity: Int!
+    note: String
+    private: Boolean
+  }
+
+  input HugRequestInput {
+    requesterId: ID!
+    message: String
+  }
+
+  type MoodStreak {
+    currentStreak: Int!
+    longestStreak: Int!
+    lastMoodDate: String
+  }
+
+  extend type Hug {
+    fromUser: User
+    toUser: User
+  }
+
+  extend type HugRequest {
+    requester: User
+  }
+
+  # Authentication transform for security (added to transforms section)
+  - authenticationTransform:
+      type: "@graphql-mesh/transform-authentication"
+      options:
+        mode: graphql-shield
+        rules:
+          # Define authentication rules
+          isAuthenticated: "context => !!context.user"
+          hasScope: "scopeName => context => context.user && context.user.scopes.includes(scopeName)"
+          
+        # Apply rules to fields and types
+        permissions:
+          Query: 
+            "*": "isAuthenticated"
+            publicMoods: "true" # Public access
+            friendsMoods: "true" # Public access (legacy field)
+            clientInfo: "true" # Public access
+          Mutation: 
+            "*": "isAuthenticated"
+            login: "true" # Public access
+            register: "true" # Public access
+          Hug: "isAuthenticated"
+          User.email: "isAuthenticated"
+          User.name: "true" # Public access
+          User.username: "true" # Public access
+
+  # Support for Live Queries
+  - liveQuery:
+      invalidations:
+        - field: "Query.publicMoods"
+          invalidatedBy:
+            - "Mutation.createMoodEntry"
+        - field: "Query.friendsMoods"
+          invalidatedBy:
+            - "Mutation.createMoodEntry"
+        - field: "Query.userMoods"
+          invalidatedBy:
+            - "Mutation.createMoodEntry"
+        - field: "Query.receivedHugs"
+          invalidatedBy:
+            - "Mutation.sendHug"
+        - field: "Query.sentHugs"
+          invalidatedBy:
+            - "Mutation.sendHug"
+        - field: "Query.communityHugRequests"
+          invalidatedBy:
+            - "Mutation.createHugRequest"
+            - "Mutation.respondToHugRequest"
+
+# Enable SDL generation
+sdl:
+  generate: true
+  filepath: ./schema.graphql
+
+# Generate TypeScript SDK
+sdk:
+  generate: true
+  path: ./hugmenow/web/src/mesh-sdk
+  operations:
+    - ./hugmenow/web/src/graphql/operations.graphql
+
+# Configure how Mesh is served
 serve:
   browser: false
   playground: true
+  cors:
+    origin: "*"
+    credentials: true
+  port: 4000

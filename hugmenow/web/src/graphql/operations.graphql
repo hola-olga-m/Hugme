@@ -1,5 +1,21 @@
 # HugMeNow GraphQL Operations
 
+# Legacy query for friends' moods (maintained for backward compatibility)
+query friendsMoods($limit: Int, $offset: Int) {
+  friendsMoods(limit: $limit, offset: $offset) {
+    id
+    intensity
+    note
+    createdAt
+    user {
+      id
+      name
+      username
+      avatarUrl
+    }
+  }
+}
+
 # Query for public moods - replaces friendsMoods
 query publicMoods($first: Int, $offset: Int) {
   allMoods(first: $first, offset: $offset, condition: { isPublic: true }) {

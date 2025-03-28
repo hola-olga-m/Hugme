@@ -85,6 +85,39 @@ module.exports = {
     },
     
     // The friendsMoods field has been replaced with publicMoods
+    // But we still provide a basic implementation for backward compatibility
+    friendsMoods: async (root, args, context, info) => {
+      logResolver('Query.friendsMoods', args);
+      try {
+        // Just delegate to the publicMoods resolver
+        return context.PostGraphileAPI.Query.allMoods({
+          first: args.limit || 10,
+          offset: args.offset || 0,
+          condition: {
+            isPublic: true
+          }
+        }).then(result => {
+          const nodes = result?.nodes || [];
+          console.log(`[Mesh] Found ${nodes.length} public moods (via friendsMoods compat)`);
+          
+          // Map PostGraphile response structure to what frontend expects
+          return nodes.map(node => ({
+            id: node.id,
+            intensity: node.score, // Map score to intensity
+            note: node.note,
+            createdAt: node.createdAt,
+            user: node.userByUserId ? {
+              id: node.userByUserId.id,
+              name: node.userByUserId.name,
+              username: node.userByUserId.username,
+              avatarUrl: node.userByUserId.avatarUrl
+            } : null
+          }));
+        });
+      } catch (error) {
+        return handleError('Query.friendsMoods', error) || [];
+      }
+    },
     // This resolver maps the publicMoods query name to allMoods with condition
     publicMoods: async (root, args, context, info) => {
       logResolver('Query.publicMoods', args);
