@@ -124,6 +124,12 @@ const typeDefs = `#graphql
     user: User
   }
 
+  # Authentication types
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+  
   # Root Query type definition
   type Query {
     # Client information field - provides version info
@@ -137,6 +143,7 @@ const typeDefs = `#graphql
     
     # Direct fields that pass through to the API
     user(id: ID!): User
+    me: User
     mood(id: ID!): MoodEntry
     publicMoods(limit: Int, offset: Int): [PublicMood]
     moods(userId: ID!, limit: Int, offset: Int): [MoodEntry]
@@ -159,10 +166,19 @@ const typeDefs = `#graphql
     moodId: ID
   }
 
+  # Register input type
+  input RegisterInput {
+    name: String!
+    email: String!
+    password: String!
+  }
+
   # Mutation definitions
   type Mutation {
     createMood(input: CreateMoodInput!): MoodEntry
     sendHug(input: SendHugInput!): Hug
+    login(email: String!, password: String!): AuthPayload
+    register(input: RegisterInput!): AuthPayload
   }
 `;
 
@@ -281,41 +297,63 @@ const resolvers = {
     },
 
     publicMoods: async (_, args, context) => {
-      console.log('[Gateway] Resolving Query.publicMoods');
-      return executeGraphQL(`
-        query GetPublicMoods($limit: Int, $offset: Int) {
-          allMoods(
-            first: $limit
-            offset: $offset
-          ) {
-            nodes {
-              id
-              score
-              note
-              isPublic
-              createdAt
-              userId
-              userByUserId {
-                id
-                username
-                name
-                avatarUrl
+      console.log('[Gateway] Resolving Query.publicMoods with modified approach');
+      
+      try {
+        // Use a simpler query to fetch all moods and filter locally to avoid schema conflicts
+        const response = await fetch(TARGET_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(context.headers?.authorization ? { 'Authorization': context.headers.authorization } : {})
+          },
+          body: JSON.stringify({
+            query: `
+              query GetAllMoods($limit: Int, $offset: Int) {
+                allMoods(first: $limit, offset: $offset) {
+                  nodes {
+                    id
+                    score
+                    note
+                    isPublic
+                    createdAt
+                    userId
+                    userByUserId {
+                      id
+                      username
+                      avatarUrl
+                    }
+                  }
+                }
               }
+            `,
+            variables: { 
+              // Request a bit more than needed since we'll filter out non-public moods
+              limit: Math.min((args.limit || 10) * 2, 50), 
+              offset: args.offset || 0 
             }
-          }
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          console.error('[Gateway] GraphQL errors:', result.errors);
+          return [];
         }
-      `,
-        { limit: args.limit || 10, offset: args.offset || 0 },
-        context.headers?.authorization
-      ).then(data => {
-        // Transform the response from allMoods.nodes to match our PublicMood type
-        const moods = data?.allMoods?.nodes || [];
-        // Filter to only include public moods
-        const publicMoods = moods.filter(mood => mood.isPublic === true);
-        return publicMoods.map(mood => ({
+        
+        // Get all moods and filter for public ones
+        const allMoods = result.data?.allMoods?.nodes || [];
+        const publicMoods = allMoods.filter(mood => mood.isPublic === true);
+        
+        // Apply the limit after filtering
+        const limitedMoods = publicMoods.slice(0, args.limit || 10);
+        
+        // Transform to match our PublicMood schema
+        return limitedMoods.map(mood => ({
           id: mood.id,
-          intensity: mood.score, // Map score to intensity
-          emoji: "😊", // Default emoji since we don't have mood field
+          intensity: mood.score, 
+          emoji: "😊", // Default emoji mapping
           message: mood.note || "",
           createdAt: mood.createdAt,
           userId: mood.userId,
@@ -325,7 +363,10 @@ const resolvers = {
             avatar: mood.userByUserId?.avatarUrl || ""
           }
         }));
-      });
+      } catch (error) {
+        console.error('[Gateway] Error in publicMoods resolver:', error);
+        return [];
+      }
     },
 
     moods: async (_, args, context) => {
@@ -353,6 +394,60 @@ const resolvers = {
         { userId: args.userId },
         context.headers?.authorization
       ).then(data => data?.moodStreak);
+    },
+    
+    me: async (_, args, context) => {
+      console.log('[Gateway] Resolving Query.me');
+      if (!context.headers?.authorization) {
+        console.log('[Gateway] No authorization token, returning null for me query');
+        return null;
+      }
+      
+      try {
+        // Use a direct HTTP request to fetch the current user data
+        const response = await fetch(TARGET_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': context.headers.authorization
+          },
+          body: JSON.stringify({
+            query: `
+              query GetCurrentUser {
+                currentUser {
+                  id
+                  username
+                  email
+                  avatarUrl
+                }
+              }
+            `
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          console.error('[Gateway] GraphQL errors in me query:', result.errors);
+          return null;
+        }
+        
+        const user = result.data?.currentUser;
+        if (!user) {
+          return null;
+        }
+        
+        // Transform to match our User type
+        return {
+          id: user.id,
+          name: user.username,
+          email: user.email,
+          avatar: user.avatarUrl
+        };
+      } catch (error) {
+        console.error('[Gateway] Error in me resolver:', error);
+        return null;
+      }
     }
   },
   
@@ -374,6 +469,122 @@ const resolvers = {
         { input: args.input },
         context.headers?.authorization
       ).then(data => data?.sendHug);
+    },
+    
+    login: async (_, { email, password }, context) => {
+      console.log('[Gateway] Resolving Mutation.login');
+      
+      try {
+        // Use a direct HTTP request to authenticate with PostGraphile
+        const response = await fetch(TARGET_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            query: `
+              mutation Login($email: String!, $password: String!) {
+                authenticate(input: {email: $email, password: $password}) {
+                  jwt
+                  user {
+                    id
+                    username
+                    email
+                    avatarUrl
+                  }
+                }
+              }
+            `,
+            variables: { email, password }
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          console.error('[Gateway] GraphQL errors in login:', result.errors);
+          throw new Error(result.errors[0].message || "Login failed");
+        }
+        
+        const authData = result.data?.authenticate;
+        if (!authData) {
+          throw new Error("Authentication failed");
+        }
+        
+        // Transform to match our AuthPayload type
+        return {
+          token: authData.jwt,
+          user: {
+            id: authData.user.id,
+            name: authData.user.username,
+            email: authData.user.email,
+            avatar: authData.user.avatarUrl
+          }
+        };
+      } catch (error) {
+        console.error('[Gateway] Error in login resolver:', error);
+        throw new Error(error.message || "Login failed");
+      }
+    },
+    
+    register: async (_, { input }, context) => {
+      console.log('[Gateway] Resolving Mutation.register');
+      
+      try {
+        // Use a direct HTTP request to register with PostGraphile
+        const response = await fetch(TARGET_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            query: `
+              mutation Register($name: String!, $email: String!, $password: String!) {
+                registerUser(input: {username: $name, email: $email, password: $password}) {
+                  user {
+                    id
+                    username
+                    email
+                    avatarUrl
+                  }
+                  jwt
+                }
+              }
+            `,
+            variables: { 
+              name: input.name,
+              email: input.email,
+              password: input.password
+            }
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.errors) {
+          console.error('[Gateway] GraphQL errors in register:', result.errors);
+          throw new Error(result.errors[0].message || "Registration failed");
+        }
+        
+        const registerData = result.data?.registerUser;
+        if (!registerData) {
+          throw new Error("Registration failed");
+        }
+        
+        // Transform to match our AuthPayload type
+        return {
+          token: registerData.jwt,
+          user: {
+            id: registerData.user.id,
+            name: registerData.user.username,
+            email: registerData.user.email,
+            avatar: registerData.user.avatarUrl
+          }
+        };
+      } catch (error) {
+        console.error('[Gateway] Error in register resolver:', error);
+        throw new Error(error.message || "Registration failed");
+      }
     }
   },
   
