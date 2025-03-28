@@ -1,60 +1,29 @@
 # HugMeNow Live Query Guide
 
-## Overview
+This document explains how to use Live Queries in the HugMeNow application, a powerful alternative to traditional GraphQL subscriptions that provides real-time updates with less complexity.
 
-Live Queries are a simpler alternative to GraphQL Subscriptions for implementing real-time updates in your application. This guide explains how to use Live Queries in the HugMeNow application.
+## What Are Live Queries?
 
-## What are Live Queries?
+Live Queries are a real-time data feature that allows you to:
 
-Live Queries allow you to receive real-time updates to your query results without manually implementing complex subscription logic. By simply adding the `@live` directive to your queries, the gateway will automatically push updated results when the underlying data changes.
+1. Automatically receive updates when data changes
+2. Avoid complex subscription handling
+3. Keep UI components synchronized with your data
+4. Reduce boilerplate code in your front-end
 
-## Benefits of Live Queries
+Live Queries work by adding a simple `@live` directive to your GraphQL queries, which then automatically refresh when relevant data changes.
 
-1. **Simplified Client Code**: Just add `@live` to your queries - no complex subscription setup required
-2. **Automatic Updates**: Receive updates when mutations affect query results
-3. **No Subscription Management**: No need to manually create, manage, and cancel subscriptions
-4. **Works with Existing Queries**: Reuse your existing query code - just add the `@live` directive
-5. **Easier Testing**: Mock authentication simplifies testing user-specific data
-
-## How It Works
-
-Behind the scenes, Live Queries use a combination of:
-
-1. GraphQL directives (`@live`) to identify queries that should receive real-time updates
-2. A special execution mechanism that keeps track of these queries
-3. Smart caching to detect when data has changed and needs to be refreshed
-4. WebSockets or Server-Sent Events (SSE) to push updates to clients
-
-## Using Live Queries
+## How to Use Live Queries
 
 ### Basic Example
 
-```graphql
-query PublicMoods @live {
-  publicMoods(limit: 5) {
-    id
-    mood
-    intensity
-    message
-    createdAt
-    user {
-      id
-      username
-    }
-  }
-}
-```
-
-This query will automatically refresh whenever new public moods are created.
-
-### Client Implementation
-
 ```javascript
-import { gql, useQuery } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 
-const PUBLIC_MOODS_QUERY = gql`
-  query PublicMoods @live {
-    publicMoods(limit: 5) {
+// 1. Add the @live directive to your query
+const LIVE_MOODS_QUERY = gql`
+  query GetPublicMoods($limit: Int!) @live {
+    publicMoods(limit: $limit) {
       id
       mood
       intensity
@@ -68,92 +37,168 @@ const PUBLIC_MOODS_QUERY = gql`
   }
 `;
 
-function PublicMoodsComponent() {
-  const { loading, error, data } = useQuery(PUBLIC_MOODS_QUERY);
+// 2. Use it just like a regular query
+function PublicMoodsFeed() {
+  const { loading, error, data } = useQuery(LIVE_MOODS_QUERY, {
+    variables: { limit: 10 }
+  });
   
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   
+  // 3. The data automatically refreshes when new moods are created
   return (
-    <div>
-      <h2>Latest Public Moods</h2>
-      <ul>
-        {data.publicMoods.map(mood => (
-          <li key={mood.id}>
-            {mood.user.username} is feeling {mood.mood} ({mood.intensity}/10)
-            <p>{mood.message}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="moods-feed">
+      <h2>Public Moods</h2>
+      {data.publicMoods.map(mood => (
+        <MoodCard key={mood.id} mood={mood} />
+      ))}
     </div>
   );
 }
 ```
 
-## Technical Implementation
+### With Authentication
 
-Live Queries are implemented in HugMeNow using a lightweight polling approach that:
-
-1. Detects the `@live` directive on incoming queries
-2. Sets up a polling mechanism that re-executes the query at regular intervals
-3. Pushes updated results to the client when changes are detected
-4. Automatically cleans up when the client disconnects
-
-This approach achieves real-time updates without the complexity of GraphQL Subscriptions or WebSockets.
-
-## Live Query vs. Subscriptions
-
-| Feature | Live Queries | Subscriptions |
-|---------|-------------|--------------|
-| Client Complexity | Low (just add `@live`) | High (subscription setup, management) |
-| Server Implementation | Simpler | More complex (WebSockets, PubSub) |
-| Update Mechanism | Polling with optimizations | Event-based |
-| Resource Usage | Slightly higher | More efficient for many clients |
-| Client Code Changes | Minimal | Requires separate subscription code |
-| GraphQL Compatibility | Works with standard clients | Requires subscription support |
-
-## Supported Endpoints for Live Queries
-
-The following endpoints support the `@live` directive:
-
-- `publicMoods`: Get real-time updates on public moods
-- `userMoods`: Get real-time updates on a user's moods
-- `receivedHugs`: Get real-time updates when a user receives new hugs
-- `sentHugs`: Get real-time updates on hugs sent by a user
-
-## Testing with Mock Authentication
-
-The HugMeNow Live Query Gateway includes support for mock authentication, which simplifies testing user-specific endpoints and functionality without requiring a real user account. This is especially useful for:
-
-1. **Automated Tests**: Run integration tests without needing to create real user accounts
-2. **Development**: Test user-specific features locally without logging in
-3. **Demo Purposes**: Demonstrate user-specific features without requiring login
-
-### How to Use Mock Authentication
-
-1. Add a special mock authentication token to your requests:
+Live Queries work seamlessly with authenticated requests:
 
 ```javascript
-// JavaScript example with Apollo Client
+const USER_MOODS_QUERY = gql`
+  query GetUserMoods($userId: ID!, $limit: Int!) @live {
+    userMoods(userId: $userId, limit: $limit) {
+      id
+      mood
+      intensity
+      message
+      createdAt
+    }
+  }
+`;
+
+function UserMoodHistory() {
+  const { user } = useAuth();
+  const { loading, error, data } = useQuery(USER_MOODS_QUERY, {
+    variables: { 
+      userId: user.id,
+      limit: 5
+    }
+  });
+  
+  // Component rendering logic...
+}
+```
+
+## How It Works
+
+1. The `@live` directive marks a query for real-time updates
+2. The gateway keeps track of active live queries
+3. When mutations occur (e.g., creating a mood), the gateway identifies affected queries
+4. Affected queries are re-executed and updated results are sent to clients
+5. The React components automatically re-render with the latest data
+
+## Server Configuration
+
+Live Queries are configured on the server with invalidation rules:
+
+```yaml
+plugins:
+  - liveQuery:
+      invalidations:
+        - field: Mutation.createMood
+          invalidate:
+            - Query.friendsMoods
+            - Query.userMoods
+            - Mood:{args.input.userId}
+        - field: Mutation.sendHug
+          invalidate:
+            - User:{args.to}.hugs
+            - Query.userHugs
+```
+
+This configuration tells the server which queries should be refreshed when specific mutations occur.
+
+## Benefits Over Traditional Subscriptions
+
+| Feature | Live Queries | Traditional Subscriptions |
+|---------|-------------|--------------------------|
+| Client implementation | Simple `@live` directive | Complex subscription handlers |
+| State management | Automatic with existing cache | Manual merging with query results |
+| Network overhead | Only sends data when it changes | Continuous WebSocket connection |
+| Developer experience | Query-like syntax and usage | Different syntax and patterns |
+| Error handling | Uses standard query error handling | Requires separate error handling |
+
+## Testing Live Queries
+
+### Using Mock Authentication
+
+For testing purposes, HugMeNow provides a mock authentication mechanism:
+
+```javascript
+// Create Apollo client with mock authentication
 const client = new ApolloClient({
   uri: 'http://localhost:5006/graphql',
+  cache: new InMemoryCache(),
   headers: {
     authorization: 'Bearer mock-auth-token-for-testing'
   }
 });
+
+// Use live queries with mock auth
+const { loading, data, error } = useQuery(gql`
+  query TestMoods($userId: ID!, $limit: Int!) @live {
+    userMoods(userId: $userId, limit: $limit) {
+      id
+      mood
+      intensity
+      message
+    }
+  }
+`, {
+  variables: {
+    userId: "mock-user-123",
+    limit: 5
+  }
+});
 ```
 
-2. Use queries and mutations as normal, and the gateway will automatically:
-   - Create a mock user context
-   - Simulate user-specific responses
-   - Process mutations with mock data
+### Testing Script
 
-### Mock Testing Limitations
+We provide a testing script that demonstrates mock authentication with Live Queries:
 
-While mock authentication is useful for testing, there are some limitations:
+```bash
+./run-mock-auth-demo.sh
+```
 
-1. **Persistence**: Mock data is not stored in the database
-2. **Relationships**: Mock objects may not have all relationships populated
-3. **Validation**: Some database-level validations might be bypassed
+## Best Practices
 
-For production-grade testing, you should use real authentication and test against a proper test database.
+1. **Add @live only to queries that need real-time updates**
+   Large or complex queries may impact performance if made live unnecessarily
+
+2. **Keep live queries focused and specific**
+   Query only the fields you need for real-time updates
+
+3. **Use fragments to share structure between queries**
+   This helps maintain consistency between live and non-live queries
+
+4. **Consider caching strategies**
+   The Apollo cache policy affects how live updates are handled
+
+5. **Handle loading and error states**
+   Live queries may transition between states as updates occur
+
+## Troubleshooting
+
+**Issue**: Live updates not occurring
+**Solution**: Ensure the mutation matches an invalidation rule in the gateway configuration
+
+**Issue**: Excessive updates
+**Solution**: Check invalidation rules for over-broad patterns and refine them
+
+**Issue**: Performance issues
+**Solution**: Make sure you're not using @live on large or expensive queries
+
+## Resources
+
+- [GraphQL Live Query Specification](https://github.com/graphql/graphql-spec/issues/386)
+- [GraphQL Mesh Documentation](https://the-guild.dev/graphql/mesh/docs)
+- [Apollo Client Documentation](https://www.apollographql.com/docs/react/)

@@ -64,15 +64,83 @@ async function startServer() {
     const app = express();
     app.use(cors());
     
+    // Create a custom executor that handles mock data
+    const createExecutor = (originalExecute) => {
+      return async (document, variables, context, operationName) => {
+        // Check if using mock authentication
+        if (context?.mockAuth) {
+          const operationText = document.loc?.source?.body || '';
+          
+          // Handle mock operations based on query/mutation type
+          if (operationText.includes('userMoods') && variables?.userId === 'mock-user-123') {
+            console.log(chalk.yellow('📝 Mock Auth: Intercepting userMoods query'));
+            console.log(chalk.green('📊 Mock Auth: Returning mock data for userMoods query'));
+            return {
+              data: {
+                userMoods: [
+                  {
+                    id: 'mock-mood-1',
+                    mood: 'happy',
+                    intensity: 8,
+                    message: 'This is a mock mood for testing',
+                    isPublic: true,
+                    createdAt: new Date().toISOString(),
+                    userId: 'mock-user-123'
+                  },
+                  {
+                    id: 'mock-mood-2', 
+                    mood: 'excited',
+                    intensity: 9,
+                    message: 'Testing with mock data',
+                    isPublic: false,
+                    createdAt: new Date(Date.now() - 86400000).toISOString(),
+                    userId: 'mock-user-123'
+                  }
+                ]
+              }
+            };
+          }
+          
+          if (operationText.includes('createMood') && 
+              variables?.input?.mood?.userId === 'mock-user-123') {
+            console.log(chalk.yellow('📝 Mock Auth: Intercepting createMood mutation'));
+            const { mood } = variables.input;
+            return {
+              data: {
+                createMood: {
+                  mood: {
+                    id: `mock-mood-${Date.now()}`,
+                    mood: mood.mood,
+                    intensity: mood.intensity,
+                    message: mood.message,
+                    isPublic: mood.isPublic,
+                    createdAt: new Date().toISOString(),
+                    userId: 'mock-user-123'
+                  }
+                }
+              }
+            };
+          }
+        }
+        
+        // For non-mock requests, use the original executor
+        return originalExecute(document, variables, context, operationName);
+      };
+    };
+    
+    // Create custom executor with mock support
+    const customExecute = createExecutor(execute);
+
     // Create Yoga server (modern GraphQL server with WebSockets support)
     const yoga = createYoga({
       schema,
-      context: (req) => {
+      execute: customExecute,
+      context: async (req) => {
         // Get authorization header
         const authHeader = req.request.headers.get('authorization');
         
         // Check for mock authentication token
-        const isMockAuth = authHeader && authHeader.includes('mock-auth-token');
+        const isMockAuth = authHeader && authHeader.includes('mock-auth-token-for-testing');
         
         // Create mock user if using mock auth token
         const mockUser = isMockAuth ? {
@@ -82,13 +150,24 @@ async function startServer() {
           authenticated: true
         } : null;
         
-        // Merge context from mesh with original request
+        // If using mock auth, create a complete context with mock data
+        if (isMockAuth) {
+          console.log(chalk.yellow('⚠️ Using mock authentication for testing'));
+          
+          return {
+            ...contextBuilder(req),
+            headers: req.request.headers,
+            request: req.request,
+            user: mockUser,
+            mockAuth: true
+          };
+        }
+        
+        // Regular authentication flow for non-mock requests
         return {
           ...contextBuilder(req),
           headers: req.request.headers,
-          request: req.request,
-          user: mockUser, // Add mock user to context if token is present
-          mockAuth: isMockAuth // Flag to indicate mock authentication
+          request: req.request
         };
       },
       graphqlEndpoint: '/graphql',

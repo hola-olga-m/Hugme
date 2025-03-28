@@ -152,4 +152,30 @@ The gateway creates a mock user with the following details:
 - Username: `mockuser`
 - Email: `mock@example.com`
 
-For comprehensive testing information, see the [Live Query Guide](docs/live-query-guide.md).
+## Documentation
+
+For detailed information about HugMeNow's features, see:
+
+- [Live Query Guide](docs/live-query-guide.md) - How to use real-time data updates
+- [Mock Authentication Guide](docs/mock-authentication-guide.md) - How to test without real user accounts
+
+## Demo Scripts
+
+Try these scripts to explore HugMeNow's features:
+
+1. **Live Query Demo:**
+   ```
+   bash run-live-query-basic-tests.sh
+   ```
+
+2. **Mock Authentication Demo:**
+   ```
+   bash run-mock-auth-demo.sh
+   ```
+
+3. **Send Hug Demo:**
+   ```
+   bash run-mutation-tests.sh
+   ```
+
+Each demo includes explanations and examples of how to use these features in your own applications.

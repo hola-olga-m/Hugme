@@ -29,6 +29,12 @@ async function executeWithMockAuth(query, variables = {}) {
     console.log(chalk.blue('\n🔄 Executing GraphQL operation with mock authentication:'));
     console.log(chalk.blue(query));
     
+    // Log variables for debugging
+    if (Object.keys(variables).length > 0) {
+      console.log(chalk.blue('Variables:'));
+      console.dir(variables, { depth: null, colors: true });
+    }
+    
     const response = await fetch(GATEWAY_URL, {
       method: 'POST',
       headers: {
@@ -78,8 +84,8 @@ async function runMockAuthDemo() {
   
   // 2. Query user moods with mock auth
   await executeWithMockAuth(`
-    query UserMoods {
-      userMoods(userId: "${MOCK_USER.id}", limit: 5) {
+    query UserMoods($userId: ID!, $limit: Int!) {
+      userMoods(userId: $userId, limit: $limit) {
         id
         mood
         intensity
@@ -87,20 +93,15 @@ async function runMockAuthDemo() {
         isPublic
       }
     }
-  `);
+  `, {
+    userId: MOCK_USER.id,
+    limit: 5
+  });
   
   // 3. Try creating a mood with mock auth
   await executeWithMockAuth(`
-    mutation CreateMood {
-      createMood(input: {
-        mood: {
-          userId: "${MOCK_USER.id}",
-          mood: "excited",
-          intensity: 8,
-          message: "Testing with mock authentication",
-          isPublic: true
-        }
-      }) {
+    mutation CreateMood($input: MoodInput!) {
+      createMood(input: $input) {
         mood {
           id
           mood
@@ -109,20 +110,33 @@ async function runMockAuthDemo() {
         }
       }
     }
-  `);
+  `, {
+    input: {
+      mood: {
+        userId: MOCK_USER.id,
+        mood: "excited",
+        intensity: 8,
+        message: "Testing with mock authentication",
+        isPublic: true
+      }
+    }
+  });
   
   // 4. Demo live query (note: this won't actually wait for updates in this demo)
   // In a real application, a WebSocket connection would be maintained
   await executeWithMockAuth(`
-    query LiveUserMoods @live {
-      userMoods(userId: "${MOCK_USER.id}", limit: 5) {
+    query LiveUserMoods($userId: ID!, $limit: Int!) @live {
+      userMoods(userId: $userId, limit: $limit) {
         id
         mood
         intensity
         message
       }
     }
-  `);
+  `, {
+    userId: MOCK_USER.id,
+    limit: 5
+  });
   
   console.log(chalk.yellow('\n🔎 Demo Summary'));
   console.log(chalk.yellow('============='));
