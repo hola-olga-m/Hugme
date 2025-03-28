@@ -297,75 +297,52 @@ const resolvers = {
     },
 
     publicMoods: async (_, args, context) => {
-      console.log('[Gateway] Resolving Query.publicMoods with modified approach');
+      console.log('[Gateway] Resolving Query.publicMoods with REST approach');
       
       try {
-        // Use a simpler query to fetch all moods and filter locally to avoid schema conflicts
-        const response = await fetch(TARGET_API, {
-          method: 'POST',
+        // Get raw JSON data to avoid GraphQL schema conflicts
+        // This approach fetches data as JSON directly from PostgreSQL via PostGraphile's non-GraphQL endpoint
+        const response = await fetch(`${TARGET_API.replace('/postgraphile/graphql', '')}/postgraphile/status?moodData=true&limit=${args.limit || 10}&offset=${args.offset || 0}`, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
+            'Accept': 'application/json',
             ...(context.headers?.authorization ? { 'Authorization': context.headers.authorization } : {})
-          },
-          body: JSON.stringify({
-            query: `
-              query GetAllMoods($limit: Int, $offset: Int) {
-                allMoods(first: $limit, offset: $offset) {
-                  nodes {
-                    id
-                    score
-                    note
-                    isPublic
-                    createdAt
-                    userId
-                    userByUserId {
-                      id
-                      username
-                      avatarUrl
-                    }
-                  }
-                }
-              }
-            `,
-            variables: { 
-              // Request a bit more than needed since we'll filter out non-public moods
-              limit: Math.min((args.limit || 10) * 2, 50), 
-              offset: args.offset || 0 
-            }
-          })
+          }
         });
         
-        const result = await response.json();
-        
-        if (result.errors) {
-          console.error('[Gateway] GraphQL errors:', result.errors);
+        if (!response.ok) {
+          console.error(`[Gateway] Error fetching public moods: ${response.status} ${response.statusText}`);
           return [];
         }
         
-        // Get all moods and filter for public ones
-        const allMoods = result.data?.allMoods?.nodes || [];
-        const publicMoods = allMoods.filter(mood => mood.isPublic === true);
+        const result = await response.json();
         
-        // Apply the limit after filtering
-        const limitedMoods = publicMoods.slice(0, args.limit || 10);
+        if (!result.moods || !Array.isArray(result.moods)) {
+          console.log('[Gateway] No moods data found or invalid format:', result);
+          
+          // As a fallback, use a simpler GraphQL query that avoids complex types
+          return fetchMoodsWithSimpleQuery(args, context);
+        }
         
         // Transform to match our PublicMood schema
-        return limitedMoods.map(mood => ({
+        return result.moods.map(mood => ({
           id: mood.id,
-          intensity: mood.score, 
+          intensity: mood.score,
           emoji: "😊", // Default emoji mapping
           message: mood.note || "",
-          createdAt: mood.createdAt,
-          userId: mood.userId,
+          createdAt: mood.created_at,
+          userId: mood.user_id,
           user: {
-            id: mood.userByUserId?.id,
-            name: mood.userByUserId?.username,
-            avatar: mood.userByUserId?.avatarUrl || ""
+            id: mood.user?.id,
+            name: mood.user?.username,
+            avatar: mood.user?.avatar_url || ""
           }
         }));
       } catch (error) {
         console.error('[Gateway] Error in publicMoods resolver:', error);
-        return [];
+        
+        // As a fallback, try a simpler approach if the REST endpoint fails
+        return fetchMoodsWithSimpleQuery(args, context);
       }
     },
 
