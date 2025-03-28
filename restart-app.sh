@@ -30,8 +30,6 @@ rm -rf ./hugmenow/web/.cache
 rm -rf ./hugmenow/web/dist/cache
 rm -rf ./hugmenow/web/node_modules/.cache
 
-cd hugmenow/web && npx run start
-cd hugmenow/api && npx run start
 # Start the application
 echo "🚀 Starting application..."
 bash start-hugmenow.sh
