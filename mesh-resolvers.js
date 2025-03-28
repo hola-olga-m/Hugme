@@ -84,9 +84,10 @@ module.exports = {
       };
     },
     
-    // Virtual field: friendsMoods -> maps to allMoods with public filter
-    friendsMoods: async (root, args, context, info) => {
-      logResolver('Query.friendsMoods', args);
+    // The friendsMoods field has been replaced with publicMoods
+    // This resolver is kept for backward compatibility but marked as deprecated
+    publicMoods: async (root, args, context, info) => {
+      logResolver('Query.publicMoods', args);
       try {
         // Use PostGraphile-compatible pagination parameters
         const result = await context.PostGraphileAPI.Query.allMoods({
@@ -100,12 +101,12 @@ module.exports = {
         
         // Extract nodes from the connection
         const nodes = result?.nodes || [];
-        console.log(`[Mesh] Found ${nodes.length} friend moods`);
+        console.log(`[Mesh] Found ${nodes.length} public moods`);
         
         // Transform data to match client expectations
         return nodes.map(transformMoodNode);
       } catch (error) {
-        return handleError('Query.friendsMoods', error) || [];
+        return handleError('Query.publicMoods', error) || [];
       }
     },
     

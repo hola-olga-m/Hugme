@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useQuery } from '@apollo/client';
-import { GET_PUBLIC_MOODS } from '../../graphql/queries';
+// Import the useMeshQuery hook instead of Apollo's useQuery
+import { useMeshQuery } from '../../hooks/useMeshSdk';
 
 const FeedContainer = styled.div`
   background: white;
@@ -158,7 +158,15 @@ const ActionButton = styled.button`
 `;
 
 const FriendMoodFeed = ({ friendsOnly = true }) => {
-  const { loading, error, data } = useQuery(GET_PUBLIC_MOODS);
+  // Use the Mesh SDK Query hook instead of Apollo's useQuery
+  // This uses the generated SDK under the hood
+  const { data, loading, error, refetch } = useMeshQuery('publicMoods', {
+    limit: 20,
+    offset: 0
+  }, {
+    pollInterval: 30000, // Refresh every 30 seconds
+    shouldRefetchOnFocus: true // Refresh when browser tab gets focus
+  });
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -176,7 +184,7 @@ const FriendMoodFeed = ({ friendsOnly = true }) => {
       .split(' ')
       .map(part => part[0])
       .join('')
-      .toUpperCase
+      .toUpperCase()
       .substring(0, 2);
   };
 

@@ -109,7 +109,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash schema-sync-workflow.sh"
+args = "bash schema-sync-workflow.sh --full"
 
 [[workflows.workflow]]
 name = "HugMeNow"

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useQuery } from '@apollo/client';
-import { GET_COMMUNITY_HUG_REQUESTS } from '../../graphql/queries';
+// Import the useMeshQuery hook instead of Apollo's useQuery
+import { useMeshQuery } from '../../hooks/useMeshSdk';
 import CommunityHugRequestCard from '../hug/CommunityHugRequestCard';
 
 const Container = styled.div`
@@ -129,7 +129,14 @@ const ErrorState = styled.div`
 const FriendOnlyCommunityFeed = () => {
   const [friendsOnly, setFriendsOnly] = useState(true);
   
-  const { loading, error, data, refetch } = useQuery(GET_COMMUNITY_HUG_REQUESTS);
+  // Use the Mesh SDK Query hook instead of Apollo's useQuery
+  const { data, loading, error, refetch } = useMeshQuery('communityHugRequests', {
+    limit: 20,
+    offset: 0
+  }, {
+    pollInterval: 30000, // Refresh every 30 seconds
+    shouldRefetchOnFocus: true // Refresh when browser tab gets focus
+  });
   
   const handleRefresh = () => {
     refetch();

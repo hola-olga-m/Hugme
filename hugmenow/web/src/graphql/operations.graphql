@@ -1,0 +1,149 @@
+# HugMeNow GraphQL Operations
+
+# Query for public moods - replaces friendsMoods
+query publicMoods($limit: Int, $offset: Int) {
+  publicMoods(limit: $limit, offset: $offset) {
+    id
+    intensity
+    note
+    createdAt
+    user {
+      id
+      name
+      username
+      avatarUrl
+    }
+  }
+}
+
+# Query for a user's moods
+query userMoods($userId: ID, $limit: Int, $offset: Int) {
+  userMoods(userId: $userId, limit: $limit, offset: $offset) {
+    id
+    intensity
+    note
+    createdAt
+    emoji
+    private
+  }
+}
+
+# Query for mood streak for a user
+query moodStreak($userId: ID!) {
+  moodStreak(userId: $userId) {
+    currentStreak
+    longestStreak
+    lastMoodDate
+  }
+}
+
+# Query for community hug requests
+query communityHugRequests($limit: Int, $offset: Int) {
+  communityHugRequests(limit: $limit, offset: $offset) {
+    id
+    message
+    createdAt
+    requester {
+      id
+      name
+      username
+      avatarUrl
+    }
+  }
+}
+
+# Query for a user's received hugs
+query receivedHugs($userId: ID!, $limit: Int, $offset: Int) {
+  receivedHugs(userId: $userId, limit: $limit, offset: $offset) {
+    id
+    message
+    createdAt
+    read
+    fromUser {
+      id
+      name
+      username
+      avatarUrl
+    }
+  }
+}
+
+# Query for a user's sent hugs
+query sentHugs($userId: ID!, $limit: Int, $offset: Int) {
+  sentHugs(userId: $userId, limit: $limit, offset: $offset) {
+    id
+    message
+    createdAt
+    toUser {
+      id
+      name
+      username
+      avatarUrl
+    }
+  }
+}
+
+# Mutation to create a mood entry
+mutation createMood($moodInput: MoodInput!) {
+  createMoodEntry(moodInput: $moodInput) {
+    id
+    intensity
+    note
+    createdAt
+    emoji
+    private
+  }
+}
+
+# Mutation to send a hug to a user
+mutation sendHug($hugInput: HugInput!) {
+  sendHug(hugInput: $hugInput) {
+    id
+    message
+    createdAt
+    fromUser {
+      id
+      name
+    }
+    toUser {
+      id
+      name
+    }
+  }
+}
+
+# Mutation to create a community hug request
+mutation createHugRequest($requestInput: HugRequestInput!) {
+  createHugRequest(hugRequestInput: $requestInput) {
+    id
+    message
+    createdAt
+    requester {
+      id
+      name
+    }
+  }
+}
+
+# Mutation to respond to a hug request
+mutation respondToHugRequest($requestId: ID!, $accept: Boolean!) {
+  respondToHugRequest(requestId: $requestId, accept: $accept) {
+    id
+    status
+    updatedAt
+  }
+}
+
+# Query for a user's pending hug requests
+query pendingHugRequests($userId: ID!) {
+  pendingHugRequests(userId: $userId) {
+    id
+    message
+    createdAt
+    requester {
+      id
+      name
+      username
+    }
+  }
+}

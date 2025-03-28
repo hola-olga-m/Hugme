@@ -226,11 +226,23 @@ main() {
     if fetch_schema; then
       echo "✅ Schema download completed successfully"
       
-      # Removed traditional GraphQL Codegen step as we're now using Mesh SDK exclusively
-      echo "🔄 Skipping traditional GraphQL Codegen step..."
+      # Build GraphQL Mesh
+      echo "🔧 Building GraphQL Mesh..."
+      if build_mesh; then
+        echo "✅ GraphQL Mesh built successfully"
+      else
+        echo "❌ Building GraphQL Mesh failed"
+        exit 1
+      fi
       
       # Generate Mesh SDK
-      generate_mesh_sdk
+      echo "🔧 Generating Mesh SDK..."
+      if generate_mesh_sdk; then
+        echo "✅ Mesh SDK generated successfully"
+      else
+        echo "❌ Generating Mesh SDK failed"
+        exit 1
+      fi
       
       # Run analysis if requested
       if [ "$1" = "--with-analysis" ] || [ "$1" = "--full" ]; then
@@ -246,6 +258,15 @@ main() {
         fi
       fi
       
+      # Restart services if needed
+      if [ "$1" = "--restart" ] || [ "$1" = "--full" ]; then
+        echo "🔄 Restarting HugMeNow service..."
+        pkill -f "start-hugmenow.sh" || true
+        nohup bash start-hugmenow.sh > /tmp/hugmenow.log 2>&1 &
+        echo "✅ HugMeNow service restarted"
+      fi
+      
+      echo "✅ Schema synchronization workflow completed successfully"
       exit 0
     else
       echo "❌ Schema synchronization failed during schema fetching"

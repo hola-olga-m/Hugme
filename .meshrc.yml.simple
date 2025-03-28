@@ -2,7 +2,7 @@ sources:
   - name: PostGraphileAPI
     handler:
       graphql:
-        endpoint: http://localhost:3003/postgraphile/graphql
+        source: https://localhost:3003/postgraphile/graphql
         batch: true
 
 documents:
