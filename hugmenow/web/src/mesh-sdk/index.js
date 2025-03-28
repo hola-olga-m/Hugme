@@ -169,6 +169,24 @@ function getSdk(options = {}) {
         }
       `);
     },
+    
+    async getPublicMoods() {
+      return executeQuery(`
+        query GetPublicMoods {
+          publicMoods {
+            id
+            userId
+            mood
+            intensity
+            note
+            createdAt
+            user {
+              ${USER_FRAGMENT}
+            }
+          }
+        }
+      `);
+    },
 
     async FriendsMoods(limit = 10, offset = 0) {
       return executeQuery(`

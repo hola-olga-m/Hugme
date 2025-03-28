@@ -1,5 +1,3 @@
-# Remove logger config for simplicity
-
 sources:
   - name: PostGraphileAPI
     handler:
@@ -114,17 +112,6 @@ additionalTypeDefs: |
     buildDate: String!
     deviceInfo: String
     features: [String!]
-  }
-
-  type PublicMood {
-    id: ID
-    userId: ID
-    user: User
-    mood: String
-    intensity: Int
-    note: String
-    createdAt: String
-    score: Int!  # Make score a required field to ensure it's always available
   }
 
   extend type Query {

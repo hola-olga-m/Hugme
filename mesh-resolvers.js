@@ -149,7 +149,7 @@ module.exports = {
         // Map PostGraphile response structure to what frontend expects
         return nodes.map(node => ({
           id: node.id,
-          intensity: node.score, // Map score to intensity
+          intensity: node.intensity, // Use intensity field directly
           note: node.note,
           createdAt: node.createdAt,
           user: node.userByUserId ? {
@@ -166,7 +166,7 @@ module.exports = {
     },
     // This resolver maps the publicMoods query name to allMoods with condition
     publicMoods: async (root, args, context, info) => {
-      logResolver('Query.publicMoods', args);
+      logResolver('Query.publsicMoods', args);
       try {
         // Use PostGraphile-compatible pagination parameters
         const result = await context.PostGraphileAPI.Query.allMoods({
@@ -185,7 +185,7 @@ module.exports = {
         // Map PostGraphile response structure to what frontend expects
         return nodes.map(node => ({
           id: node.id,
-          intensity: node.score, // Map score to intensity
+          intensity: node.intensity, // Use intensity field directly
           note: node.note,
           createdAt: node.createdAt,
           user: node.userByUserId ? {
@@ -221,7 +221,7 @@ module.exports = {
         // Map PostGraphile response structure to what frontend expects
         return nodes.map(node => ({
           id: node.id,
-          intensity: node.score, // Map score to intensity
+          intensity: node.intensity, // Use intensity field directly
           note: node.note,
           createdAt: node.createdAt,
           emoji: null, // Not provided in the schema, set to null
@@ -479,7 +479,7 @@ module.exports = {
           input: {
             mood: {
               userId: args.moodInput.userId,
-              score: args.moodInput.intensity,
+              intensity: args.moodInput.intensity,
               note: args.moodInput.note || '',
               isPublic: !args.moodInput.private
             }
@@ -493,7 +493,7 @@ module.exports = {
         // Map to expected client response format
         return {
           id: createdMood.id,
-          intensity: createdMood.score,
+          intensity: createdMood.intensity,
           note: createdMood.note,
           createdAt: createdMood.createdAt,
           emoji: null, // Not in schema
