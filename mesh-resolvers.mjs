@@ -91,6 +91,41 @@ const transformHugNode = (node) => {
 
 // Export resolvers as ES module
 export default {
+  // Subscription resolvers for real-time updates
+  Subscription: {
+    // Subscribe to new mood creation events
+    newMood: {
+      subscribe: () => {
+        logResolver('Subscription.newMood');
+        return pubsub.asyncIterator([EVENTS.NEW_MOOD]);
+      }
+    },
+    
+    // Subscribe to new hug events
+    newHug: {
+      subscribe: () => {
+        logResolver('Subscription.newHug');
+        return pubsub.asyncIterator([EVENTS.NEW_HUG]);
+      }
+    },
+    
+    // Subscribe to hugs received by a specific user
+    newHugReceived: {
+      subscribe: (_, { userId }) => {
+        logResolver('Subscription.newHugReceived', { userId });
+        return pubsub.asyncIterator([`${EVENTS.NEW_HUG_RECEIVED}.${userId}`]);
+      }
+    },
+    
+    // Subscribe to new moods from friends
+    newFriendMood: {
+      subscribe: (_, { userId }) => {
+        logResolver('Subscription.newFriendMood', { userId });
+        return pubsub.asyncIterator([`${EVENTS.NEW_FRIEND_MOOD}.${userId}`]);
+      }
+    }
+  },
+  
   Query: {
     // Client information - client-only field providing version info
     clientInfo: () => {
@@ -238,6 +273,47 @@ export default {
   
   // Add custom mutations
   Mutation: {
+    // Create a new mood and publish subscription event
+    createMood: async (root, args, context, info) => {
+      logResolver('Mutation.createMood', args);
+      try {
+        // Transform input to match the expected PostGraphile structure
+        const createMoodResult = await context.PostGraphileAPI.Mutation.createMood({
+          input: {
+            mood: {
+              userId: args.input.userId,
+              intensity: args.input.intensity,
+              message: args.input.message || '',
+              isPrivate: args.input.isPrivate || false
+            }
+          }
+        });
+        
+        // Extract and transform the created mood
+        const createdMood = createMoodResult?.mood;
+        if (!createdMood) return null;
+        
+        // Transform for client consistency
+        const transformedMood = transformMoodNode(createdMood);
+        
+        // Publish to relevant subscription channels
+        console.log('[Mesh] Publishing to NEW_MOOD subscription channel');
+        pubsub.publish(EVENTS.NEW_MOOD, { newMood: transformedMood });
+        
+        // If it's a public mood, also publish to user-specific friend mood channels
+        if (!args.input.isPrivate) {
+          console.log(`[Mesh] Publishing to NEW_FRIEND_MOOD channels for user ${args.input.userId}`);
+          pubsub.publish(`${EVENTS.NEW_FRIEND_MOOD}.${args.input.userId}`, { 
+            newFriendMood: transformedMood 
+          });
+        }
+        
+        return transformedMood;
+      } catch (error) {
+        return handleError('Mutation.createMood', error);
+      }
+    },
+    
     // Custom mutation that maps to createHug with appropriate input transformation
     sendFriendHug: async (root, args, context, info) => {
       logResolver('Mutation.sendFriendHug', args);
@@ -257,9 +333,60 @@ export default {
         const createdHug = createHugResult?.hug;
         if (!createdHug) return null;
         
-        return transformHugNode(createdHug);
+        // Transform for client consistency
+        const transformedHug = transformHugNode(createdHug);
+        
+        // Publish to relevant subscription channels
+        console.log('[Mesh] Publishing to NEW_HUG subscription channel');
+        pubsub.publish(EVENTS.NEW_HUG, { newHug: transformedHug });
+        
+        // Also publish to recipient-specific channel
+        console.log(`[Mesh] Publishing to NEW_HUG_RECEIVED channel for recipient ${args.toUserId}`);
+        pubsub.publish(`${EVENTS.NEW_HUG_RECEIVED}.${args.toUserId}`, { 
+          newHugReceived: transformedHug 
+        });
+        
+        return transformedHug;
       } catch (error) {
         return handleError('Mutation.sendFriendHug', error);
+      }
+    },
+    
+    // Regular sendHug mutation that also triggers subscription events
+    sendHug: async (root, args, context, info) => {
+      logResolver('Mutation.sendHug', args);
+      try {
+        // Transform input to match the expected PostGraphile structure
+        const createHugResult = await context.PostGraphileAPI.Mutation.createHug({
+          input: {
+            hug: {
+              senderId: args.input.senderId,
+              recipientId: args.input.recipientId,
+              message: args.input.message || ''
+            }
+          }
+        });
+        
+        // Extract and transform the created hug
+        const createdHug = createHugResult?.hug;
+        if (!createdHug) return null;
+        
+        // Transform for client consistency
+        const transformedHug = transformHugNode(createdHug);
+        
+        // Publish to relevant subscription channels
+        console.log('[Mesh] Publishing to NEW_HUG subscription channel');
+        pubsub.publish(EVENTS.NEW_HUG, { newHug: transformedHug });
+        
+        // Also publish to recipient-specific channel
+        console.log(`[Mesh] Publishing to NEW_HUG_RECEIVED channel for recipient ${args.input.recipientId}`);
+        pubsub.publish(`${EVENTS.NEW_HUG_RECEIVED}.${args.input.recipientId}`, { 
+          newHugReceived: transformedHug 
+        });
+        
+        return transformedHug;
+      } catch (error) {
+        return handleError('Mutation.sendHug', error);
       }
     }
   }

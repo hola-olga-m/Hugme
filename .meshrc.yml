@@ -309,6 +309,12 @@ apollo:
   cors:
     origin: '*'
     credentials: true
+  # Configure Apollo-specific subscription settings
+  subscriptions:
+    path: /graphql
+    onConnect: true
+    onDisconnect: true
+    keepAlive: 10000
 
 # Serve configuration (for standalone mode)
 serve:
@@ -319,6 +325,11 @@ serve:
     credentials: true
   port: ${env.PORT}
   host: "0.0.0.0"
+  # Enable WebSocket subscriptions in standalone mode
+  subscriptions:
+    enabled: true
+    path: /graphql
+    keepAlive: 10000
 
 # Logging configuration
 logger:
