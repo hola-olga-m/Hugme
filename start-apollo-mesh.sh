@@ -96,14 +96,14 @@ if [ ! -f ".meshrc.yml" ]; then
 fi
 
 # Choose the appropriate server implementation based on available files
-if [ -f "mesh-apollo-server.js" ]; then
-  # Start the Enhanced Apollo Mesh Gateway with ESM
+if [ -f "enhanced-mesh-apollo.js" ]; then
+  # Start the Enhanced Apollo Mesh Gateway
   echo "🌐 Starting Enhanced Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
+  exec node enhanced-mesh-apollo.js
+elif [ -f "mesh-apollo-server.js" ]; then
+  # Try the ESM version if available
+  echo "🌐 Starting ESM Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
   exec node --experimental-json-modules mesh-apollo-server.js
-elif [ -f "mesh-apollo-server.mjs" ]; then
-  # Start with .mjs extension if available
-  echo "🌐 Starting Enhanced Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
-  exec node --experimental-json-modules mesh-apollo-server.mjs
 elif [ -f "apollo-mesh-gateway.js" ]; then
   # Fall back to original implementation if enhanced is not available
   echo "🌐 Starting Apollo Mesh Gateway on http://0.0.0.0:$PORT/graphql..."
