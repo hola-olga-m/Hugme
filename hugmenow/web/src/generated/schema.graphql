@@ -1,232 +1,134 @@
-input AnonymousLoginInput {
+type Query {
+  hello: String
+  dbTest: String
+  users: [User]
+  currentUser: User
+  user(id: ID!): User
+  userByUsername(username: String!): User
+  moods(userId: ID, limit: Int, offset: Int): [MoodEntry]
+  moodById(id: ID!): MoodEntry
+  moodStreak(userId: ID): MoodStreak
+  publicMoods(limit: Int, offset: Int): [PublicMood]
+  hugs(userId: ID, limit: Int, offset: Int): [Hug]
+  hugById(id: ID!): Hug
+  hugRequests(status: String): [HugRequest]
+}
+
+type User {
+  id: ID
+  email: String
+  username: String
+  name: String
   avatarUrl: String
-  nickname: String!
+  isAnonymous: Boolean
+  createdAt: String
+  updatedAt: String
+  created_at: String
+  moods: [MoodEntry]
+  hugs: [Hug]
+  friends: [User]
 }
 
-type AuthResponse {
-  accessToken: String!
-  user: User!
-}
-
-input CreateFriendshipInput {
-  followMood: Boolean = false
-  recipientId: String!
-}
-
-input CreateHugRequestInput {
-  isCommunityRequest: Boolean!
-  message: String
-  recipientId: String
-}
-
-input CreateMoodInput {
-  isPublic: Boolean!
+type MoodEntry {
+  id: ID
+  userId: ID
+  mood: String
+  intensity: Int
   note: String
-  score: Int!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
-type ExternalRecipient {
-  contact: String!
-  type: String!
-}
-
-input ExternalRecipientInput {
-  contact: String!
-  type: ExternalRecipientType!
-}
-
-"""The type of external recipient contact"""
-enum ExternalRecipientType {
-  EMAIL
-  TELEGRAM
-}
-
-type Friendship {
-  createdAt: DateTime!
-  followsMood: Boolean
-  id: ID!
-  recipient: User!
-  recipientId: String!
-  requester: User!
-  requesterId: String!
-  status: FriendshipStatus!
-  updatedAt: DateTime
-}
-
-"""The status of a friendship between two users"""
-enum FriendshipStatus {
-  ACCEPTED
-  BLOCKED
-  PENDING
-  REJECTED
+  isPublic: Boolean
+  createdAt: String
+  updatedAt: String
 }
 
 type Hug {
-  createdAt: DateTime!
-  externalRecipient: ExternalRecipient
-  id: ID!
-  isRead: Boolean!
-  message: String
+  id: ID
+  senderId: ID
+  sender: User
+  recipientId: ID
   recipient: User
-  recipientId: String
-  sender: User!
-  senderId: String!
-  type: HugType!
+  type: String
+  message: String
+  isRead: Boolean
+  createdAt: String
+}
+
+type MoodStreak {
+  currentStreak: Int
+  longestStreak: Int
+  lastMoodDate: String
+  totalMoods: Int
+}
+
+type PublicMood {
+  id: ID
+  userId: ID
+  user: User
+  mood: String
+  intensity: Int
+  note: String
+  createdAt: String
+}
+
+type Mutation {
+  login(loginInput: LoginInput!): AuthPayload
+  register(registerInput: RegisterInput!): AuthPayload
+  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthPayload
+  createMoodEntry(moodInput: MoodEntryInput!): MoodEntry
+  sendHug(hugInput: SendHugInput!): Hug
+  markHugAsRead(hugId: ID!): Hug
+  createHugRequest(hugRequestInput: HugRequestInput!): HugRequest
+  respondToHugRequest(requestId: ID!, accept: Boolean!): HugRequest
 }
 
 type HugRequest {
-  createdAt: DateTime!
-  id: ID!
-  isCommunityRequest: Boolean!
-  message: String
+  id: ID
+  requesterId: ID
+  requester: User
+  recipientId: ID
   recipient: User
-  recipientId: String
-  requester: User!
-  requesterId: String!
-  respondedAt: DateTime
-  status: HugRequestStatus!
+  message: String
+  status: String
+  createdAt: String
+  respondedAt: String
 }
 
-"""The status of a hug request"""
-enum HugRequestStatus {
-  ACCEPTED
-  CANCELLED
-  DECLINED
-  EXPIRED
-  PENDING
+input MoodEntryInput {
+  mood: String!
+  intensity: Int!
+  note: String
+  isPublic: Boolean
 }
 
-"""The type of hug sent"""
-enum HugType {
-  CELEBRATORY
-  COMFORTING
-  ComfortingHug
-  ENCOURAGING
-  EnthusiasticHug
-  FamilyHug
-  FriendlyHug
-  GentleHug
-  GroupHug
-  QUICK
-  RelaxingHug
-  SUPPORTIVE
-  SmilingHug
-  StandardHug
-  SupportiveHug
-  VirtualHug
-  WARM
-  WelcomeHug
+input SendHugInput {
+  recipientId: ID!
+  type: String!
+  message: String
+}
+
+input HugRequestInput {
+  recipientId: ID!
+  message: String
+  isCommunityRequest: Boolean
+}
+
+type AuthPayload {
+  accessToken: String
+  user: User
 }
 
 input LoginInput {
   email: String!
   password: String!
-}
-
-type Mood {
-  createdAt: DateTime!
-  id: ID!
-  isPublic: Boolean!
-  note: String
-  score: Int!
-  user: User!
-  userId: String!
-}
-
-type Mutation {
-  anonymousLogin(anonymousLoginInput: AnonymousLoginInput!): AuthResponse!
-  cancelHugRequest(requestId: ID!): HugRequest!
-  createHugRequest(createHugRequestInput: CreateHugRequestInput!): HugRequest!
-  createMood(createMoodInput: CreateMoodInput!): Mood!
-  login(loginInput: LoginInput!): AuthResponse!
-  markHugAsRead(hugId: ID!): Hug!
-  register(registerInput: RegisterInput!): AuthResponse!
-  removeMood(id: ID!): Boolean!
-  removeUser: Boolean!
-  respondToFriendRequest(updateFriendshipInput: UpdateFriendshipInput!): Friendship!
-  respondToHugRequest(respondToRequestInput: RespondToRequestInput!): HugRequest!
-  sendFriendRequest(createFriendshipInput: CreateFriendshipInput!): Friendship!
-  sendHug(sendHugInput: SendHugInput!): Hug!
-  updateMood(updateMoodInput: UpdateMoodInput!): Mood!
-  updateMoodFollowing(updateFriendshipInput: UpdateFriendshipInput!): Friendship!
-  updateUser(updateUserInput: UpdateUserInput!): User!
-}
-
-type Query {
-  checkFriendship(userId: String!): Boolean!
-  communityHugRequests: [HugRequest!]!
-  friendsMoods(limit: Float = 20): [Mood!]!
-  hug(id: ID!): Hug!
-  hugRequest(id: ID!): HugRequest!
-  me: User!
-  mood(id: ID!): Mood!
-  moodFollowing: [Friendship!]!
-  moodStreak: Float!
-  myFriends: [Friendship!]!
-  myHugRequests: [HugRequest!]!
-  pendingFriendRequests: [Friendship!]!
-  pendingHugRequests: [HugRequest!]!
-  publicMoods: [Mood!]!
-  receivedHugs: [Hug!]!
-  sentFriendRequests: [Friendship!]!
-  sentHugs: [Hug!]!
-  user(id: ID!): User!
-  userMoods: [Mood!]!
-  users: [User!]!
+  rememberMe: Boolean
 }
 
 input RegisterInput {
-  avatarUrl: String
   email: String!
-  name: String!
+  username: String!
   password: String!
-  username: String!
-}
-
-input RespondToRequestInput {
-  message: String
-  requestId: String!
-  status: HugRequestStatus!
-}
-
-input SendHugInput {
-  externalRecipient: ExternalRecipientInput
-  message: String
-  recipientId: String
-  type: HugType!
-}
-
-input UpdateFriendshipInput {
-  followMood: Boolean
-  friendshipId: String!
-  status: FriendshipStatus
-}
-
-input UpdateMoodInput {
-  id: ID!
-  isPublic: Boolean
-  note: String
-  score: Int
-}
-
-input UpdateUserInput {
-  avatarUrl: String
   name: String
-  password: String
 }
 
-type User {
-  avatarUrl: String
-  createdAt: DateTime!
-  email: String!
-  id: ID!
-  isAnonymous: Boolean!
-  name: String!
-  updatedAt: DateTime!
-  username: String!
+input AnonymousLoginInput {
+  deviceId: String
 }
