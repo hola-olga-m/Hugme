@@ -54,7 +54,7 @@ localPort = 5174
 externalPort = 3000
 
 [workflows]
-runButton = "HugMeNowDevMode"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -121,7 +121,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash start-direct-postgres-proxy.sh"
+args = "node direct-postgres-proxy.js"
 waitForPort = 3006
 
 [[workflows.workflow]]
@@ -136,7 +136,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash start-direct-test.sh"
+args = "node direct-test-server.js"
 waitForPort = 5005
 
 [[workflows.workflow]]
@@ -151,7 +151,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash start-simple-proxy.sh"
+args = "node simple-proxy-server.js"
 waitForPort = 3005
 
 [[workflows.workflow]]
@@ -166,7 +166,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./start-auth-test.sh"
+args = "node auth-test.cjs"
 waitForPort = 5001
 
 [[workflows.workflow]]
@@ -190,7 +190,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./start-hugmenow-optimized.sh"
+args = "chmod +x start-hugmenow-optimized.sh && ./start-hugmenow-optimized.sh"
 waitForPort = 5000
 
 [[workflows.workflow]]
