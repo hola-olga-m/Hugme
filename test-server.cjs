@@ -1,104 +1,36 @@
 /**
- * Simple Express server for testing authentication
+ * Simple Express server for testing
  */
 
 const express = require('express');
+const path = require('path');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 
 const app = express();
 const PORT = 5000;
 
-// Enable CORS for all routes
+// Enable CORS
 app.use(cors());
 
-// Parse JSON request bodies
-app.use(express.json());
+// Proxy API requests
+app.use('/api', createProxyMiddleware({
+  target: 'http://localhost:3004',
+  changeOrigin: true
+}));
 
-// Simple in-memory storage for testing
-const users = [];
+// Proxy GraphQL requests
+app.use('/graphql', createProxyMiddleware({
+  target: 'http://localhost:3004',
+  changeOrigin: true
+}));
 
-// Auth API endpoint for testing
-app.post('/api/register', (req, res) => {
-  console.log('Register request received:', req.body);
-  
-  const userData = req.body.registerInput;
-  
-  // Simple validation
-  if (!userData || !userData.email || !userData.password) {
-    return res.status(400).json({ 
-      error: 'Missing required fields',
-      details: 'Email and password are required'
-    });
-  }
-  
-  // Check if user already exists
-  const existingUser = users.find(u => u.email === userData.email);
-  if (existingUser) {
-    return res.status(409).json({ 
-      error: 'User already exists',
-      details: 'Email is already registered'
-    });
-  }
-  
-  // Create new user
-  const newUser = {
-    id: Date.now().toString(),
-    email: userData.email,
-    name: userData.name || '',
-    username: userData.username || '',
-    createdAt: new Date().toISOString()
-  };
-  
-  users.push(newUser);
-  
-  // Simulate delayed response
-  setTimeout(() => {
-    res.status(201).json({
-      token: 'test-auth-token-' + newUser.id,
-      user: newUser
-    });
-  }, 500);
-});
+// Serve static files from the web directory
+const staticPath = path.join(__dirname, 'hugmenow/web/dist');
+app.use(express.static(staticPath));
 
-// Login endpoint
-app.post('/api/login', (req, res) => {
-  console.log('Login request received:', req.body);
-  
-  const loginData = req.body.loginInput;
-  
-  // Simple validation
-  if (!loginData || !loginData.email || !loginData.password) {
-    return res.status(400).json({ 
-      error: 'Missing required fields',
-      details: 'Email and password are required'
-    });
-  }
-  
-  // Find user
-  const user = users.find(u => u.email === loginData.email);
-  if (!user) {
-    return res.status(401).json({ 
-      error: 'Authentication failed',
-      details: 'Invalid email or password'
-    });
-  }
-  
-  // Simulate delayed response
-  setTimeout(() => {
-    res.status(200).json({
-      token: 'test-auth-token-' + user.id,
-      user: user
-    });
-  }, 500);
-});
-
-// Get all users
-app.get('/api/users', (req, res) => {
-  res.json(users);
-});
-
-// Serve test page
-app.get('/', (req, res) => {
+// Create a simple test page
+app.get('/test', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -144,6 +76,7 @@ app.get('/', (req, res) => {
           results.textContent = 'Registering...';
           
           try {
+            console.time('register');
             const response = await fetch('/api/register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -151,6 +84,7 @@ app.get('/', (req, res) => {
                 registerInput: { username, email, name, password }
               })
             });
+            console.timeEnd('register');
             
             const data = await response.json();
             results.textContent = JSON.stringify(data, null, 2);
@@ -167,6 +101,7 @@ app.get('/', (req, res) => {
           results.textContent = 'Logging in...';
           
           try {
+            console.time('login');
             const response = await fetch('/api/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -174,6 +109,7 @@ app.get('/', (req, res) => {
                 loginInput: { email, password }
               })
             });
+            console.timeEnd('login');
             
             const data = await response.json();
             results.textContent = JSON.stringify(data, null, 2);
@@ -187,22 +123,13 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Custom delay endpoints for testing timeouts
-app.use('/api/register-slow', (req, res) => {
-  console.log('Slow registration request - will delay for 20 seconds');
-  setTimeout(() => {
-    res.status(500).json({ error: 'This should time out before you see this' });
-  }, 20000);
-});
-
-app.use('/api/login-slow', (req, res) => {
-  console.log('Slow login request - will delay for 20 seconds');
-  setTimeout(() => {
-    res.status(500).json({ error: 'This should time out before you see this' });
-  }, 20000);
+// For all other routes, serve the index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(staticPath, 'index.html'));
 });
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Auth test server running at http://0.0.0.0:${PORT}`);
+  console.log(`Test server running at http://0.0.0.0:${PORT}`);
+  console.log(`Test page: http://0.0.0.0:${PORT}/test`);
 });

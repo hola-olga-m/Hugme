@@ -96,13 +96,34 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
+  // Utility function to add timeout to fetch requests
+  const fetchWithTimeout = async (url, options, timeout = 15000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetchWithErrorHandling(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      return response;
+    } catch (error) {
+      clearTimeout(id);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out. Please try again.');
+      }
+      throw error;
+    }
+  };
+
   const login = async (email, password) => {
     setAuthError(null);
 
     try {
       logAuthStatus('Attempting login', { email });
 
-      const response = await fetchWithErrorHandling('/api/login', {
+      const response = await fetchWithTimeout('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +158,7 @@ export const AuthProvider = ({ children }) => {
     try {
       logAuthStatus('Attempting registration', userData);
 
-      const response = await fetchWithErrorHandling('/api/register', {
+      const response = await fetchWithTimeout('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +204,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('authToken');
       logAuthStatus('Updating profile', userData);
 
-      const response = await fetchWithErrorHandling('/api/update-profile', {
+      const response = await fetchWithTimeout('/api/update-profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +235,7 @@ export const AuthProvider = ({ children }) => {
     try {
       logAuthStatus('Requesting password reset', { email });
 
-      await fetchWithErrorHandling('/api/forgot-password', {
+      await fetchWithTimeout('/api/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +258,7 @@ export const AuthProvider = ({ children }) => {
     try {
       logAuthStatus('Resetting password', { token: token?.substring(0, 10) + '...' });
 
-      await fetchWithErrorHandling('/api/reset-password', {
+      await fetchWithTimeout('/api/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -72,7 +72,7 @@ localPort = 5174
 externalPort = 3000
 
 [workflows]
-runButton = "FixedBuildAndPreview"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -122,6 +122,14 @@ args = "BuildViteAppOnly"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "APIServer"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "TestFrontServer"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "AuthFeedbackTest"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -688,3 +696,33 @@ args = "# Build and serve the application with debug mode"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && npm run build && VITE_BACKEND_URL=http://0.0.0.0:3004 VITE_API_DEBUG=true npm run preview -- --port 5173 --host 0.0.0.0"
+
+[[workflows.workflow]]
+name = "TestFrontServer"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node test-front-server.js"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "AuthFeedbackTest"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node auth-feedback-test.cjs"
+waitForPort = 5000

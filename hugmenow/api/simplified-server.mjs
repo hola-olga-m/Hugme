@@ -65,9 +65,42 @@ app.use('/graphql', (req, res) => {
     } else {
       result.errors = [{ message: 'Invalid credentials' }];
     }
+  } else if (query.includes('register')) {
+    const variables = req.body.variables || {};
+    const input = variables.input || {};
+    
+    // Check if user with this email already exists
+    const existingUser = users.find(u => u.email === input.email);
+    if (existingUser) {
+      result.errors = [{ message: 'User with this email already exists' }];
+    } else {
+      // Create new user
+      const id = (users.length + 1).toString();
+      const newUser = {
+        id,
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        username: input.username || input.name?.split(' ')[0]?.toLowerCase() || '',
+        avatar: '/assets/icons/png/SmilingHug.png'
+      };
+      
+      users.push(newUser);
+      
+      // Return token and user
+      result.data = {
+        register: {
+          token: 'dummy-token-' + newUser.id,
+          user: newUser
+        }
+      };
+    }
   }
   
-  res.json(result);
+  // Add a small delay (100-200ms) to simulate network latency
+  setTimeout(() => {
+    res.json(result);
+  }, 0);
 });
 
 // Set up some REST API endpoints
@@ -86,6 +119,35 @@ app.post('/api/login', (req, res) => {
   const user = users.find(u => u.email === loginInput.email && u.password === loginInput.password);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   res.json({ token: 'dummy-token-' + user.id, user });
+});
+
+app.post('/api/register', (req, res) => {
+  const registerInput = req.body.registerInput || req.body;
+  
+  // Check if user with this email already exists
+  const existingUser = users.find(u => u.email === registerInput.email);
+  if (existingUser) {
+    return res.status(400).json({ error: 'User with this email already exists' });
+  }
+  
+  // Create new user
+  const id = (users.length + 1).toString();
+  const newUser = {
+    id,
+    name: registerInput.name,
+    email: registerInput.email, 
+    password: registerInput.password,
+    username: registerInput.username || registerInput.name.split(' ')[0].toLowerCase(),
+    avatar: '/assets/icons/png/SmilingHug.png'
+  };
+  
+  users.push(newUser);
+  
+  // Return token and user
+  res.status(201).json({ 
+    token: 'dummy-token-' + newUser.id, 
+    user: newUser 
+  });
 });
 
 app.get('/api/moods', (req, res) => {
