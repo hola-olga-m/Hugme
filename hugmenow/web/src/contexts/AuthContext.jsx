@@ -521,3 +521,170 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthProvider;
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { fetchWithErrorHandling } from '../utils/apiErrorHandler';
+
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Check if there's a token in localStorage
+    const token = localStorage.getItem('token');
+    console.log('[Auth Debug] Token exists:', !!token);
+    
+    if (token) {
+      // Fetch user data using the token
+      const fetchUserData = async () => {
+        try {
+          const response = await fetchWithErrorHandling('/api/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.user) {
+            setCurrentUser(response.user);
+          } else {
+            // Invalid token response
+            localStorage.removeItem('token');
+          }
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+          localStorage.removeItem('token');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchUserData();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const login = async (credentials) => {
+    setLoading(true);
+    try {
+      const data = await fetchWithErrorHandling('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ loginInput: credentials }),
+      });
+      
+      if (data.accessToken) {
+        localStorage.setItem('token', data.accessToken);
+        setCurrentUser(data.user);
+        console.log('Login successful, user:', data.user);
+        return { success: true, user: data.user };
+      } else {
+        throw new Error('Login failed: No access token received');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (userData) => {
+    setLoading(true);
+    try {
+      console.log('Registering with data:', {
+        username: userData.username,
+        email: userData.email,
+        name: userData.name,
+        hasPassword: !!userData.password
+      });
+      
+      const data = await fetchWithErrorHandling('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ registerInput: userData }),
+      });
+      
+      console.log('Registration response:', data);
+      
+      if (data.accessToken) {
+        // Don't automatically log in after registration
+        console.log('Registration successful');
+        return { success: true, message: 'Registration successful' };
+      } else if (data.error) {
+        throw new Error(data.error);
+      } else {
+        throw new Error('Registration failed: Unknown error');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+  };
+
+  const updateProfile = async (profileData) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+      
+      const data = await fetchWithErrorHandling('/api/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ profileData }),
+      });
+      
+      if (data.user) {
+        setCurrentUser(data.user);
+        return data.user;
+      } else {
+        throw new Error('Profile update failed');
+      }
+    } catch (err) {
+      console.error('Update profile error:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value = {
+    currentUser,
+    loading,
+    error,
+    login,
+    register,
+    logout,
+    updateProfile,
+    isAuthenticated: !!currentUser,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
