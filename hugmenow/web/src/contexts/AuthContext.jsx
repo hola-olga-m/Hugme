@@ -42,6 +42,21 @@ const REGISTER_MUTATION = gql`
   }
 `;
 
+const ANONYMOUS_LOGIN_MUTATION = gql`
+  mutation AnonymousLogin($nickname: String!) {
+    anonymousLogin(nickname: $nickname) {
+      user {
+        id
+        name
+        role
+        avatarUrl
+        createdAt
+      }
+      token
+    }
+  }
+`;
+
 const GET_CURRENT_USER = gql`
   query GetCurrentUser {
     currentUser {
@@ -129,17 +144,29 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login function
-  const login = async (email, password) => {
+  const login = async (credentials) => {
+    console.log('AuthContext: Login called with credentials', { 
+      email: credentials.email, 
+      password: credentials.password ? '[REDACTED]' : undefined 
+    });
+    
     setLoading(true);
     setError(null);
     
     try {
       const { data } = await client.mutate({
         mutation: LOGIN_MUTATION,
-        variables: { email, password }
+        variables: { 
+          email: credentials.email, 
+          password: credentials.password 
+        }
       });
       
+      console.log('AuthContext: Login mutation response received', 
+        data?.login ? { hasToken: !!data.login.token, hasUser: !!data.login.user } : 'No login data');
+      
       if (data?.login?.token && data?.login?.user) {
+        console.log('AuthContext: Login successful, setting auth data');
         // Save auth data
         setToken(data.login.token);
         setUser(data.login.user);
@@ -151,7 +178,10 @@ export const AuthProvider = ({ children }) => {
           type: 'success'
         });
         
-        return true;
+        return { success: true, user: data.login.user };
+      } else {
+        console.log('AuthContext: Login response missing token or user data');
+        throw new Error('Invalid login response from server');
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -163,24 +193,38 @@ export const AuthProvider = ({ children }) => {
         type: 'error'
       });
       
-      return false;
+      throw err; // Rethrow to allow Login component to handle the error
     } finally {
       setLoading(false);
     }
   };
 
   // Register function
-  const register = async (name, email, password) => {
+  const register = async (registerData) => {
+    console.log('AuthContext: Register called with data', { 
+      name: registerData.name,
+      email: registerData.email, 
+      password: registerData.password ? '[REDACTED]' : undefined 
+    });
+    
     setLoading(true);
     setError(null);
     
     try {
       const { data } = await client.mutate({
         mutation: REGISTER_MUTATION,
-        variables: { name, email, password }
+        variables: { 
+          name: registerData.name,
+          email: registerData.email, 
+          password: registerData.password 
+        }
       });
       
+      console.log('AuthContext: Registration mutation response received', 
+        data?.register ? { hasToken: !!data.register.token, hasUser: !!data.register.user } : 'No register data');
+      
       if (data?.register?.token && data?.register?.user) {
+        console.log('AuthContext: Registration successful, setting auth data');
         // Save auth data
         setToken(data.register.token);
         setUser(data.register.user);
@@ -192,7 +236,10 @@ export const AuthProvider = ({ children }) => {
           type: 'success'
         });
         
-        return true;
+        return { success: true, user: data.register.user };
+      } else {
+        console.log('AuthContext: Registration response missing token or user data');
+        throw new Error('Invalid registration response from server');
       }
     } catch (err) {
       console.error('Registration error:', err);
@@ -204,7 +251,7 @@ export const AuthProvider = ({ children }) => {
         type: 'error'
       });
       
-      return false;
+      throw err; // Rethrow to allow Register component to handle the error
     } finally {
       setLoading(false);
     }
@@ -228,6 +275,61 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(null);
   };
 
+  // Anonymous login function
+  const anonymousLogin = async (anonData) => {
+    console.log('AuthContext: Anonymous login called with nickname:', anonData.nickname);
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data } = await client.mutate({
+        mutation: ANONYMOUS_LOGIN_MUTATION,
+        variables: { 
+          nickname: anonData.nickname
+        }
+      });
+      
+      console.log('AuthContext: Anonymous login mutation response received', 
+        data?.anonymousLogin ? { 
+          hasToken: !!data.anonymousLogin.token, 
+          hasUser: !!data.anonymousLogin.user 
+        } : 'No anonymous login data');
+      
+      if (data?.anonymousLogin?.token && data?.anonymousLogin?.user) {
+        console.log('AuthContext: Anonymous login successful, setting auth data');
+        // Save auth data
+        setToken(data.anonymousLogin.token);
+        setUser(data.anonymousLogin.user);
+        localStorage.setItem('authToken', data.anonymousLogin.token);
+        setAuthToken(data.anonymousLogin.token);
+        
+        // Show success notification
+        showNotification('Welcome!', `You're now logged in as ${data.anonymousLogin.user.name}`, {
+          type: 'success'
+        });
+        
+        return { success: true, user: data.anonymousLogin.user };
+      } else {
+        console.log('AuthContext: Anonymous login response missing token or user data');
+        throw new Error('Invalid anonymous login response from server');
+      }
+    } catch (err) {
+      console.error('Anonymous login error:', err);
+      const errorMessage = err.graphQLErrors?.[0]?.message || 'Anonymous login failed. Please try again.';
+      setError(errorMessage);
+      
+      // Show error notification
+      showNotification('Login Failed', errorMessage, {
+        type: 'error'
+      });
+      
+      throw err; // Rethrow to allow Login component to handle the error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Context value
   const authContextValue = {
     user,
@@ -238,6 +340,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    anonymousLogin,
     refreshUser: fetchCurrentUser
   };
 
