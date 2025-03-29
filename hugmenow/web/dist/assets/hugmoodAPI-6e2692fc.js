@@ -1,4 +1,4 @@
-import{g as o}from"./main-19610135.js";let n;const c=t=>{n=t,console.log("HugMoodAPI: Apollo client initialized")};o`
+import{g as o}from"./main-e6a5ccf0.js";let n;const c=t=>{n=t,console.log("HugMoodAPI: Apollo client initialized")};o`
   subscription OnNewHug($userId: ID!) {
     newHug(userId: $userId) {
       id
@@ -88,4 +88,4 @@ import{g as o}from"./main-19610135.js";let n;const c=t=>{n=t,console.log("HugMoo
               }
             }
           `,variables:{userId:t},fetchPolicy:"network-only"});e.sentHugRequests&&e.sentHugRequests.length>0&&Math.random()<.05&&i(e.sentHugRequests[0])}catch(e){console.error("Error polling for hug request updates:",e)}},3e4),s=`hugRequestUpdates-${t}`;return u.set(s,r),()=>{clearInterval(r),u.delete(s)}}catch(r){return console.error("Error setting up hug request update subscription:",r),()=>{}}},p=()=>{u.forEach(t=>{clearInterval(t)}),u.clear()};export{p as cleanupAllSubscriptions,c as initApolloClient,g as subscribeHugRequestUpdates,l as subscribeNewHugRequests,d as subscribeNewHugs};
-//# sourceMappingURL=hugmoodAPI-d9c32283.js.map
+//# sourceMappingURL=hugmoodAPI-6e2692fc.js.map
