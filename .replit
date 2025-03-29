@@ -36,7 +36,7 @@ externalPort = 5000
 
 [[ports]]
 localPort = 5001
-externalPort = 3000
+externalPort = 8099
 
 [[ports]]
 localPort = 5002
@@ -84,11 +84,7 @@ args = "FeedbackTest"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "BasicServer"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "HugMeNow"
+args = "SimpleTest"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -190,7 +186,7 @@ args = "bash start-feedback-test.sh"
 waitForPort = 5001
 
 [[workflows.workflow]]
-name = "BasicServer"
+name = "SimpleTest"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -201,20 +197,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash start-basic-server.sh"
+args = "bash start-simple-test.sh"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "HugMeNow"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-hugmenow-optimized.sh"
-waitForPort = 3000

@@ -25,8 +25,8 @@ cd hugmenow/api && PORT=${API_PORT} node simplified-server.mjs &
 API_PID=$!
 
 # Start the frontend server immediately from dist without rebuilding
-# Get the frontend port from environment variable or use default (using 3000 to avoid conflict with BasicServer)
-FRONTEND_PORT=${PORT:-3000}
+# Get the frontend port from environment variable or use default (using 5000 for compatibility with web application feedback tool)
+FRONTEND_PORT=${PORT:-5000}
 
 # Check if the dist directory exists
 if [ ! -d "hugmenow/web/dist" ]; then
