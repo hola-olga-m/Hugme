@@ -1,20 +1,22 @@
+/**
+ * A simple test server to check access via the web application feedback tool
+ */
 import express from 'express';
 const app = express();
-const port = 5000;
+const PORT = 5005;
 
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
       <head>
-        <title>HugMeNow - Simple Test Page</title>
+        <title>HugMeNow - Test Page</title>
         <style>
           body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            text-align: center;
           }
           h1 {
             color: #4a154b;
@@ -29,18 +31,26 @@ app.get('/', (req, res) => {
         </style>
       </head>
       <body>
-        <h1>HugMeNow Simple Test Page</h1>
+        <h1>HugMeNow Test Page</h1>
         <div class="card">
           <h2>Server Status</h2>
-          <p>The simple test server is running correctly on port 5000.</p>
+          <p>The test server is running correctly.</p>
           <p>Current time: ${new Date().toISOString()}</p>
-          <p>This is a minimal test server to verify the web application feedback tool works.</p>
+        </div>
+        <div class="card">
+          <h2>Server Information</h2>
+          <ul>
+            <li>Server: Express.js</li>
+            <li>Port: ${PORT}</li>
+            <li>Node Version: ${process.version}</li>
+          </ul>
         </div>
       </body>
     </html>
   `);
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Simple test server listening at http://0.0.0.0:${port}`);
+// Start the server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Direct test server running at http://0.0.0.0:${PORT}`);
 });
