@@ -1,277 +1,238 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { meshSdk } from '../apollo/client';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { gql } from '@apollo/client';
+import { setAuthToken } from '../services/graphqlService';
+import { gqlClient } from '../services/graphqlService';
+import { showNotification } from '../utils/notifications';
 
-// Create the context
-const AuthContext = createContext();
+// Define the auth context
+export const AuthContext = createContext();
 
-// Custom hook to use the auth context
+// Custom hook to use auth context
 export const useAuth = () => useContext(AuthContext);
 
-// AuthProvider component
+// GraphQL queries and mutations for authentication
+const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(loginInput: { email: $email, password: $password }) {
+      user {
+        id
+        name
+        email
+        role
+        avatarUrl
+        createdAt
+      }
+      token
+    }
+  }
+`;
+
+const REGISTER_MUTATION = gql`
+  mutation Register($name: String!, $email: String!, $password: String!) {
+    register(registerInput: { name: $name, email: $email, password: $password }) {
+      user {
+        id
+        name
+        email
+        role
+        avatarUrl
+        createdAt
+      }
+      token
+    }
+  }
+`;
+
+const GET_CURRENT_USER = gql`
+  query GetCurrentUser {
+    currentUser {
+      id
+      name
+      email
+      role
+      avatarUrl
+      createdAt
+    }
+  }
+`;
+
+// Auth Provider Component
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('authToken'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // Create a client instance for Mesh SDK
-  const client = meshSdk();
-  
-  // Clear error helper
-  const clearError = () => setError(null);
-  
-  // Check if user is already logged in (token in localStorage)
+
+  // Initialize auth state
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        try {
-          // Use Mesh SDK GetMe
-          console.log('Attempting Mesh SDK GetMe operation...');
-          const result = await client.GetMe();
-          
-          if (result && result.me) {
-            console.log('Mesh SDK GetMe successful, user:', result.me.username);
-            setCurrentUser(result.me);
-            setIsAuthenticated(true);
-          } else {
-            console.error('Invalid Mesh SDK GetMe response structure:', result);
-            throw new Error('Invalid GetMe response');
-          }
-        } catch (err) {
-          console.error('Token validation error:', err);
-          // Clear invalid token
-          localStorage.removeItem('authToken');
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
-      setLoading(false);
-    };
-    
-    checkAuth();
-  }, [client]);
-  
-  // Login with email and password
-  const login = async (credentials) => {
-    setLoading(true);
-    clearError();
-    try {
-      console.log('Attempting Mesh SDK login with input:', JSON.stringify({
-        email: credentials.email,
-        // Password omitted for security
-      }));
-      
-      const loginInput = {
-        email: credentials.email,
-        password: credentials.password
-      };
-      
-      const result = await client.Login(loginInput);
-      
-      if (result && result.login) {
-        const response = result.login;
-        console.log('Mesh SDK login successful, user:', response.user?.username);
-        localStorage.setItem('authToken', response.accessToken);
-        setCurrentUser(response.user);
-        setIsAuthenticated(true);
-        return response.user;
-      } else {
-        console.error('Invalid Mesh SDK login response structure:', result);
-        throw new Error('Invalid login response');
-      }
-    } catch (error) {
-      console.error('Mesh SDK login error:', error);
-      setError(error.message || 'Login failed');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Register a new user
-  const register = async (userData) => {
-    setLoading(true);
-    clearError();
-    
-    console.log('Attempting to register user:', {
-      username: userData.username,
-      email: userData.email,
-      name: userData.name,
-      // Password omitted for security
-    });
-    
-    try {
-      console.log('Attempting Mesh SDK registration with input:', JSON.stringify({
-        username: userData.username,
-        email: userData.email,
-        name: userData.name,
-        avatarUrl: userData.avatarUrl || null // include avatarUrl if it exists
-      }));
-      
-      // Ensure the input data format matches exactly what the GraphQL API expects
-      const registerInput = {
-        username: userData.username,
-        email: userData.email,
-        name: userData.name,
-        password: userData.password
-      };
-      
-      // Only add avatarUrl if it exists
-      if (userData.avatarUrl) {
-        registerInput.avatarUrl = userData.avatarUrl;
-      }
-      
-      const result = await client.Register(registerInput);
-      
-      console.log('Mesh SDK register response:', result);
-      
-      if (result && result.register) {
-        const response = result.register;
-        console.log('Registration successful, user:', response.user?.username);
-        localStorage.setItem('authToken', response.accessToken);
-        setCurrentUser(response.user);
-        setIsAuthenticated(true);
-        return response.user;
-      } else {
-        console.error('Invalid Mesh SDK response structure:', result);
-        throw new Error('Invalid registration response');
-      }
-    } catch (error) {
-      console.error('Registration failed:', error);
-      
-      // Provide more specific error message based on the error
-      let errorMessage = 'Registration failed';
-      
-      if (error.message) {
-        if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Could not connect to the server';
-        } else if (error.message.includes('username')) {
-          errorMessage = 'Username error: ' + error.message;
-        } else if (error.message.includes('email')) {
-          errorMessage = 'Email error: ' + error.message;
-        } else if (error.message.includes('password')) {
-          errorMessage = 'Password error: ' + error.message;
+    const initializeAuth = async () => {
+      try {
+        const storedToken = localStorage.getItem('authToken');
+        
+        if (storedToken) {
+          setToken(storedToken);
+          setAuthToken(storedToken);
+          await fetchCurrentUser();
         } else {
-          errorMessage = error.message;
+          setLoading(false);
         }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        clearAuthData();
+        setLoading(false);
       }
-      
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Login anonymously
-  const anonymousLogin = async (anonymousData) => {
+    };
+
+    console.log('AuthContext: Checking authentication status...');
+    initializeAuth();
+  }, []);
+
+  // Fetch the current user data
+  const fetchCurrentUser = async () => {
     setLoading(true);
-    clearError();
+    setError(null);
+    
     try {
-      console.log('Attempting Mesh SDK anonymous login with input:', JSON.stringify({
-        deviceId: anonymousData.deviceId,
-        deviceName: anonymousData.deviceName
-      }));
-      
-      const anonymousLoginInput = {
-        deviceId: anonymousData.deviceId,
-        deviceName: anonymousData.deviceName
-      };
-      
-      const result = await client.AnonymousLogin(anonymousLoginInput);
-      
-      if (result && result.anonymousLogin) {
-        const response = result.anonymousLogin;
-        console.log('Mesh SDK anonymous login successful, user:', response.user?.username);
-        localStorage.setItem('authToken', response.accessToken);
-        setCurrentUser(response.user);
-        setIsAuthenticated(true);
-        return response.user;
-      } else {
-        console.error('Invalid Mesh SDK anonymous login response structure:', result);
-        throw new Error('Invalid anonymous login response');
-      }
-    } catch (error) {
-      console.error('Mesh SDK anonymous login error:', error);
-      setError(error.message || 'Anonymous login failed');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Logout user
-  const logout = async () => {
-    setLoading(true);
-    try {
-      // Since we're using JWT tokens, we don't need an explicit logout API call
-      // We just need to remove the token and clear the user state
-      console.log('Logging out user');
-      localStorage.removeItem('authToken');
-      setCurrentUser(null);
-      setIsAuthenticated(false);
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Update user profile
-  const updateProfile = async (userData) => {
-    setLoading(true);
-    clearError();
-    try {
-      console.log('Attempting to update user profile:', {
-        name: userData.name,
-        username: userData.username,
-        avatarUrl: userData.avatarUrl
+      console.log('AuthContext: Attempting to fetch current user');
+      const { data } = await gqlClient.query({
+        query: GET_CURRENT_USER,
+        fetchPolicy: 'network-only' // Don't use cache for this
       });
       
-      // Prepare input for SDK call
-      const updateUserInput = { ...userData };
-      
-      const result = await client.UpdateUser(updateUserInput);
-      
-      if (result && result.updateUser) {
-        const updatedUser = result.updateUser;
-        console.log('Profile update successful:', updatedUser.username);
-        setCurrentUser(updatedUser);
-        return updatedUser;
+      if (data?.currentUser) {
+        console.log('AuthContext: Current user found', data.currentUser);
+        setUser(data.currentUser);
       } else {
-        console.error('Invalid UpdateUser response structure:', result);
-        throw new Error('Failed to update profile');
+        console.log('AuthContext: No current user found in response');
+        clearAuthData();
       }
-    } catch (error) {
-      console.error('Update profile error:', error);
-      setError(error.message || 'Failed to update profile');
-      throw error;
+    } catch (err) {
+      console.error('Error fetching current user:', err);
+      clearAuthData();
+      setError('Session expired. Please log in again.');
     } finally {
       setLoading(false);
     }
   };
-  
+
+  // Login function
+  const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data } = await gqlClient.mutate({
+        mutation: LOGIN_MUTATION,
+        variables: { email, password }
+      });
+      
+      if (data?.login?.token && data?.login?.user) {
+        // Save auth data
+        setToken(data.login.token);
+        setUser(data.login.user);
+        localStorage.setItem('authToken', data.login.token);
+        setAuthToken(data.login.token);
+        
+        // Show success notification
+        showNotification('Login Successful', `Welcome back, ${data.login.user.name}!`, {
+          type: 'success'
+        });
+        
+        return true;
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      const errorMessage = err.graphQLErrors?.[0]?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      
+      // Show error notification
+      showNotification('Login Failed', errorMessage, {
+        type: 'error'
+      });
+      
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Register function
+  const register = async (name, email, password) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data } = await gqlClient.mutate({
+        mutation: REGISTER_MUTATION,
+        variables: { name, email, password }
+      });
+      
+      if (data?.register?.token && data?.register?.user) {
+        // Save auth data
+        setToken(data.register.token);
+        setUser(data.register.user);
+        localStorage.setItem('authToken', data.register.token);
+        setAuthToken(data.register.token);
+        
+        // Show success notification
+        showNotification('Registration Successful', `Welcome to HugMeNow, ${data.register.user.name}!`, {
+          type: 'success'
+        });
+        
+        return true;
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      const errorMessage = err.graphQLErrors?.[0]?.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      
+      // Show error notification
+      showNotification('Registration Failed', errorMessage, {
+        type: 'error'
+      });
+      
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout function
+  const logout = () => {
+    clearAuthData();
+    
+    // Show notification
+    showNotification('Logged Out', 'You have been successfully logged out.', {
+      type: 'info'
+    });
+  };
+
+  // Clear auth data helper
+  const clearAuthData = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('authToken');
+    setAuthToken(null);
+  };
+
   // Context value
-  const value = {
-    currentUser,
+  const authContextValue = {
+    user,
+    token,
     loading,
     error,
-    isAuthenticated,
+    isAuthenticated: !!user,
     login,
     register,
-    anonymousLogin,
     logout,
-    updateProfile,
-    clearError
+    refreshUser: fetchCurrentUser
   };
-  
+
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// No default export - use named export { AuthProvider } instead
+export default AuthProvider;

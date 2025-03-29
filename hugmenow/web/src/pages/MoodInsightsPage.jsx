@@ -23,24 +23,24 @@ const PageDescription = styled.p`
 `;
 
 /**
- * ProfilePage Component
- * Placeholder for the User Profile functionality
+ * MoodInsightsPage Component
+ * Placeholder for the Mood Insights functionality
  */
-const ProfilePage = () => {
+const MoodInsightsPage = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <PageTitle>User Profile</PageTitle>
+        <PageTitle>Mood Insights</PageTitle>
         <PageDescription>
-          This page will contain the User Profile functionality.
+          This page will contain the Mood Insights functionality.
         </PageDescription>
       </PageHeader>
       
       <div>
-        <p>Content for User Profile will be implemented here.</p>
+        <p>Content for Mood Insights will be implemented here.</p>
       </div>
     </PageContainer>
   );
 };
 
-export default ProfilePage;
+export default MoodInsightsPage;

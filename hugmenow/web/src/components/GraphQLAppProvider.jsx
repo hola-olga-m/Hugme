@@ -1,102 +1,105 @@
-/**
- * GraphQL App Provider
- * 
- * A high-level component that integrates the GraphQL client 
- * with the React application, providing connection status and
- * a complete replacement for WebSocket communication.
- */
-
-import React, { useEffect, useState } from 'react';
-import { GraphQLProvider } from '../hooks/useGraphQL';
-import ConnectionStatus from './ConnectionStatus';
-
-// Default GraphQL options - now HTTP only
-const DEFAULT_OPTIONS = {
-  httpUrl: '/graphql',       // GraphQL HTTP endpoint 
-  wsUrl: '',                 // Empty to disable WebSockets
-  useSubscriptions: false,   // Disable WebSocket subscriptions
-  usePollFallback: true,     // Enable polling for real-time updates
-};
+import React from 'react';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloProvider, split } from '@apollo/client';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
+import { onError } from "@apollo/client/link/error";
 
 /**
- * Application wrapper that provides GraphQL client to the app
- * and shows connection status as needed.
+ * GraphQLAppProvider Component
+ * Configures and provides Apollo Client for GraphQL operations
  */
 const GraphQLAppProvider = ({ children, options = {} }) => {
-  console.log('GraphQLAppProvider rendering');
+  const {
+    httpUrl = '/graphql',
+    wsUrl = 'ws://localhost:3002/graphql',
+    useSubscriptions = true,
+    defaultFetchPolicy = 'network-only'
+  } = options;
   
-  // Merge provided options with defaults
-  const clientOptions = { ...DEFAULT_OPTIONS, ...options };
-  console.log('GraphQL client options:', clientOptions);
-  
-  // Track connection status
-  const [connectionStatus, setConnectionStatus] = useState({
-    status: 'connecting',
-    isOffline: false,
-    showIndicator: false
+  // This needs to be mutable, so we declare it separately
+  let usePollFallback = options.usePollFallback || false;
+
+  // Create an HTTP link for standard queries and mutations
+  const httpLink = new HttpLink({
+    uri: httpUrl,
+    credentials: 'same-origin',
   });
-  
-  // Handle connection status changes
-  const handleConnectionChange = (event) => {
-    console.log('GraphQL connection status changed:', event);
-    setConnectionStatus(prevStatus => ({
-      ...prevStatus,
-      status: event.status,
-      isOffline: event.isOffline || !navigator.onLine,
-      showIndicator: true
-    }));
-    
-    // Hide the indicator after a delay for successful connections
-    if (event.status === 'connected') {
-      setTimeout(() => {
-        setConnectionStatus(prevStatus => ({
-          ...prevStatus,
-          showIndicator: false
-        }));
-      }, 2000);
+
+  // Create an error link for better error handling
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors) {
+      graphQLErrors.forEach(({ message, locations, path }) => {
+        console.error(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        );
+      });
     }
-  };
-  
-  // Track connection status in browser's title
-  useEffect(() => {
-    const defaultTitle = document.title;
-    
-    if (connectionStatus.isOffline) {
-      document.title = `[Offline] ${defaultTitle}`;
-    } else if (connectionStatus.status === 'reconnecting') {
-      document.title = `[Reconnecting...] ${defaultTitle}`;
-    } else {
-      document.title = defaultTitle;
+    if (networkError) {
+      console.error(`[Network error]: ${networkError}`);
     }
-    
-    return () => {
-      document.title = defaultTitle;
-    };
-  }, [connectionStatus.status, connectionStatus.isOffline]);
-  
-  // Log initial render
-  useEffect(() => {
-    console.log('GraphQLAppProvider mounted');
-    
-    return () => {
-      console.log('GraphQLAppProvider unmounted');
-    };
-  }, []);
-  
-  return (
-    <GraphQLProvider options={{
-      ...clientOptions,
-      onConnectionChange: handleConnectionChange
-    }}>
-      {connectionStatus.showIndicator && (
-        <ConnectionStatus 
-          status={connectionStatus.status}
-          isOffline={connectionStatus.isOffline}
-        />
-      )}
-      {children}
-    </GraphQLProvider>
-  );
+  });
+
+  // Setup for WebSocket link if used
+  let wsLink = null;
+  if (useSubscriptions && wsUrl) {
+    try {
+      wsLink = new GraphQLWsLink(
+        createClient({
+          url: wsUrl,
+          connectionParams: {
+            // Add authentication if needed
+            authToken: localStorage.getItem('authToken'),
+          },
+        })
+      );
+    } catch (error) {
+      console.error('Failed to create WebSocket link:', error);
+      // Fall back to polling if WebSocket setup fails
+      usePollFallback = true;
+    }
+  }
+
+  // Split traffic between HTTP and WebSocket links based on operation type
+  let link;
+  if (wsLink && useSubscriptions) {
+    link = split(
+      ({ query }) => {
+        const definition = getMainDefinition(query);
+        return (
+          definition.kind === 'OperationDefinition' &&
+          definition.operation === 'subscription'
+        );
+      },
+      wsLink,
+      httpLink
+    );
+  } else {
+    link = httpLink;
+  }
+
+  // Create the Apollo Client
+  const client = new ApolloClient({
+    link: errorLink.concat(link),
+    cache: new InMemoryCache(),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: defaultFetchPolicy,
+        errorPolicy: 'all',
+      },
+      query: {
+        fetchPolicy: defaultFetchPolicy,
+        errorPolicy: 'all',
+      },
+      mutate: {
+        errorPolicy: 'all',
+      },
+      // If WebSocket isn't available but we want real-time, use polling
+      ...(usePollFallback && !wsLink ? { pollInterval: 10000 } : {}),
+    },
+  });
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };
 
 export default GraphQLAppProvider;

@@ -23,24 +23,24 @@ const PageDescription = styled.p`
 `;
 
 /**
- * ProfilePage Component
- * Placeholder for the User Profile functionality
+ * HugReceivePage Component
+ * Placeholder for the Received Hugs functionality
  */
-const ProfilePage = () => {
+const HugReceivePage = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <PageTitle>User Profile</PageTitle>
+        <PageTitle>Received Hugs</PageTitle>
         <PageDescription>
-          This page will contain the User Profile functionality.
+          This page will contain the Received Hugs functionality.
         </PageDescription>
       </PageHeader>
       
       <div>
-        <p>Content for User Profile will be implemented here.</p>
+        <p>Content for Received Hugs will be implemented here.</p>
       </div>
     </PageContainer>
   );
 };
 
-export default ProfilePage;
+export default HugReceivePage;

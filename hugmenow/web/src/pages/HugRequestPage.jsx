@@ -23,24 +23,24 @@ const PageDescription = styled.p`
 `;
 
 /**
- * ProfilePage Component
- * Placeholder for the User Profile functionality
+ * HugRequestPage Component
+ * Placeholder for the Hug Request functionality
  */
-const ProfilePage = () => {
+const HugRequestPage = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <PageTitle>User Profile</PageTitle>
+        <PageTitle>Request Hugs</PageTitle>
         <PageDescription>
-          This page will contain the User Profile functionality.
+          This page will contain the Request Hugs functionality.
         </PageDescription>
       </PageHeader>
       
       <div>
-        <p>Content for User Profile will be implemented here.</p>
+        <p>Content for Request Hugs will be implemented here.</p>
       </div>
     </PageContainer>
   );
 };
 
-export default ProfilePage;
+export default HugRequestPage;

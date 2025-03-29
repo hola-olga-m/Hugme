@@ -1,5 +1,25 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { applyMoodTheme, getMoodThemeClass } from '../services/themeService';
+import {
+  THEMES,
+  MOOD_THEMES,
+  getCurrentTheme,
+  setTheme as setThemeService,
+  getMoodBasedThemeEnabled,
+  setMoodBasedThemeEnabled,
+  applyMoodBasedTheme as applyMoodTheme,
+  getMoodThemeClass,
+  getAvailableThemes,
+  getAvailableMoodThemes,
+  toggleDarkMode,
+  areAnimationsEnabled,
+  setAnimationsEnabled,
+  toggleAnimations,
+  isReducedMotionEnabled,
+  setReducedMotionEnabled,
+  isHighContrastEnabled,
+  setHighContrastEnabled,
+  initializeThemeService
+} from '../services/themeService';
 
 // Create context
 export const ThemeContext = createContext();
@@ -8,156 +28,115 @@ export const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('light'); // Default theme
-  const [moodBasedTheme, setMoodBasedTheme] = useState(false);
+  // Theme state
+  const [theme, setThemeState] = useState(getCurrentTheme()); 
   const [currentMood, setCurrentMood] = useState(null);
-  const [themePreference, setThemePreference] = useState('auto'); // 'light', 'dark', 'auto', 'mood'
+  const [animations, setAnimationsState] = useState(areAnimationsEnabled());
+  const [reducedMotion, setReducedMotionState] = useState(isReducedMotionEnabled());
+  const [highContrast, setHighContrastState] = useState(isHighContrastEnabled());
+  const [moodBasedEnabled, setMoodBasedEnabledState] = useState(getMoodBasedThemeEnabled());
 
-  // Initialize theme from localStorage
+  // Initialize theme system
   useEffect(() => {
-    const storedTheme = localStorage.getItem('hugmood_theme_preference');
-    if (storedTheme) {
-      setThemePreference(storedTheme);
-    }
-    
-    // Apply initial theme
-    applyInitialTheme();
+    initializeThemeService();
+    setThemeState(getCurrentTheme());
+    setAnimationsState(areAnimationsEnabled());
+    setReducedMotionState(isReducedMotionEnabled());
+    setHighContrastState(isHighContrastEnabled());
+    setMoodBasedEnabledState(getMoodBasedThemeEnabled());
   }, []);
 
-  // Apply theme based on preference
-  const applyInitialTheme = () => {
-    const preference = localStorage.getItem('hugmood_theme_preference') || 'auto';
-    
-    switch (preference) {
-      case 'light':
-        applyLightTheme();
-        break;
-      case 'dark':
-        applyDarkTheme();
-        break;
-      case 'mood':
-        applyMoodBasedTheme();
-        break;
-      case 'auto':
-      default:
-        applySystemTheme();
-        break;
-    }
-  };
-
-  // Apply light theme
-  const applyLightTheme = () => {
-    setTheme('light');
-    setMoodBasedTheme(false);
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.body.classList.remove('dark-theme', 'mood-theme');
-    document.body.classList.add('light-theme');
-  };
-
-  // Apply dark theme
-  const applyDarkTheme = () => {
-    setTheme('dark');
-    setMoodBasedTheme(false);
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.body.classList.remove('light-theme', 'mood-theme');
-    document.body.classList.add('dark-theme');
-  };
-
-  // Apply mood-based theme
-  const applyMoodBasedTheme = () => {
-    setMoodBasedTheme(true);
-    
-    // If we have a current mood, apply that theme
-    if (currentMood) {
-      const moodThemeClass = getMoodThemeClass(currentMood);
-      setTheme(`mood-${currentMood}`);
-      document.documentElement.setAttribute('data-theme', `mood-${currentMood}`);
-      document.body.classList.remove('light-theme', 'dark-theme');
-      document.body.classList.add('mood-theme', moodThemeClass);
+  // Handle theme changes
+  const changeTheme = (newTheme) => {
+    if (setThemeService(newTheme)) {
+      setThemeState(newTheme);
       
-      // Apply mood-specific theme colors
-      applyMoodTheme(currentMood);
-    } else {
-      // Default to light theme if no mood is set
-      applyLightTheme();
-    }
-  };
-
-  // Apply system preference theme
-  const applySystemTheme = () => {
-    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (isDarkMode) {
-      applyDarkTheme();
-    } else {
-      applyLightTheme();
-    }
-  };
-
-  // Update theme when mood changes
-  useEffect(() => {
-    if (moodBasedTheme && currentMood) {
-      applyMoodBasedTheme();
-    }
-  }, [currentMood, moodBasedTheme]);
-
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = () => {
-      if (themePreference === 'auto') {
-        applySystemTheme();
+      // If changing to something other than mood-based, 
+      // update mood-based enabled state
+      if (newTheme !== THEMES.MOOD_BASED && moodBasedEnabled) {
+        setMoodBasedEnabledState(false);
+      } else if (newTheme === THEMES.MOOD_BASED && !moodBasedEnabled) {
+        setMoodBasedEnabledState(true);
       }
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, [themePreference]);
-
-  // Set theme preference
-  const changeTheme = (preference) => {
-    setThemePreference(preference);
-    localStorage.setItem('hugmood_theme_preference', preference);
-    
-    switch (preference) {
-      case 'light':
-        applyLightTheme();
-        break;
-      case 'dark':
-        applyDarkTheme();
-        break;
-      case 'mood':
-        applyMoodBasedTheme();
-        break;
-      case 'auto':
-      default:
-        applySystemTheme();
-        break;
     }
   };
 
-  // Update current mood
+  // Handle toggling dark mode
+  const handleToggleDarkMode = () => {
+    toggleDarkMode();
+    setThemeState(getCurrentTheme());
+  };
+
+  // Handle toggling animations
+  const handleToggleAnimations = () => {
+    toggleAnimations();
+    setAnimationsState(areAnimationsEnabled());
+  };
+
+  // Handle setting animations
+  const handleSetAnimations = (enabled) => {
+    setAnimationsEnabled(enabled);
+    setAnimationsState(enabled);
+  };
+
+  // Handle setting reduced motion
+  const handleSetReducedMotion = (enabled) => {
+    setReducedMotionEnabled(enabled);
+    setReducedMotionState(enabled);
+  };
+
+  // Handle setting high contrast
+  const handleSetHighContrast = (enabled) => {
+    setHighContrastEnabled(enabled);
+    setHighContrastState(enabled);
+  };
+
+  // Handle setting mood-based theming
+  const handleSetMoodBasedEnabled = (enabled) => {
+    setMoodBasedThemeEnabled(enabled);
+    setMoodBasedEnabledState(enabled);
+    
+    if (enabled && currentMood) {
+      applyMoodTheme(currentMood);
+    }
+    
+    setThemeState(getCurrentTheme());
+  };
+
+  // Handle updating mood
   const updateMood = (mood) => {
     setCurrentMood(mood);
     
-    // If using mood-based theme, apply the new theme
-    if (moodBasedTheme) {
-      applyMoodBasedTheme();
+    if (moodBasedEnabled) {
+      applyMoodTheme(mood);
+      setThemeState(getCurrentTheme());
     }
   };
 
   // Context value
   const contextValue = {
+    // Current values
     theme,
-    themePreference,
-    setTheme: changeTheme,
     currentMood,
+    animationsEnabled: animations,
+    reducedMotion,
+    highContrast,
+    moodBasedThemeEnabled: moodBasedEnabled,
+    
+    // Setters
+    setTheme: changeTheme,
     updateMood,
-    isMoodBased: moodBasedTheme,
+    toggleDarkMode: handleToggleDarkMode,
+    toggleAnimations: handleToggleAnimations,
+    setAnimationsEnabled: handleSetAnimations,
+    setReducedMotionEnabled: handleSetReducedMotion,
+    setHighContrastEnabled: handleSetHighContrast,
+    setMoodBasedThemeEnabled: handleSetMoodBasedEnabled,
+    
+    // Getters
+    getAvailableThemes,
+    getAvailableMoodThemes,
+    getMoodThemeClass,
   };
 
   return (

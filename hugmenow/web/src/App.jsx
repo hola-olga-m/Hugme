@@ -13,7 +13,7 @@ import AuthLayout from './layouts/AuthLayout';
 
 // Common Components
 import Loading from './components/common/Loading';
-import ProtectedRoute from './components/common/ProtectedRoute';
+import ProtectedRoute from './components/routing/ProtectedRoute';
 import Notifications from './components/common/Notifications';
 
 // Eager-loaded Pages

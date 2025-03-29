@@ -23,24 +23,24 @@ const PageDescription = styled.p`
 `;
 
 /**
- * ProfilePage Component
- * Placeholder for the User Profile functionality
+ * CommunityPage Component
+ * Placeholder for the Community functionality
  */
-const ProfilePage = () => {
+const CommunityPage = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <PageTitle>User Profile</PageTitle>
+        <PageTitle>Community</PageTitle>
         <PageDescription>
-          This page will contain the User Profile functionality.
+          This page will contain the Community functionality.
         </PageDescription>
       </PageHeader>
       
       <div>
-        <p>Content for User Profile will be implemented here.</p>
+        <p>Content for Community will be implemented here.</p>
       </div>
     </PageContainer>
   );
 };
 
-export default ProfilePage;
+export default CommunityPage;

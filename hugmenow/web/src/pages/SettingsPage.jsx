@@ -23,24 +23,24 @@ const PageDescription = styled.p`
 `;
 
 /**
- * ProfilePage Component
- * Placeholder for the User Profile functionality
+ * SettingsPage Component
+ * Placeholder for the User Settings functionality
  */
-const ProfilePage = () => {
+const SettingsPage = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <PageTitle>User Profile</PageTitle>
+        <PageTitle>Settings</PageTitle>
         <PageDescription>
-          This page will contain the User Profile functionality.
+          This page will contain the User Settings functionality.
         </PageDescription>
       </PageHeader>
       
       <div>
-        <p>Content for User Profile will be implemented here.</p>
+        <p>Content for User Settings will be implemented here.</p>
       </div>
     </PageContainer>
   );
 };
 
-export default ProfilePage;
+export default SettingsPage;
