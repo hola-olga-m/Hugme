@@ -1,0 +1,201 @@
+# HugMeNow GraphQL Operations
+
+# Legacy query for friends' moods (maintained for backward compatibility)
+query friendsMoods($limit: Int, $offset: Int) {
+  friendsMoods(limit: $limit, offset: $offset) {
+    id
+    intensity
+    note
+    createdAt
+    user {
+      id
+      name
+      username
+      avatarUrl
+    }
+  }
+}
+
+# Query for public moods - replaces friendsMoods
+query publicMoods($first: Int, $offset: Int) {
+  allMoods(first: $first, offset: $offset, condition: { isPublic: true }) {
+    nodes {
+      id
+      intensity
+      note
+      createdAt
+      userByUserId {
+        id
+        name
+        username
+        avatarUrl
+      }
+    }
+  }
+}
+
+# Query for a user's moods
+query userMoods($userId: UUID, $first: Int, $offset: Int) {
+  allMoods(
+    first: $first, 
+    offset: $offset, 
+    condition: { userId: $userId }
+  ) {
+    nodes {
+      id
+      intensity
+      note
+      createdAt
+      isPublic
+    }
+  }
+}
+
+# Query for mood streak for a user (custom resolver implemented in mesh-resolvers.js)
+query moodStreak($userId: UUID!) {
+  userById(id: $userId) {
+    id
+    moodsByUserId {
+      totalCount
+    }
+  }
+}
+
+# Query for community hug requests
+query communityHugRequests($first: Int, $offset: Int) {
+  allHugRequests(first: $first, offset: $offset) {
+    nodes {
+      id
+      message
+      createdAt
+      userByRequesterId {
+        id
+        name
+        username
+        avatarUrl
+      }
+    }
+  }
+}
+
+# Query for a user's received hugs
+query receivedHugs($userId: UUID!, $first: Int, $offset: Int) {
+  allHugs(
+    first: $first, 
+    offset: $offset, 
+    condition: { recipientId: $userId }
+  ) {
+    nodes {
+      id
+      message
+      createdAt
+      isRead
+      userBySenderId {
+        id
+        name
+        username
+        avatarUrl
+      }
+    }
+  }
+}
+
+# Query for a user's sent hugs
+query sentHugs($userId: UUID!, $first: Int, $offset: Int) {
+  allHugs(
+    first: $first, 
+    offset: $offset, 
+    condition: { senderId: $userId }
+  ) {
+    nodes {
+      id
+      message
+      createdAt
+      userByRecipientId {
+        id
+        name
+        username
+        avatarUrl
+      }
+    }
+  }
+}
+
+# Mutation to create a mood entry
+mutation createMood($input: CreateMoodInput!) {
+  createMood(input: $input) {
+    mood {
+      id
+      intensity
+      note
+      createdAt
+      isPublic
+    }
+  }
+}
+
+# Mutation to send a hug to a user
+mutation sendHug($input: CreateHugInput!) {
+  createHug(input: $input) {
+    hug {
+      id
+      message
+      createdAt
+      userBySenderId {
+        id
+        name
+      }
+      userByRecipientId {
+        id
+        name
+      }
+    }
+  }
+}
+
+# Mutation to create a community hug request
+mutation createHugRequest($input: CreateHugRequestInput!) {
+  createHugRequest(input: $input) {
+    hugRequest {
+      id
+      message
+      createdAt
+      userByRequesterId {
+        id
+        name
+      }
+    }
+  }
+}
+
+# Mutation to respond to a hug request (custom resolver implemented in mesh-resolvers.js)
+mutation updateHugRequest($input: UpdateHugRequestInput!) {
+  updateHugRequest(input: $input) {
+    hugRequest {
+      id
+      status
+      createdAt
+    }
+  }
+}
+
+# Query for a user's pending hug requests
+query pendingHugRequests($userId: UUID!) {
+  allHugRequests(
+    condition: { 
+      requesterId: $userId,
+      status: "PENDING"
+    }
+  ) {
+    nodes {
+      id
+      message
+      createdAt
+      userByRequesterId {
+        id
+        name
+        username
+      }
+    }
+  }
+}

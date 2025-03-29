@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting basic feedback test server..."
+echo "Starting simple web server..."
 echo "This server will run on port 5000"
 
 # First, kill any existing processes on port 5000
@@ -11,4 +11,4 @@ fuser -k 5000/tcp 2>/dev/null || true
 sleep 1
 
 # Start the server
-node basic-feedback-test.js
+node simple-web-server.js

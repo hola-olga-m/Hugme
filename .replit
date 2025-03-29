@@ -79,10 +79,6 @@ args = "SimpleProxy"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "FeedbackTest"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "SimpleTest"
 
 [[workflows.workflow.tasks]]
@@ -91,7 +87,7 @@ args = "AuthTest"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "BasicFeedbackTest"
+args = "UltraSimple"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -178,21 +174,6 @@ args = "bash start-simple-proxy.sh"
 waitForPort = 3005
 
 [[workflows.workflow]]
-name = "FeedbackTest"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-feedback-test.sh"
-waitForPort = 5001
-
-[[workflows.workflow]]
 name = "SimpleTest"
 author = "agent"
 
@@ -223,7 +204,7 @@ args = "./start-auth-test.sh"
 waitForPort = 5001
 
 [[workflows.workflow]]
-name = "BasicFeedbackTest"
+name = "UltraSimple"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -234,5 +215,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./start-basic-feedback.sh"
+args = "./start-ultra-simple.sh"
 waitForPort = 5000
