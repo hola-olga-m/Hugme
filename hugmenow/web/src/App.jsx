@@ -15,6 +15,7 @@ import AuthLayout from './layouts/AuthLayout';
 import Loading from './components/common/Loading';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import Notifications from './components/common/Notifications';
+import AuthDebugOverlay from './components/AuthDebugOverlay'; // Added import
 
 // Eager-loaded Pages
 import LandingPage from './pages/LandingPage';
@@ -45,12 +46,12 @@ const graphqlOptions = {
 
 function AppContent() {
   const [appReady, setAppReady] = useState(false);
-  
+
   useEffect(() => {
     console.log('App component mounted, preparing application...');
     setAppReady(true);
   }, []);
-  
+
   // Show loading screen while initializing
   if (!appReady) {
     return <Loading fullScreen message="Initializing application..." />;
@@ -59,6 +60,7 @@ function AppContent() {
   return (
     <Router>
       <Suspense fallback={<Loading fullScreen />}>
+        <AuthDebugOverlay /> {/* Added AuthDebugOverlay */}
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
@@ -72,7 +74,7 @@ function AppContent() {
               <OnboardingPage />
             </ProtectedRoute>
           } />
-          
+
           {/* Protected Routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
@@ -151,12 +153,12 @@ function AppContent() {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           {/* Error/Not Found Route */}
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Suspense>
-      
+
       {/* Global Components */}
       <Notifications />
     </Router>
