@@ -10,8 +10,7 @@ export default defineConfig({
     port: 5000,
     host: '0.0.0.0', // Make the server accessible externally
     hmr: {
-      // Allow HMR from all hosts
-      clientPort: 443, // Use 443 for HTTPS connections
+      clientPort: 443, // Use 443 for HTTPS connections through Replit
       host: '0.0.0.0',
       protocol: 'wss' // Use secure WebSockets
     },
@@ -67,16 +66,11 @@ export default defineConfig({
     extensions: ['.js', '.jsx', '.json'],
   },
   esbuild: {
-    loader: 'jsx',
-    include: /src\/.*\.jsx?$/,
-    exclude: [],
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
-        '.js': 'jsx',
-        '.ts': 'tsx',
-      },
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
+    jsxInject: `import React from 'react'`,
+    loader: {
+      '.js': 'jsx',
+      '.ts': 'tsx',
     },
   }
 });

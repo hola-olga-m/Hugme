@@ -323,4 +323,4 @@ args = "cd hugmenow/api && PORT=3002 node simplified-server.mjs &"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd hugmenow/web && npm run dev"
+args = "cd hugmenow/web && node dev-server.js"
