@@ -8,16 +8,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5000,
-    host: '0.0.0.0', // Make the server accessible externally
+    host: '0.0.0.0',
     hmr: {
-      clientPort: 443, // Use 443 for HTTPS connections through Replit
+      clientPort: 443,
       host: '0.0.0.0',
-      protocol: 'wss' // Use secure WebSockets
+      protocol: 'wss'
     },
-    cors: true, // Enable CORS for all origins
+    cors: true,
     fs: {
-      // Allow serving files from the entire project
-      allow: ['..'],
+      strict: false,
+      allow: ['..']
     },
     proxy: {
       '/api': {
@@ -48,29 +48,27 @@ export default defineConfig({
       }
     }
   },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-      },
-    },
-  },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
-      'mesh-sdk': resolve(__dirname, '../../mesh-sdk'),
+      '@': resolve(__dirname, './src')
     },
     extensions: ['.js', '.jsx', '.json'],
   },
-  esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' },
-    jsxInject: `import React from 'react'`,
-    loader: {
-      '.js': 'jsx',
-      '.ts': 'tsx',
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+        '.ts': 'tsx',
+      },
     },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html')
+      }
+    }
   }
 });
