@@ -50,7 +50,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "AdvancedFrontend"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -67,10 +67,6 @@ args = "DirectPostgresProxy"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "FixedServer"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "DirectTest"
 
 [[workflows.workflow.tasks]]
@@ -79,15 +75,11 @@ args = "SimpleProxy"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "SimpleTest"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "AuthTest"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "UltraSimple"
+args = "PublicPage"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -129,21 +121,6 @@ args = "bash start-direct-postgres-proxy.sh"
 waitForPort = 3006
 
 [[workflows.workflow]]
-name = "FixedServer"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node fixed-server.js"
-waitForPort = 5002
-
-[[workflows.workflow]]
 name = "DirectTest"
 author = "agent"
 
@@ -174,21 +151,6 @@ args = "bash start-simple-proxy.sh"
 waitForPort = 3005
 
 [[workflows.workflow]]
-name = "SimpleTest"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-simple-test.sh"
-waitForPort = 5000
-
-[[workflows.workflow]]
 name = "AuthTest"
 author = "agent"
 
@@ -204,7 +166,16 @@ args = "./start-auth-test.sh"
 waitForPort = 5001
 
 [[workflows.workflow]]
-name = "UltraSimple"
+name = "AdvancedFrontend"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
+
+[[workflows.workflow]]
+name = "PublicPage"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -215,14 +186,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./start-ultra-simple.sh"
+args = "./start-public-page.sh"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "AdvancedFrontend"
-author = 40513268
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node index.js"

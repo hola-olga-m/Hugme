@@ -1,14 +1,14 @@
 #!/bin/bash
 
-echo "Starting feedback test server..."
-echo "This server will run on port 5001 to be accessible by the web application feedback tool"
-
-# Find and kill any existing processes on port 5001
-echo "Attempting to kill any existing processes on port 5001"
-fuser -k 5001/tcp 2>/dev/null || true
-
-# Make sure port is available
+# Kill any existing processes using port 5000
+echo "Killing any existing processes on port 5000..."
+pkill -f "node.*:5000" || true
+pkill -f "node.*PORT=5000" || true
 sleep 1
 
-# Start the server
-node feedback-test-server.js
+# Make executable
+chmod +x replit-feedback-test.js
+
+# Start the minimal server
+echo "Starting minimal feedback test server on port 5000..."
+node replit-feedback-test.js
