@@ -1,179 +1,96 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const ErrorContainer = styled.div`
-  margin: 1rem 0;
-  padding: 1rem;
+  background-color: var(--danger-color, #e53935);
+  color: white;
+  padding: 0.75rem 1rem;
   border-radius: 4px;
-  background-color: #fff8f8;
-  border: 1px solid #ffcdd2;
-`;
-
-const ErrorTitle = styled.h4`
-  color: #d32f2f;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
 `;
 
 const ErrorMessage = styled.p`
-  color: #424242;
-  margin: 0.5rem 0;
+  margin: 0;
 `;
 
-const ErrorDetail = styled.div`
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background-color: #f5f5f5;
-  border-radius: 3px;
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: #616161;
-  white-space: pre-wrap;
-  overflow-x: auto;
+const ErrorList = styled.ul`
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
 `;
-
-const RetryButton = styled.button`
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #bdbdbd;
-  }
-`;
-
-const categorizeErrors = (errors) => {
-  const categories = {
-    schema: [],
-    network: [],
-    auth: [],
-    validation: [],
-    unknown: []
-  };
-
-  if (!errors || errors.length === 0) {
-    return categories;
-  }
-
-  errors.forEach(error => {
-    const message = error.message || '';
-
-    if (message.includes('Network error') || message.includes('Response not successful')) {
-      categories.network.push(error);
-    } else if (message.includes('Unknown argument') || message.includes('Cannot query field')) {
-      categories.schema.push(error);
-    } else if (message.includes('Unauthorized') || message.includes('Not authenticated')) {
-      categories.auth.push(error);
-    } else if (message.includes('validation')) {
-      categories.validation.push(error);
-    } else {
-      categories.unknown.push(error);
-    }
-  });
-
-  return categories;
-};
 
 /**
- * GraphQLErrorHandler Component
- * Displays GraphQL errors in a user-friendly way and provides retry functionality
+ * Component to handle and display GraphQL errors in a user-friendly way
  */
-const GraphQLErrorHandler = ({ errors, onRetry }) => {
-  const [categorizedErrors, setCategorizedErrors] = useState({});
+const GraphQLErrorHandler = ({ error }) => {
+  if (!error) return null;
 
-  useEffect(() => {
-    setCategorizedErrors(categorizeErrors(errors));
-  }, [errors]);
+  console.error('GraphQL Error:', error);
 
-  if (!errors || errors.length === 0) {
-    return null;
+  // Extract the main message
+  let mainMessage = 'An error occurred';
+  let detailedErrors = [];
+
+  if (error.message) {
+    mainMessage = error.message;
   }
 
-  const { network, auth, validation, schema, unknown } = categorizedErrors;
+  // Check if it's a network error
+  if (error.networkError) {
+    mainMessage = 'Network error: Unable to connect to the server';
+    if (error.networkError.result && error.networkError.result.errors) {
+      detailedErrors = error.networkError.result.errors.map(e => e.message);
+    }
+  }
+
+  // Check for GraphQL errors
+  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+    mainMessage = error.graphQLErrors[0].message;
+    detailedErrors = error.graphQLErrors.slice(1).map(e => e.message);
+
+    // Check for validation errors in extensions
+    const firstError = error.graphQLErrors[0];
+    if (firstError.extensions && firstError.extensions.validation) {
+      const validationErrors = firstError.extensions.validation;
+      detailedErrors = Object.keys(validationErrors).map(field => {
+        return `${field}: ${validationErrors[field].join(', ')}`;
+      });
+    }
+  }
+
+  // Check if it's a specific error like username/email already exists
+  if (mainMessage.includes('already exists')) {
+    if (mainMessage.includes('Username')) {
+      mainMessage = 'This username is already taken. Please choose another one.';
+    } else if (mainMessage.includes('Email')) {
+      mainMessage = 'This email is already registered. Please use another email or try logging in.';
+    }
+  }
+
+  // Handle connection errors specifically for account creation
+  if (mainMessage.includes('Failed to fetch') || 
+      mainMessage.includes('Network error') || 
+      error.toString().includes('Failed to fetch')) {
+    mainMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+  }
 
   return (
-    <ErrorContainer data-testid="graphql-error-handler">
-      {network.length > 0 && (
-        <>
-          <ErrorTitle>Connection Error</ErrorTitle>
-          <ErrorMessage>
-            We're having trouble connecting to the server. Please check your internet connection and try again.
-          </ErrorMessage>
-          {network.map((error, index) => (
-            <ErrorDetail key={`network-${index}`}>
-              {error.message}
-            </ErrorDetail>
+    <ErrorContainer role="alert" aria-live="assertive">
+      <ErrorMessage>{mainMessage}</ErrorMessage>
+      {detailedErrors.length > 0 && (
+        <ErrorList>
+          {detailedErrors.map((err, index) => (
+            <li key={index}>{err}</li>
           ))}
-        </>
-      )}
-
-      {auth.length > 0 && (
-        <>
-          <ErrorTitle>Authentication Error</ErrorTitle>
-          <ErrorMessage>
-            You need to be logged in to perform this action. Please sign in and try again.
-          </ErrorMessage>
-          {auth.map((error, index) => (
-            <ErrorDetail key={`auth-${index}`}>
-              {error.message}
-            </ErrorDetail>
-          ))}
-        </>
-      )}
-
-      {validation.length > 0 && (
-        <>
-          <ErrorTitle>Validation Error</ErrorTitle>
-          <ErrorMessage>
-            There was an issue with the data provided. Please check your input and try again.
-          </ErrorMessage>
-          {validation.map((error, index) => (
-            <ErrorDetail key={`validation-${index}`}>
-              {error.message}
-            </ErrorDetail>
-          ))}
-        </>
-      )}
-
-      {schema.length > 0 && (
-        <>
-          <ErrorTitle>Schema Error</ErrorTitle>
-          <ErrorMessage>
-            There's a technical problem with the request. Our team has been notified.
-          </ErrorMessage>
-          {schema.map((error, index) => (
-            <ErrorDetail key={`schema-${index}`}>
-              {error.message}
-            </ErrorDetail>
-          ))}
-        </>
-      )}
-
-      {unknown.length > 0 && (
-        <>
-          <ErrorTitle>Unexpected Error</ErrorTitle>
-          <ErrorMessage>
-            Something went wrong. Please try again later or contact support if the problem persists.
-          </ErrorMessage>
-          {unknown.map((error, index) => (
-            <ErrorDetail key={`unknown-${index}`}>
-              {error.message}
-            </ErrorDetail>
-          ))}
-        </>
-      )}
-
-      {onRetry && (
-        <RetryButton onClick={onRetry} data-testid="retry-button">
-          Try Again
-        </RetryButton>
+        </ErrorList>
       )}
     </ErrorContainer>
   );
+};
+
+GraphQLErrorHandler.propTypes = {
+  error: PropTypes.object
 };
 
 export default GraphQLErrorHandler;

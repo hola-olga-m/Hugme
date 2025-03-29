@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: '0.0.0.0', // Make the server accessible externally
+    host: true, // Make the server accessible externally
     hmr: {
       // Allow HMR from all hosts
       host: '0.0.0.0',
@@ -31,13 +31,17 @@ export default defineConfig({
     proxy: {
       // Forward API requests to the NestJS server
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3002',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       // Forward GraphQL requests to the NestJS server
       '/graphql': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/auth': {
+        target: 'http://localhost:3002',
         changeOrigin: true,
       },
     },

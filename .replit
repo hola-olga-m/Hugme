@@ -50,7 +50,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "HugMeNowDev"
+runButton = "HugMeNowDevWithAPI"
 
 [[workflows.workflow]]
 name = "Project"
@@ -193,6 +193,19 @@ waitForPort = 5000
 name = "HugMeNowDev"
 author = 40513268
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && npm run dev"
+
+[[workflows.workflow]]
+name = "HugMeNowDevWithAPI"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/api && PORT=3002 node simplified-server.mjs &"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
