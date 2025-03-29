@@ -7,7 +7,7 @@ import { applyProtocolWorkarounds } from '../utils/httpErrorHandler';
 import { getSdk } from '../mesh-sdk/index.js';
 
 // Base URLs
-export const API_BASE_URL = '';  // Empty for relative path, will use Vite proxy
+export const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3004';  // Use localhost in dev, relative path in prod
 export const GRAPHQL_URL = '/graphql';
 
 /**

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useAuth } from '../../contexts/AuthContext';
 
 const FormContainer = styled.form`
   width: 100%;
@@ -89,6 +90,7 @@ const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,18 +105,22 @@ const RegisterForm = () => {
     setIsLoading(true);
 
     try {
-      // In a real implementation, this would call a registration API
-      console.log('Registration attempted with:', { name, email, password });
+      console.log('Registration attempt with:', { name, email });
       
-      // Simulate a successful registration for now
-      setTimeout(() => {
-        setIsLoading(false);
+      // Use the register function from AuthContext
+      const result = await register({ name, email, password });
+      
+      if (result && result.success) {
+        console.log('Registration successful, navigating to onboarding');
         navigate('/onboarding');
-      }, 1000);
+      } else {
+        throw new Error('Registration failed');
+      }
     } catch (err) {
-      setIsLoading(false);
-      setError('Registration failed. Please try again.');
       console.error('Registration error:', err);
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

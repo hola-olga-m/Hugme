@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useAuth } from '../../contexts/AuthContext';
 
 const FormContainer = styled.form`
   width: 100%;
@@ -87,6 +88,7 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -94,18 +96,22 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // In a real implementation, this would call an authentication API
-      console.log('Login attempted with:', { email, password });
+      console.log('Login attempt with:', { email });
       
-      // Simulate a successful login for now
-      setTimeout(() => {
-        setIsLoading(false);
+      // Use the login function from AuthContext
+      const result = await login({ email, password });
+      
+      if (result && result.success) {
+        console.log('Login successful, navigating to dashboard');
         navigate('/dashboard');
-      }, 1000);
+      } else {
+        throw new Error('Login failed');
+      }
     } catch (err) {
-      setIsLoading(false);
-      setError('Invalid email or password. Please try again.');
       console.error('Login error:', err);
+      setError(err.message || 'Invalid email or password. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
