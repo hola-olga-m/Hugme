@@ -50,7 +50,7 @@ localPort = 5173
 externalPort = 80
 
 [workflows]
-runButton = "Project"
+runButton = "AdvancedFrontend"
 
 [[workflows.workflow]]
 name = "Project"
@@ -217,3 +217,12 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "./start-ultra-simple.sh"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "AdvancedFrontend"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
