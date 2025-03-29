@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import FormContainer from '../common/FormContainer';
+import FormContainer from '../ui/FormContainer';
 import FormGroup from '../common/FormGroup';
 import Label from '../common/Label';
 import Input from '../common/Input';
