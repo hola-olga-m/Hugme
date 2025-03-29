@@ -1,4 +1,4 @@
-import{d as n,j as e}from"./main-bf336841.js";const r=n.div`
+import{d as n,j as e}from"./main-3b01713e.js";const r=n.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as n,j as e}from"./main-bf336841.js";const r=n.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,s=()=>e.jsxs(r,{children:[e.jsxs(t,{children:[e.jsx(i,{children:"Send a Hug"}),e.jsx(o,{children:"This page will contain the Send Hug functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for Send Hug will be implemented here."})})]});export{s as default};
-//# sourceMappingURL=HugSendPage-e7325cca.js.map
+//# sourceMappingURL=HugSendPage-6ab639f2.js.map
