@@ -1,4 +1,4 @@
-import{g as o}from"./main-e694d9c7.js";let n;const c=t=>{n=t,console.log("HugMoodAPI: Apollo client initialized")};o`
+import{g as o}from"./main-a3287410.js";let n;const c=t=>{n=t,console.log("HugMoodAPI: Apollo client initialized")};o`
   subscription OnNewHug($userId: ID!) {
     newHug(userId: $userId) {
       id

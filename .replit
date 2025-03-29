@@ -72,7 +72,7 @@ localPort = 5174
 externalPort = 3000
 
 [workflows]
-runButton = "FixedBuildAndPreview"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -114,10 +114,6 @@ args = "RunBuiltApp"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "BuildAndRunVite"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "ServeBuiltApp"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
@@ -474,21 +470,6 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "./build-and-run-vite.sh"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "ServeBuiltApp"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "./serve-built-app.sh"
 waitForPort = 5000
 
 [[workflows.workflow]]

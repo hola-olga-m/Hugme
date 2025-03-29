@@ -157,7 +157,8 @@ const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { theme } = useContext(ThemeContext);
-  const { user, isAuthenticated, logout } = useContext(AuthContext);
+  const { currentUser: user, logout } = useContext(AuthContext);
+  const isAuthenticated = !!user;
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
