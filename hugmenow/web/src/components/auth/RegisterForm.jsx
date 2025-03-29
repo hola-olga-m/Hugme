@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
+import FormWrapper from './FormWrapper';
+import ErrorDisplay from './ErrorDisplay';
+import { fetchWithErrorHandling } from '../../utils/apiErrorHandler';
+
+// Styled components
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -28,10 +34,35 @@ const RegisterForm = () => {
     }
 
     try {
-      await register(formData);
-      navigate('/login');
+      console.log('[Register] Attempting registration with:', formData);
+
+      try {
+        const response = await fetchWithErrorHandling('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            registerInput: formData
+          }),
+        });
+
+        console.log('[Register] Response:', response);
+
+        navigate('/login');
+      } catch (apiError) {
+        console.error('[Register] API Error:', apiError);
+
+        // Check for HTML response errors
+        if (apiError.message && apiError.message.includes('HTML instead of JSON')) {
+          setError('The server encountered an error. Please try again or contact support.');
+        } else {
+          setError(apiError.message || 'Registration failed. Please try again.');
+        }
+      }
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      console.error('[Register] General Error:', err);
+      setError(err.message || 'Registration failed. Please try again.');
     }
   };
 

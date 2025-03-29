@@ -4,9 +4,9 @@ modules = ["nodejs-20", "postgresql-16"]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "cd hugmenow/web && npm run build && VITE_ALLOW_ALL_HOSTS=true npm run preview -- --port 5173 --host 0.0.0.0"]
+run = ["sh", "-c", "cd hugmenow/web && VITE_BACKEND_URL=http://0.0.0.0:3004 VITE_API_DEBUG=true npm run preview -- --port 5173 --host 0.0.0.0"]
 deploymentTarget = "cloudrun"
-build = ["sh", "-c", "cd hugmenow/web && npm install"]
+build = ["sh", "-c", "cd hugmenow/web && npm run build"]
 
 [[ports]]
 localPort = 3000
@@ -72,7 +72,7 @@ localPort = 5174
 externalPort = 3000
 
 [workflows]
-runButton = "BuildAndServeProduction"
+runButton = "RefreshAndBuild"
 
 [[workflows.workflow]]
 name = "Project"
@@ -641,3 +641,36 @@ args = "# Build and serve the application with explicit backend URL"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && npm run build && VITE_BACKEND_URL=http://localhost:3004 VITE_API_DEBUG=true npm run preview -- --port 5173 --host 0.0.0.0"
+
+[[workflows.workflow]]
+name = "RefreshAndBuild"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Clear any running processes"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"npm run preview\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5173\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 2"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = ""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Build and serve the application with debug mode"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && npm run build && VITE_BACKEND_URL=http://0.0.0.0:3004 VITE_API_DEBUG=true npm run preview -- --port 5173 --host 0.0.0.0"
