@@ -279,6 +279,13 @@ const RegisterPage = () => {
           >
             {loading ? t('app.loading') : t('auth.createAccount')}
           </button>
+          
+          {error && (
+            <div className="error-message mt-3 p-2 bg-danger text-white rounded">
+              <p><strong>Error:</strong> {error}</p>
+              <small>If this issue persists, please try a different email or password.</small>
+            </div>
+          )}
         </form>
         
         <div className="auth-links">

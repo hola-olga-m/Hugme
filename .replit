@@ -581,3 +581,12 @@ args = "# Serve the application with proper CORS headers"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && npm run preview -- --port 5173 --host 0.0.0.0"
+
+[[workflows.workflow]]
+name = "AuthDebug"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/api && PORT=3010 node simplified-server.mjs --debug-auth"

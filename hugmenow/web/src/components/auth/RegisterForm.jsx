@@ -200,6 +200,14 @@ const RegisterForm = () => {
       <SubmitButton type="submit" disabled={isLoading}>
         {isLoading ? 'Creating account...' : 'Create Account'}
       </SubmitButton>
+      
+      {error && (
+        <div className="auth-error">
+          <p>Registration failed: {error}</p>
+          <p>Please try again or contact support if the issue persists.</p>
+        </div>
+      )} Account'}
+      </SubmitButton>
 
       <FormLinks>
         <p>
