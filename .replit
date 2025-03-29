@@ -5,6 +5,7 @@ channel = "stable-24_05"
 
 [deployment]
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
+deploymentTarget = "cloudrun"
 
 [[ports]]
 localPort = 3000
