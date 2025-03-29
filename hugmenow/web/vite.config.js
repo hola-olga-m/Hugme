@@ -85,3 +85,12 @@ export default defineConfig({
     }
   }
 });
+// vite.config.js
+export default {
+  // Configure preview server to listen on all interfaces (0.0.0.0)
+  // and use port 5173 which is mapped to port 80 externally
+  preview: {
+    port: 5173,
+    host: '0.0.0.0'
+  }
+}
