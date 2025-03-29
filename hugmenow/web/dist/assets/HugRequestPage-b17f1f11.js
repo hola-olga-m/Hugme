@@ -1,4 +1,4 @@
-import{d as t,j as e}from"./main-b503b77b.js";const r=t.div`
+import{d as t,j as e}from"./main-19610135.js";const r=t.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as t,j as e}from"./main-b503b77b.js";const r=t.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,a=()=>e.jsxs(r,{children:[e.jsxs(n,{children:[e.jsx(s,{children:"Request Hugs"}),e.jsx(i,{children:"This page will contain the Request Hugs functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for Request Hugs will be implemented here."})})]});export{a as default};
-//# sourceMappingURL=HugRequestPage-3e85a074.js.map
+//# sourceMappingURL=HugRequestPage-b17f1f11.js.map

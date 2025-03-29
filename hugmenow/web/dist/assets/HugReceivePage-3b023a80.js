@@ -1,4 +1,4 @@
-import{d as i,j as e}from"./main-b503b77b.js";const r=i.div`
+import{d as i,j as e}from"./main-19610135.js";const r=i.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as i,j as e}from"./main-b503b77b.js";const r=i.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,c=()=>e.jsxs(r,{children:[e.jsxs(n,{children:[e.jsx(t,{children:"Received Hugs"}),e.jsx(o,{children:"This page will contain the Received Hugs functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for Received Hugs will be implemented here."})})]});export{c as default};
-//# sourceMappingURL=HugReceivePage-7590cbc6.js.map
+//# sourceMappingURL=HugReceivePage-3b023a80.js.map

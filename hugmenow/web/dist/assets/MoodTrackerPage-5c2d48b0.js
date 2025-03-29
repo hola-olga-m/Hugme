@@ -1,4 +1,4 @@
-import{d as r,j as e}from"./main-b503b77b.js";const o=r.div`
+import{d as r,j as e}from"./main-19610135.js";const o=r.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as r,j as e}from"./main-b503b77b.js";const o=r.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,c=()=>e.jsxs(o,{children:[e.jsxs(t,{children:[e.jsx(n,{children:"Mood Tracker"}),e.jsx(i,{children:"Record your daily mood and track your emotional well-being over time."})]}),e.jsx("div",{children:e.jsx("p",{children:"Mood tracker content will be implemented here."})})]});export{c as default};
-//# sourceMappingURL=MoodTrackerPage-d9b32b01.js.map
+//# sourceMappingURL=MoodTrackerPage-5c2d48b0.js.map

@@ -1,4 +1,4 @@
-import{d as n,j as e}from"./main-b503b77b.js";const t=n.div`
+import{d as n,j as e}from"./main-19610135.js";const t=n.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as n,j as e}from"./main-b503b77b.js";const t=n.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,a=()=>e.jsxs(t,{children:[e.jsxs(i,{children:[e.jsx(o,{children:"Community"}),e.jsx(r,{children:"This page will contain the Community functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for Community will be implemented here."})})]});export{a as default};
-//# sourceMappingURL=CommunityPage-38b53f06.js.map
+//# sourceMappingURL=CommunityPage-3f206779.js.map
