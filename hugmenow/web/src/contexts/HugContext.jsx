@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { AuthContext } from './AuthContext';
+import { useAuth } from './AuthContext';
 import { sendHug, requestHug, respondToHugRequest, getHugTypes } from '../services/hugService';
 import { playHapticFeedback } from '../utils/haptics';
 import { showNotification } from '../utils/notifications';
@@ -11,7 +11,7 @@ export const HugContext = createContext();
 export const useHug = () => useContext(HugContext);
 
 export const HugProvider = ({ children }) => {
-  const { user: currentUser, isAuthenticated } = useContext(AuthContext);
+  const { currentUser, isAuthenticated } = useAuth();
   const [hugTypes, setHugTypes] = useState([]);
   const [receivedHugs, setReceivedHugs] = useState([]);
   const [sentHugs, setSentHugs] = useState([]);

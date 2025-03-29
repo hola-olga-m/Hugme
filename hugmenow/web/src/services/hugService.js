@@ -3,8 +3,19 @@
  * Handles all functionality related to sending, receiving and managing hugs
  */
 
-import { gqlClient } from './graphqlService';
-import { gql } from '@apollo/client';
+import { gql, useApolloClient } from '@apollo/client';
+
+// Get the Apollo client
+let apolloClient;
+
+/**
+ * Initialize the Apollo Client
+ * This should be called from a component with access to the Apollo client
+ */
+export const initApolloClient = (client) => {
+  apolloClient = client;
+  console.log('HugService: Apollo client initialized');
+};
 
 // GraphQL queries and mutations
 const GET_HUG_TYPES = gql`
@@ -201,7 +212,12 @@ const GET_ACTIVE_GROUP_HUGS = gql`
  */
 export const getHugTypes = async () => {
   try {
-    const { data } = await gqlClient.query({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      return [];
+    }
+    
+    const { data } = await apolloClient.query({
       query: GET_HUG_TYPES,
       fetchPolicy: 'network-only'
     });
@@ -217,7 +233,12 @@ export const getHugTypes = async () => {
  */
 export const sendHug = async (recipientId, hugTypeId, message = null) => {
   try {
-    const { data } = await gqlClient.mutate({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      throw new Error('Connection error. Please try again later.');
+    }
+    
+    const { data } = await apolloClient.mutate({
       mutation: SEND_HUG,
       variables: {
         recipientId,
@@ -237,7 +258,12 @@ export const sendHug = async (recipientId, hugTypeId, message = null) => {
  */
 export const requestHug = async ({ recipientId, hugTypeId, message }) => {
   try {
-    const { data } = await gqlClient.mutate({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      throw new Error('Connection error. Please try again later.');
+    }
+    
+    const { data } = await apolloClient.mutate({
       mutation: REQUEST_HUG,
       variables: {
         recipientId,
@@ -257,7 +283,12 @@ export const requestHug = async ({ recipientId, hugTypeId, message }) => {
  */
 export const respondToHugRequest = async (requestId, response, message = null) => {
   try {
-    const { data } = await gqlClient.mutate({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      throw new Error('Connection error. Please try again later.');
+    }
+    
+    const { data } = await apolloClient.mutate({
       mutation: RESPOND_TO_REQUEST,
       variables: {
         requestId,
@@ -277,7 +308,12 @@ export const respondToHugRequest = async (requestId, response, message = null) =
  */
 export const getReceivedHugs = async (userId) => {
   try {
-    const { data } = await gqlClient.query({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      return [];
+    }
+    
+    const { data } = await apolloClient.query({
       query: GET_RECEIVED_HUGS,
       variables: { userId },
       fetchPolicy: 'network-only'
@@ -294,7 +330,12 @@ export const getReceivedHugs = async (userId) => {
  */
 export const getSentHugs = async (userId) => {
   try {
-    const { data } = await gqlClient.query({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      return [];
+    }
+    
+    const { data } = await apolloClient.query({
       query: GET_SENT_HUGS,
       variables: { userId },
       fetchPolicy: 'network-only'
@@ -311,7 +352,12 @@ export const getSentHugs = async (userId) => {
  */
 export const getReceivedHugRequests = async (userId) => {
   try {
-    const { data } = await gqlClient.query({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      return [];
+    }
+    
+    const { data } = await apolloClient.query({
       query: GET_RECEIVED_REQUESTS,
       variables: { userId },
       fetchPolicy: 'network-only'
@@ -328,7 +374,12 @@ export const getReceivedHugRequests = async (userId) => {
  */
 export const getSentHugRequests = async (userId) => {
   try {
-    const { data } = await gqlClient.query({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      return [];
+    }
+    
+    const { data } = await apolloClient.query({
       query: GET_SENT_REQUESTS,
       variables: { userId },
       fetchPolicy: 'network-only'
@@ -345,7 +396,12 @@ export const getSentHugRequests = async (userId) => {
  */
 export const createGroupHug = async ({ name, description, hugTypeId, duration }) => {
   try {
-    const { data } = await gqlClient.mutate({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      throw new Error('Connection error. Please try again later.');
+    }
+    
+    const { data } = await apolloClient.mutate({
       mutation: CREATE_GROUP_HUG,
       variables: {
         name,
@@ -366,7 +422,12 @@ export const createGroupHug = async ({ name, description, hugTypeId, duration })
  */
 export const joinGroupHug = async (groupId) => {
   try {
-    const { data } = await gqlClient.mutate({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      throw new Error('Connection error. Please try again later.');
+    }
+    
+    const { data } = await apolloClient.mutate({
       mutation: JOIN_GROUP_HUG,
       variables: { groupId }
     });
@@ -382,7 +443,12 @@ export const joinGroupHug = async (groupId) => {
  */
 export const getActiveGroupHugs = async (userId) => {
   try {
-    const { data } = await gqlClient.query({
+    if (!apolloClient) {
+      console.error('Apollo client not initialized in hugService');
+      return [];
+    }
+    
+    const { data } = await apolloClient.query({
       query: GET_ACTIVE_GROUP_HUGS,
       variables: { userId },
       fetchPolicy: 'network-only'

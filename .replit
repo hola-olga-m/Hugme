@@ -60,10 +60,6 @@ args = "DirectPostgresProxy"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "TestServer"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "FixedServer"
 
 [[workflows.workflow.tasks]]
@@ -123,21 +119,6 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-direct-postgres-proxy.sh"
 waitForPort = 3006
-
-[[workflows.workflow]]
-name = "TestServer"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node test-server.js"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "FixedServer"

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="moodGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#36d6b7" />
+      <stop offset="100%" stop-color="#29b99e" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main circle face -->
+  <circle cx="12" cy="12" r="10" stroke="url(#moodGradient)" stroke-width="2" fill="none" />
+  
+  <!-- Eyes -->
+  <circle cx="8" cy="9" r="1.5" fill="#36d6b7" />
+  <circle cx="16" cy="9" r="1.5" fill="#36d6b7" />
+  
+  <!-- Smile (happy mood) -->
+  <path d="M7.5,14.5 C9,17 15,17 16.5,14.5" stroke="#36d6b7" stroke-width="1.5" stroke-linecap="round" fill="none" />
+  
+  <!-- Mood indicators -->
+  <path d="M21,6 L22,6 M21,12 L22,12 M21,18 L22,18" stroke="#36d6b7" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M2,6 L3,6 M2,12 L3,12 M2,18 L3,18" stroke="#36d6b7" stroke-width="1.5" stroke-linecap="round" />
+  
+  <!-- Tiny sparkles -->
+  <path d="M12,1 L12,2 M12,22 L12,23" stroke="#36d6b7" stroke-width="1.5" stroke-linecap="round" />
+  
+  <!-- Mood wave -->
+  <path d="M4,20 Q8,22 12,20 Q16,18 20,20" stroke="#36d6b7" stroke-width="1" stroke-linecap="round" stroke-dasharray="1 2" fill="none" />
+</svg>

@@ -1,0 +1,197 @@
+/* HugMeNow Enhanced Design System
+ * Main stylesheet that imports and organizes all style modules
+ */
+
+/* Import base styles and theme variables */
+@import url('./global.css');
+
+/* Import enhanced component styles */
+@import url('./modern-components.css');
+
+/* Import advanced layout systems */
+@import url('./advanced-layouts.css');
+
+/* Import animations and effects */
+@import url('./animations.css');
+
+/* Import Google Font - Inter for better typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Root Enhancement - Apply modern scrollbar styling throughout the app */
+:root {
+  /* Scrollbar Customization */
+  --scrollbar-width: 8px;
+  --scrollbar-track: var(--gray-100);  
+  --scrollbar-thumb: var(--gray-400);
+  --scrollbar-thumb-hover: var(--gray-500);
+  
+  /* Color Scheme for Dark Mode */
+  color-scheme: light dark;
+}
+
+/* Apply custom scrollbar throughout the app */
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--primary-lightest);
+  color: var(--primary-darkest);
+}
+
+/* Focus styles for accessibility */
+:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Enhanced typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+}
+
+h2 {
+  font-size: var(--font-size-3xl);
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+}
+
+h5 {
+  font-size: var(--font-size-lg);
+}
+
+h6 {
+  font-size: var(--font-size-base);
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+small {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* Additional utility classes */
+.text-gradient {
+  background: linear-gradient(135deg, 
+    var(--primary-color) 0%, 
+    var(--secondary-color) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glassmorphism {
+  background: var(--glassmorph-bg);
+  backdrop-filter: blur(var(--backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur));
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glassmorph-border);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.image-mask-rounded {
+  mask-image: radial-gradient(circle at center, black 50%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at center, black 50%, transparent 75%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: var(--gray-900);
+    --surface-color: var(--gray-800);
+    --card-color: var(--gray-800);
+    --border-color: var(--gray-700);
+    --text-primary: var(--gray-100);
+    --text-secondary: var(--gray-300);
+    --text-tertiary: var(--gray-500);
+    --text-invert: var(--gray-900);
+    --scrollbar-track: var(--gray-800);
+    --scrollbar-thumb: var(--gray-600);
+    --scrollbar-thumb-hover: var(--gray-500);
+    --glassmorph-bg: rgba(0, 0, 0, 0.6);
+    --glassmorph-border: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Responsive typography adjustments */
+@media (max-width: 640px) {
+  h1 {
+    font-size: var(--font-size-3xl);
+  }
+  
+  h2 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  h3 {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Polyfill for CSS properties not supported in all browsers */
+@supports not (text-wrap: balance) {
+  .text-balance {
+    text-align: center;
+  }
+}
+
+/* Fluid typography scaling for better responsiveness */
+@media (min-width: 1024px) {
+  :root {
+    --font-size-base: 1.125rem;
+  }
+}

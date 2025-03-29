@@ -3,8 +3,19 @@
  * Provides real-time WebSocket and subscription functionality
  */
 
-import { gqlClient } from './graphqlService';
 import { gql } from '@apollo/client';
+
+// Get the Apollo client - this will be initialized from the app
+let apolloClient;
+
+/**
+ * Initialize the Apollo Client
+ * This should be called from a component with access to the Apollo client
+ */
+export const initApolloClient = (client) => {
+  apolloClient = client;
+  console.log('HugMoodAPI: Apollo client initialized');
+};
 
 // Define GraphQL subscription queries
 const NEW_HUG_SUBSCRIPTION = gql`
@@ -74,7 +85,11 @@ export const subscribeNewHugs = (userId, callback) => {
     // Set up a polling interval to check for new hugs
     const intervalId = setInterval(async () => {
       try {
-        const { data } = await gqlClient.query({
+        if (!apolloClient) {
+          console.error('Apollo client not initialized in hugmoodAPI');
+          return;
+        }
+        const { data } = await apolloClient.query({
           query: gql`
             query GetLatestHugs($userId: ID!) {
               receivedHugs(userId: $userId, limit: 5) {
@@ -134,7 +149,11 @@ export const subscribeNewHugRequests = (userId, callback) => {
     // Set up a polling interval for new hug requests
     const intervalId = setInterval(async () => {
       try {
-        const { data } = await gqlClient.query({
+        if (!apolloClient) {
+          console.error('Apollo client not initialized in hugmoodAPI');
+          return;
+        }
+        const { data } = await apolloClient.query({
           query: gql`
             query GetLatestHugRequests($userId: ID!) {
               receivedHugRequests(userId: $userId, limit: 5) {
@@ -194,7 +213,11 @@ export const subscribeHugRequestUpdates = (userId, callback) => {
     // Set up a polling interval for hug request updates
     const intervalId = setInterval(async () => {
       try {
-        const { data } = await gqlClient.query({
+        if (!apolloClient) {
+          console.error('Apollo client not initialized in hugmoodAPI');
+          return;
+        }
+        const { data } = await apolloClient.query({
           query: gql`
             query GetSentHugRequestUpdates($userId: ID!) {
               sentHugRequests(userId: $userId) {

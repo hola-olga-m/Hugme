@@ -26,7 +26,7 @@ API_PID=$!
 
 # Start the frontend server immediately from dist without rebuilding
 # Get the frontend port from environment variable or use default
-FRONTEND_PORT=${PORT:-5001}
+FRONTEND_PORT=${PORT:-5000}
 
 # Check if the dist directory exists
 if [ ! -d "hugmenow/web/dist" ]; then

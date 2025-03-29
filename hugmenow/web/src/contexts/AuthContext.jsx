@@ -1,7 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { gql } from '@apollo/client';
+import { gql, useApolloClient } from '@apollo/client';
 import { setAuthToken } from '../services/graphqlService';
-import { gqlClient } from '../services/graphqlService';
 import { showNotification } from '../utils/notifications';
 
 // Define the auth context
@@ -62,6 +61,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('authToken'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const client = useApolloClient();
 
   // Initialize auth state
   useEffect(() => {
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     
     try {
       console.log('AuthContext: Attempting to fetch current user');
-      const { data } = await gqlClient.query({
+      const { data } = await client.query({
         query: GET_CURRENT_USER,
         fetchPolicy: 'network-only' // Don't use cache for this
       });
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const { data } = await gqlClient.mutate({
+      const { data } = await client.mutate({
         mutation: LOGIN_MUTATION,
         variables: { email, password }
       });
@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const { data } = await gqlClient.mutate({
+      const { data } = await client.mutate({
         mutation: REGISTER_MUTATION,
         variables: { name, email, password }
       });

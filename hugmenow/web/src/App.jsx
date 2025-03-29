@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { HugProvider } from './contexts/HugContext';
-// Use GraphQL API instead of WebSocket-based hugmoodAPI
-import * as graphqlService from './services/graphqlService';
+// GraphQL components
 import GraphQLAppProvider from './components/GraphQLAppProvider';
+import GraphQLServicesInitializer from './components/GraphQLServicesInitializer';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -168,13 +168,15 @@ function App() {
   return (
     <div className="app">
       <GraphQLAppProvider options={graphqlOptions}>
-        <ThemeProvider>
-          <AuthProvider>
-            <HugProvider>
-              <AppContent />
-            </HugProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <GraphQLServicesInitializer>
+          <ThemeProvider>
+            <AuthProvider>
+              <HugProvider>
+                <AppContent />
+              </HugProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </GraphQLServicesInitializer>
       </GraphQLAppProvider>
     </div>
   );

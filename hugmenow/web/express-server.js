@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // Get port from environment variable or use default
 const PORT = process.env.PORT || 5000;
-const API_URL = process.env.API_URL || 'http://localhost:3002';
+const API_URL = process.env.API_URL || 'http://localhost:3003';
 
 // Create Express app
 const app = express();
@@ -52,7 +52,10 @@ app.get('*', (req, res) => {
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Express server running on port ${PORT}`);
+  console.log(`Express server running on port ${PORT} (0.0.0.0)`);
   console.log(`- Serving static files from: ${path.join(__dirname, 'public')}`);
   console.log(`- API proxy to: ${API_URL}`);
+  // Log additional information to help with troubleshooting
+  console.log(`- Main application URL: https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+  console.log(`- Test page URL: https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/test.html`);
 });
