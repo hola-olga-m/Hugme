@@ -4,9 +4,9 @@ modules = ["nodejs-20", "postgresql-16"]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "cd hugmenow/web && VITE_ALLOW_ALL_HOSTS=true npm run preview -- --port 5173 --host 0.0.0.0"]
+run = ["sh", "-c", "cd hugmenow/web && npm run build && VITE_ALLOW_ALL_HOSTS=true npm run preview -- --port 5173 --host 0.0.0.0"]
 deploymentTarget = "cloudrun"
-build = ["sh", "-c", "cd hugmenow/web && npm run build"]
+build = ["sh", "-c", "cd hugmenow/web && npm install"]
 
 [[ports]]
 localPort = 3000
@@ -599,3 +599,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && npm run build"
+
+[[workflows.workflow]]
+name = "TestBuildAndPreview"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && npm install && npm run build && npm run preview -- --port 5173 --host 0.0.0.0"
