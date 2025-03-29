@@ -15,7 +15,7 @@ import AuthLayout from './layouts/AuthLayout';
 import Loading from './components/common/Loading';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import Notifications from './components/common/Notifications';
-import AuthDebugOverlay from './components/AuthDebugOverlay'; // Added import
+import AuthDebugOverlay from './components/common/AuthDebugOverlay'; // Added import
 
 // Eager-loaded Pages
 import LandingPage from './pages/LandingPage';

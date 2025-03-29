@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,7 +8,7 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
   const [timeoutReached, setTimeoutReached] = useState(false);
-  
+
   // Add timeout to prevent infinite loading
   useEffect(() => {
     if (loading) {
@@ -17,11 +16,11 @@ const ProtectedRoute = ({ children }) => {
         console.warn('Authentication check timeout reached after 5 seconds');
         setTimeoutReached(true);
       }, 5000); // 5 second timeout
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [loading]);
-  
+
   // Enhanced debugging
   useEffect(() => {
     logAuthStatus('ProtectedRoute Component - Auth State', {
@@ -39,7 +38,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading && !timeoutReached) {
     return <LoadingScreen text="Checking authentication..." />;
   }
-  
+
   // Handle timeout case
   if (loading && timeoutReached) {
     console.error('Authentication timeout - forcing navigation to login');
