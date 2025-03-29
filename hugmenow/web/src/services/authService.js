@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { API_BASE_URL } from '../config/constants';
 
@@ -28,7 +27,7 @@ authAxios.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('Auth API error:', error);
-    
+
     // Add more detailed error logging
     if (error.response) {
       console.log('Error status:', error.response.status);
@@ -36,7 +35,7 @@ authAxios.interceptors.response.use(
     } else if (error.request) {
       console.log('No response received:', error.request);
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -46,7 +45,7 @@ import { retry } from '../utils/apiRetry';
 export const registerUser = async (userData) => {
   try {
     console.log('Registering user with data:', { ...userData, password: '[REDACTED]' });
-    
+
     // Use retry utility for the registration request
     const response = await retry(() => authAxios.post('/api/auth/register', userData), {
       maxRetries: 3,
@@ -60,11 +59,15 @@ export const registerUser = async (userData) => {
         );
       }
     });
-    
+
     console.log('Registration response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Registration error:', error);
+    //Improved error handling to provide more context to the user.
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout') || (error.response && error.response.status === 504)) {
+        throw new Error('Registration failed due to a timeout. Please check your network connection and try again later.');
+    }
     throw error;
   }
 };
@@ -96,7 +99,7 @@ export const getCurrentUser = async () => {
     if (!token) {
       return null;
     }
-    
+
     const response = await authAxios.get('/api/auth/me');
     return response.data;
   } catch (error) {
@@ -115,7 +118,7 @@ export const verifyToken = async () => {
     if (!token) {
       return { isValid: false };
     }
-    
+
     const response = await authAxios.post('/api/auth/verify-token');
     return { isValid: true, user: response.data };
   } catch (error) {

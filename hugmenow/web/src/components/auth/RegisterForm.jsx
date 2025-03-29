@@ -94,43 +94,50 @@ const RegisterForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
-    // Basic validation
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
     setIsLoading(true);
+    setError('');
 
     try {
-      console.log('Registration attempt with:', { name, email });
+      // Show feedback that we're processing
+      setError('Creating your account...');
 
-      // Use the register function from AuthContext
-      const result = await register({ name, email, password });
+      const userData = {
+        name,
+        email,
+        password,
+      };
 
-      if (result && result.success) {
-        console.log('Registration successful, navigating to onboarding');
-        navigate('/onboarding');
-      } else {
-        throw new Error('Registration failed');
-      }
+      console.log('Submitting registration with:', { 
+        name, email, 
+        hasPassword: !!password, 
+        hasName: !!name 
+      });
+
+      // Add a timeout to show a message if it's taking too long
+      const timeoutId = setTimeout(() => {
+        setError('Still working on creating your account. This might take a moment...');
+      }, 5000);
+
+      await register(userData);
+
+      // Clear the timeout
+      clearTimeout(timeoutId);
+
+      // Registration successful, redirect handled by the context
     } catch (err) {
-      console.error('Registration error details:', err);
+      console.error('Registration form error:', err);
 
-      // Handle different error types
-      if (err.code === 'ECONNABORTED') {
-        setError('Connection timed out. Server might be busy, please try again.');
-      } else if (err.response) {
-        // Server responded with an error
-        const errorMessage = err.response.data?.error || `Error ${err.response.status}: ${err.response.statusText}`;
-        setError(errorMessage);
-      } else if (err.request) {
-        // Request made but no response received (timeout)
-        setError('Server is not responding. Please try again later.');
+      if (err.message.includes('timeout') || err.message.includes('too long')) {
+        setError('The server is taking too long to respond. Please try again later or check your internet connection.');
+      } else if (err.message.includes('NetworkError') || err.message.includes('connect')) {
+        setError('Cannot connect to the server. Please check your internet connection and try again.');
       } else {
-        // Something else went wrong
         setError(err.message || 'Registration failed. Please try again.');
       }
     } finally {

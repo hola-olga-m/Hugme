@@ -17,12 +17,12 @@ const getHeaders = () => {
   const headers = {
     'Content-Type': 'application/json'
   };
-  
+
   const token = localStorage.getItem('authToken');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   return headers;
 };
 
@@ -46,7 +46,7 @@ const handleResponse = async (response) => {
       }
       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
-    
+
     // Special handling for authentication errors
     if (response.status === 401) {
       // Check if this is an expired token
@@ -60,13 +60,13 @@ const handleResponse = async (response) => {
         throw new Error('AuthenticationExpired: Your session has expired, please login again');
       }
     }
-    
+
     // Throw error with message from the server if available
     throw new Error(
       errorData.message || errorData.error || `HTTP error ${response.status}: ${response.statusText}`
     );
   }
-  
+
   return response.json();
 };
 
@@ -88,10 +88,10 @@ export const authApi = {
       body: JSON.stringify(credentials),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   },
-  
+
   /**
    * Register a new user using REST API
    * @param {Object} userData - User registration data
@@ -103,69 +103,66 @@ export const authApi = {
    * @returns {Promise<Object>} Auth response with token and user
    */
   register: async (userData) => {
-    console.log('API Service: Register request to REST endpoint with data:', {
+    console.log('Beginning registration process with userData:', {
       username: userData.username,
       email: userData.email,
-      name: userData.name,
-      // Password omitted for security
-      avatarUrl: userData.avatarUrl || '(not provided)'
+      hasPassword: !!userData.password
     });
-    
-    // Ensure all required fields are present and properly formatted
-    const registrationData = {
-      username: userData.username,
-      email: userData.email,
-      name: userData.name,
-      password: userData.password
-    };
-    
-    // Include avatar URL if provided
-    if (userData.avatarUrl) {
-      registrationData.avatarUrl = userData.avatarUrl;
-    }
-    
+
     try {
-      // Add timeout to prevent hanging requests
+      // Create an AbortController with a longer timeout for registration
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-      
-      console.log('Sending REST registration request to:', `${API_BASE_URL}/register`);
-      const response = await fetch(`${API_BASE_URL}/register`, {
+      const timeoutId = setTimeout(() => {
+        console.warn('Registration request timeout after 20 seconds');
+        controller.abort();
+      }, 20000); // 20 second timeout for registration
+
+      const response = await fetchWithRetry(`${API_BASE_URL}/register`, { //Corrected API_URL to API_BASE_URL
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registrationData),
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ registerInput: userData }),
         signal: controller.signal
-      });
-      
+      }, 3, 2000); // 3 retries with 2 second initial delay
+
+      // Clear the timeout
       clearTimeout(timeoutId);
-      
-      // Log response status before parsing
-      console.log('Registration response status:', response.status, response.statusText);
-      
-      // Special handling for known server issues
-      if (response.status === 500) {
+
+      if (!response.ok) {
+        let errorMessage = 'Server error during registration';
+
         try {
           const errorData = await response.json();
-          console.error('Server error during registration:', errorData);
-          
-          // Check if this is a duplicate key error (common for unique fields like username/email)
+          console.error('Registration error response:', errorData);
+
+          // Check for specific error messages about unique constraints
           if (errorData.message && (
-            errorData.message.includes('duplicate') || 
-            errorData.message.includes('already exists') ||
+            errorData.message.includes('already exists') || 
             errorData.message.includes('unique constraint')
           )) {
-            throw new Error('This username or email is already registered. Please try a different one.');
+            errorMessage = 'This username or email is already registered. Please try a different one.';
+          } else {
+            errorMessage = errorData.message || errorMessage;
           }
-          
-          throw new Error(errorData.message || 'Server error during registration');
         } catch (parseError) {
-          // If we can't parse the JSON, throw a generic error
+          // If we can't parse the JSON, use status code for better error message
           console.error('Could not parse error response:', parseError);
-          throw new Error('Server error during registration. Please try again later.');
+
+          if (response.status === 504) {
+            errorMessage = 'Server timeout during registration. The server took too long to respond.';
+          } else if (response.status >= 500) {
+            errorMessage = `Server error (${response.status}) during registration. The server encountered an issue.`;
+          } else if (response.status === 429) {
+            errorMessage = 'Too many registration attempts. Please try again later.';
+          } else {
+            errorMessage = `Registration failed with status code: ${response.status}`;
+          }
         }
+
+        throw new Error(errorMessage);
       }
-      
+
       const result = await handleResponse(response);
       console.log('Registration successful, response:', {
         accessToken: result.accessToken ? '(token present)' : '(missing)',
@@ -174,24 +171,24 @@ export const authApi = {
           username: result.user.username 
         } : '(missing user data)'
       });
-      
+
       return result;
     } catch (error) {
       console.error('Error during registration:', error);
-      
+
       if (error.name === 'AbortError') {
-        throw new Error('Registration request timed out. Please check your connection and try again.');
+        throw new Error('Registration request timed out. The server took too long to respond. Please try again later.');
       }
-      
+
       // Enhance error messages with more details
       if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
         throw new Error('Network error: Could not connect to the server. Please check your internet connection.');
       }
-      
+
       throw error;
     }
   },
-  
+
   /**
    * Login anonymously using REST API
    * @param {Object} anonymousData - Anonymous user data
@@ -209,10 +206,10 @@ export const authApi = {
       }),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   },
-  
+
   /**
    * Logout current user
    * @returns {Promise<Object>} Logout response
@@ -224,7 +221,7 @@ export const authApi = {
         headers: getHeaders(),
         credentials: 'include'
       });
-      
+
       // If the server returns a 404 (no logout endpoint) or other error,
       // we still want to consider the client-side logout successful
       if (!response.ok) {
@@ -235,7 +232,7 @@ export const authApi = {
         console.warn(`Logout API returned status ${response.status}, continuing with client-side logout`);
         return { success: true, message: 'Logged out on client despite server error' };
       }
-      
+
       return handleResponse(response);
     } catch (error) {
       console.warn('Error during logout API call, continuing with client-side logout:', error);
@@ -243,7 +240,7 @@ export const authApi = {
       return { success: true, message: 'Logged out on client only' };
     }
   },
-  
+
   /**
    * Get current user info using auth token
    * @returns {Promise<Object>} Current user data
@@ -254,10 +251,10 @@ export const authApi = {
       headers: getHeaders(),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   },
-  
+
   /**
    * Update user profile
    * @param {string} userId - User ID
@@ -271,10 +268,10 @@ export const authApi = {
       body: JSON.stringify(userData),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   },
-  
+
   /**
    * Delete user account
    * @param {string} userId - User ID
@@ -286,7 +283,7 @@ export const authApi = {
       headers: getHeaders(),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   }
 };
@@ -306,10 +303,10 @@ export const userApi = {
       headers: getHeaders(),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   },
-  
+
   /**
    * Get all users
    * @returns {Promise<Array>} List of users
@@ -320,7 +317,7 @@ export const userApi = {
       headers: getHeaders(),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   }
 };
@@ -341,10 +338,10 @@ export const moodApi = {
       body: JSON.stringify(moodData),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   },
-  
+
   /**
    * Get user mood streak
    * @returns {Promise<Object>} Mood streak data
@@ -355,7 +352,7 @@ export const moodApi = {
       headers: getHeaders(),
       credentials: 'include'
     });
-    
+
     return handleResponse(response);
   }
 };
@@ -368,7 +365,7 @@ export const apiService = {
   auth: authApi,
   user: userApi,
   mood: moodApi,
-  
+
   // Method to get service by name
   get(serviceName) {
     switch(serviceName) {
@@ -379,3 +376,18 @@ export const apiService = {
     }
   }
 };
+
+//Assuming fetchWithRetry function exists elsewhere and handles retries.  This needs to be added to the file for the code to work.
+async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+  try {
+    const response = await fetch(url, options);
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`Retrying fetch after error: ${error.message}, ${retries} retries remaining`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithRetry(url, options, retries - 1, delay * 2); //Exponential backoff
+    }
+    throw error;
+  }
+}
