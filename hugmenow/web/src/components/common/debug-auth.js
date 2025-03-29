@@ -1,3 +1,4 @@
+
 /**
  * Auth debugging utility
  * Use this to log detailed authentication flow information
@@ -18,25 +19,32 @@ export const logAuthStatus = (location, status) => {
 
 export const checkAuthToken = () => {
   const token = localStorage.getItem('authToken');
-  console.log("checkAuthToken: Token exists =", !!token);
+  console.log("[Auth Debug] Token exists:", !!token);
   return !!token;
 };
 
-// Add utility to check token expiration
+export const getUserFromStorage = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error("[Auth Debug] Error parsing user from storage:", error);
+    return null;
+  }
+};
+
 export const isTokenExpired = () => {
   try {
     const token = localStorage.getItem('authToken');
     if (!token) return true;
-
-    // Simple check to see if the token is a JWT with correct format
-    const tokenParts = token.split('.');
-    if (tokenParts.length !== 3) return true;
-
-    // For debugging only
-    console.log("Token parts:", tokenParts.length);
+    
+    // For JWT tokens, we could check expiration by decoding
+    // For this simplified version, we'll just check if token exists
     return false;
   } catch (error) {
-    console.error("Error checking token expiration:", error);
+    console.error("[Auth Debug] Error checking token expiration:", error);
     return true;
   }
 };

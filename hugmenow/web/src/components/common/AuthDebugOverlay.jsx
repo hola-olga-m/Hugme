@@ -1,81 +1,73 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../../contexts/AuthContext';
-import { checkAuthToken } from './debug-auth';
+import { checkAuthToken, getUserFromStorage } from './debug-auth';
 
 const DebugContainer = styled.div`
   position: fixed;
-  bottom: 0;
-  right: 0;
+  bottom: 10px;
+  right: 10px;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 10px;
+  border-radius: 5px;
   font-family: monospace;
   font-size: 12px;
   z-index: 9999;
   max-width: 300px;
   max-height: 200px;
   overflow: auto;
-  border-radius: 5px 0 0 0;
-  display: ${props => props.visible ? 'block' : 'none'};
 `;
 
-const ToggleButton = styled.button`
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  padding: 5px;
-  font-size: 10px;
-  cursor: pointer;
-  z-index: 10000;
-  border-radius: 5px 0 0 0;
+const DebugItem = styled.div`
+  margin-bottom: 5px;
+`;
+
+const DebugValue = styled.span`
+  color: ${props => props.valid ? '#6CFF5C' : '#FF5C5C'};
+  font-weight: bold;
 `;
 
 const AuthDebugOverlay = () => {
-  const [visible, setVisible] = useState(false);
-  const { isAuthenticated, loading, user } = useAuth();
-  const [refreshCount, setRefreshCount] = useState(0);
+  const { isAuthenticated, loading, user, authToken } = useAuth();
   
-  // Refresh debugging data every 2 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshCount(prev => prev + 1);
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  const toggleVisibility = () => setVisible(prev => !prev);
-  
-  // Add double-tap keyboard shortcut (alt+d)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.altKey && e.key === 'd') {
-        toggleVisibility();
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // Check localStorage directly
+  const hasStorageToken = checkAuthToken();
+  const storageUser = getUserFromStorage();
   
   return (
-    <>
-      <ToggleButton onClick={toggleVisibility}>Debug</ToggleButton>
-      <DebugContainer visible={visible}>
-        <h4>Auth Debug ({refreshCount})</h4>
-        <p>Auth State: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}</p>
-        <p>Loading: {loading ? 'True' : 'False'}</p>
-        <p>Has Token: {checkAuthToken() ? 'Yes' : 'No'}</p>
-        <p>User: {user ? `${user.name} (${user.id})` : 'No user'}</p>
-        <p>Path: {window.location.pathname}</p>
-        <p>Time: {new Date().toLocaleTimeString()}</p>
-      </DebugContainer>
-    </>
+    <DebugContainer>
+      <DebugItem>
+        <strong>Auth Context:</strong>
+      </DebugItem>
+      <DebugItem>
+        Loading: <DebugValue valid={!loading}>{loading ? 'true' : 'false'}</DebugValue>
+      </DebugItem>
+      <DebugItem>
+        Authenticated: <DebugValue valid={isAuthenticated}>{isAuthenticated ? 'true' : 'false'}</DebugValue>
+      </DebugItem>
+      <DebugItem>
+        User: <DebugValue valid={!!user}>{user ? `${user.name} (${user.id})` : 'null'}</DebugValue>
+      </DebugItem>
+      <DebugItem>
+        Token: <DebugValue valid={!!authToken}>{authToken ? 'present' : 'missing'}</DebugValue>
+      </DebugItem>
+      
+      <DebugItem>
+        <strong>Storage:</strong>
+      </DebugItem>
+      <DebugItem>
+        Storage Token: <DebugValue valid={hasStorageToken}>{hasStorageToken ? 'present' : 'missing'}</DebugValue>
+      </DebugItem>
+      <DebugItem>
+        Storage User: <DebugValue valid={!!storageUser}>{storageUser ? `${storageUser.name} (${storageUser.id})` : 'null'}</DebugValue>
+      </DebugItem>
+      
+      <DebugItem>
+        <strong>Location:</strong> {window.location.pathname}
+      </DebugItem>
+    </DebugContainer>
   );
 };
 
