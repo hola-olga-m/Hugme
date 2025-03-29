@@ -74,6 +74,10 @@ args = "DirectTest"
 task = "workflow.run"
 args = "SimpleProxy"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "FeedbackTest"
+
 [[workflows.workflow]]
 name = "HugMeNow"
 author = "agent"
@@ -172,3 +176,18 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-simple-proxy.sh"
 waitForPort = 3005
+
+[[workflows.workflow]]
+name = "FeedbackTest"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-feedback-test.sh"
+waitForPort = 5001
