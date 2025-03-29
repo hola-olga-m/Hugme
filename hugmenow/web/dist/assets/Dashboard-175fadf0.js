@@ -1,4 +1,4 @@
-import{d as r,j as e}from"./main-e6a5ccf0.js";const a=r.div`
+import{d as r,j as e}from"./main-400279ba.js";const a=r.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -52,4 +52,4 @@ import{d as r,j as e}from"./main-e6a5ccf0.js";const a=r.div`
 `,n=r.div`
   color: var(--text-secondary-color, #6b7280);
 `,v=()=>{const c="User";return e.jsxs(a,{children:[e.jsxs(l,{children:[e.jsxs(m,{children:["Welcome back, ",c,"!"]}),e.jsx(x,{children:"Here's an overview of your mood tracking and hug activity."}),e.jsxs(h,{children:[e.jsxs(i,{children:[e.jsx(s,{children:5}),e.jsx(d,{children:"Day Streak"})]}),e.jsxs(i,{children:[e.jsx(s,{children:12}),e.jsx(d,{children:"Hugs Sent"})]}),e.jsxs(i,{children:[e.jsx(s,{children:8}),e.jsx(d,{children:"Hugs Received"})]})]})]}),e.jsxs(g,{children:[e.jsxs(o,{children:[e.jsx(t,{children:"Today's Mood"}),e.jsx(n,{children:e.jsx("p",{children:"You haven't tracked your mood today. How are you feeling?"})})]}),e.jsxs(o,{children:[e.jsx(t,{children:"Recent Hugs"}),e.jsx(n,{children:e.jsx("p",{children:"Content for Recent Hugs will be implemented here."})})]}),e.jsxs(o,{children:[e.jsx(t,{children:"Mood Insights"}),e.jsx(n,{children:e.jsx("p",{children:"Content for Mood Insights will be implemented here."})})]}),e.jsxs(o,{children:[e.jsx(t,{children:"Community Activity"}),e.jsx(n,{children:e.jsx("p",{children:"Content for Community Activity will be implemented here."})})]})]})]})};export{v as default};
-//# sourceMappingURL=Dashboard-a2e683f5.js.map
+//# sourceMappingURL=Dashboard-175fadf0.js.map
