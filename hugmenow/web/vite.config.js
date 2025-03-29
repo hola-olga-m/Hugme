@@ -10,11 +10,13 @@ export default defineConfig({
     port: 5000,
     host: '0.0.0.0',
     hmr: {
-      clientPort: 443,
+      clientPort: 443, // Use Replit's HTTPS port
       host: '0.0.0.0',
-      protocol: 'wss'
+      protocol: 'wss', // Use secure WebSockets for Replit
+      overlay: true
     },
     cors: true,
+    open: false, // Don't open browser automatically
     fs: {
       strict: false,
       allow: ['..']

@@ -324,3 +324,68 @@ args = "cd hugmenow/api && PORT=3002 node simplified-server.mjs &"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && npm run dev"
+
+[[workflows.workflow]]
+name = "DevWithFastRefresh"
+author = 40513268
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Kill any existing services"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5173\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5174\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5000\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"postgraphile-server.js\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"direct-postgres-proxy.js\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 2"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = ""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Start all necessary services in background"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node postgraphile-server.js &"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node direct-postgres-proxy.js &"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/api && PORT=3002 node simplified-server.mjs &"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = ""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Start Vite with the --force flag to enable full HMR support"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && npm run dev -- --force"
