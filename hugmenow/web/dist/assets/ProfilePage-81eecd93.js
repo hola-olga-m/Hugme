@@ -1,4 +1,4 @@
-import{d as r,j as e}from"./main-3b01713e.js";const i=r.div`
+import{d as r,j as e}from"./main-b503b77b.js";const i=r.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as r,j as e}from"./main-3b01713e.js";const i=r.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,s=()=>e.jsxs(i,{children:[e.jsxs(o,{children:[e.jsx(n,{children:"User Profile"}),e.jsx(t,{children:"This page will contain the User Profile functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for User Profile will be implemented here."})})]});export{s as default};
-//# sourceMappingURL=ProfilePage-ee15680d.js.map
+//# sourceMappingURL=ProfilePage-81eecd93.js.map
