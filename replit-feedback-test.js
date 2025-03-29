@@ -5,53 +5,51 @@
 
 import http from 'http';
 
-// Create a very basic HTTP server
+// Create a basic HTTP server
 const server = http.createServer((req, res) => {
-  // Log complete request details for debugging
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
   
   // Set CORS headers to allow all origins
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  // Respond to OPTIONS requests for CORS preflight
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
-
-  // Respond with simple HTML page
-  res.writeHead(200, { 'Content-Type': 'text/html' });
+  // Set content type to HTML
+  res.setHeader('Content-Type', 'text/html');
+  
+  // Send a simple HTML response
   res.end(`
     <!DOCTYPE html>
     <html>
       <head>
         <title>Replit Feedback Test</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-          h1 { color: #4B32C3; }
-          .success { color: green; font-weight: bold; }
+          body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+          h1 { color: #2B65EC; }
+          .success { background-color: #d4edda; border-radius: 8px; padding: 15px; margin: 15px 0; }
         </style>
       </head>
       <body>
-        <h1>Replit Feedback Test</h1>
-        <p class="success">✅ Server is responding correctly!</p>
-        <p>This minimal page is designed to test connectivity with Replit's web application feedback tool.</p>
-        <p>Current time: ${new Date().toLocaleString()}</p>
-        <p>Your request was: ${req.method} ${req.url}</p>
-        <hr>
-        <p>This page should be visible in the web application feedback tool if configured correctly.</p>
+        <h1>Server is responding correctly!</h1>
+        <div class="success">
+          <p>This page is being served by a simple HTTP server on port 5000.</p>
+          <p>It should be visible in Replit's web application feedback tool.</p>
+        </div>
+        <div>
+          <p>Request received: ${req.method} ${req.url}</p>
+          <p>Time: ${new Date().toLocaleString()}</p>
+        </div>
       </body>
     </html>
   `);
 });
 
-// Start server on port 5000
-server.listen(5000, '0.0.0.0', () => {
-  console.log('Ultra simple server running on http://0.0.0.0:5000');
-  console.log('Ready for the web application feedback tool');
+// Listen on port 5000 and bind to all network interfaces
+const PORT = 5000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log('Ready for testing with Replit\'s web application feedback tool');
 });

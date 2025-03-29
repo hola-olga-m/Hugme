@@ -79,7 +79,7 @@ args = "AuthTest"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "PublicPage"
+args = "HugMeNow"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -175,7 +175,7 @@ task = "shell.exec"
 args = "node index.js"
 
 [[workflows.workflow]]
-name = "PublicPage"
+name = "HugMeNow"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -186,5 +186,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./start-public-page.sh"
+args = "./start-hugmenow-optimized.sh"
 waitForPort = 5000
