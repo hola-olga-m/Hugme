@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { GraphQLProvider } from '../hooks/useGraphQL';
+import { GraphQLProvider } from '../hooks/useGraphQL.jsx';
 import ConnectionStatus from './ConnectionStatus';
 
 // Default GraphQL options - now HTTP only

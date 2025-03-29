@@ -5,7 +5,9 @@ import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    include: "**/*.{jsx,js}", // Enable JSX in .js files
+  })],
   server: {
     port: 5000,
     host: '0.0.0.0',
@@ -21,30 +23,32 @@ export default defineConfig({
       strict: false,
       allow: ['..']
     },
+    // Allow all hosts to connect to the development server
+    allowedHosts: 'all',
     proxy: {
       '/api': {
-        target: 'http://localhost:3002',
+        target: 'http://localhost:3004', // Updated to API_PORT in start-hugmenow-comprehensive.sh
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/graphql': {
-        target: 'http://localhost:3002',
+        target: 'http://localhost:3004', // Updated to API_PORT in start-hugmenow-comprehensive.sh
         changeOrigin: true,
         secure: false
       },
       '/auth': {
-        target: 'http://localhost:3002',
+        target: 'http://localhost:3004', // Updated to API_PORT in start-hugmenow-comprehensive.sh
         changeOrigin: true,
         secure: false
       },
       '/postgraphile': {
-        target: 'http://localhost:3003',
+        target: 'http://localhost:5003', // Updated to match our new POSTGRAPHILE_PORT
         changeOrigin: true,
         secure: false
       },
       '/postgres': {
-        target: 'http://localhost:3006',
+        target: 'http://localhost:5006', // Updated to match our new DIRECT_POSTGRES_PROXY_PORT
         changeOrigin: true,
         secure: false
       }
@@ -62,7 +66,14 @@ export default defineConfig({
         '.js': 'jsx',
         '.ts': 'tsx',
       },
+      jsxFactory: 'React.createElement',
+      jsxFragment: 'React.Fragment',
     },
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+    ],
   },
   build: {
     outDir: 'dist',

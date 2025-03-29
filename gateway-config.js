@@ -20,15 +20,16 @@ export const SERVICE_NAMES = {
 
 // Service Ports
 export const SERVICE_PORTS = {
-  POSTGRAPHILE: 3003,
+  POSTGRAPHILE: 5003, // Changed from 3003 to avoid conflicts with individual workflow
   CUSTOM_GATEWAY: 5002, 
   SIMPLE_GATEWAY: 5005,
   MESH_APOLLO: 5001,
-  APOLLO_MESH: 5003,
+  APOLLO_MESH: 5008, // Changed from 5003 to avoid conflict with POSTGRAPHILE
   ENHANCED_GATEWAY: 5004,
   SIMPLE_UNIFIED_GATEWAY: 5007,
-  SIMPLE_MESH_GATEWAY: 5006,
-  HUGMENOW_APP: 3000
+  SIMPLE_MESH_GATEWAY: 5009, // Changed from 5006 to avoid conflict with DIRECT_POSTGRES_PROXY
+  HUGMENOW_APP: 3000,
+  DIRECT_POSTGRES_PROXY: 5006 // Direct Postgres Proxy port
 };
 
 // Service Endpoints
@@ -43,7 +44,8 @@ export const SERVICE_ENDPOINTS = {
   SIMPLE_UNIFIED_GATEWAY_LIVE: `http://localhost:${SERVICE_PORTS.SIMPLE_UNIFIED_GATEWAY}/live-query`,
   SIMPLE_UNIFIED_GATEWAY_TRANSLATE: `http://localhost:${SERVICE_PORTS.SIMPLE_UNIFIED_GATEWAY}/translate`,
   SIMPLE_MESH_GATEWAY: `http://localhost:${SERVICE_PORTS.SIMPLE_MESH_GATEWAY}/graphql`,
-  HUGMENOW_APP: `http://localhost:${SERVICE_PORTS.HUGMENOW_APP}`
+  HUGMENOW_APP: `http://localhost:${SERVICE_PORTS.HUGMENOW_APP}`,
+  DIRECT_POSTGRES_PROXY: `http://localhost:${SERVICE_PORTS.DIRECT_POSTGRES_PROXY}/query` // Updated for direct postgres proxy
 };
 
 // Default client information

@@ -24,7 +24,7 @@ else
   echo "⚠️ gateway-config.js not found, using default configuration..."
   
   # Default configuration
-  export POSTGRAPHILE_PORT="${POSTGRAPHILE_PORT:-3003}"
+  export POSTGRAPHILE_PORT="${POSTGRAPHILE_PORT:-5003}"
   export SERVICE_NAME="${SERVICE_NAME:-PostGraphile}"
   
   echo "📊 Using default configuration:"

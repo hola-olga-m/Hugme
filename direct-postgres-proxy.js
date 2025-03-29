@@ -10,7 +10,7 @@ import http from 'http';
 import pg from 'pg';
 
 // Configuration
-const PORT = 3006; // Fixed port for testing
+const PORT = process.env.DIRECT_PROXY_PORT || 5006; // Use environment variable with fallback to port 5006
 const POSTGRES_URL = process.env.DATABASE_URL;
 const SERVICE_NAME = 'DirectPostgresProxy';
 

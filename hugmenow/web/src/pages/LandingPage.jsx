@@ -9,129 +9,119 @@ const LandingContainer = styled.div`
   justify-content: center;
   min-height: 100vh;
   padding: 2rem;
-  background: var(--background-gradient, linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%));
-`;
-
-const HeroSection = styled.div`
   text-align: center;
-  max-width: 800px;
-  margin-bottom: 3rem;
+  background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 `;
 
 const Title = styled.h1`
   font-size: 3rem;
-  color: var(--primary-color, #6366f1);
   margin-bottom: 1rem;
+  color: #333;
 `;
 
 const Subtitle = styled.p`
-  font-size: 1.25rem;
-  color: var(--text-color, #4b5563);
+  font-size: 1.2rem;
   margin-bottom: 2rem;
-  line-height: 1.6;
+  max-width: 600px;
+  color: #555;
 `;
 
-const CTAButton = styled(Link)`
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: var(--primary-color, #6366f1);
-  color: white;
-  border-radius: 0.375rem;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: var(--primary-dark-color, #4f46e5);
-  }
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 `;
 
-const SecondaryButton = styled(Link)`
-  display: inline-block;
-  margin-left: 1rem;
+const Button = styled(Link)`
+  background-color: ${props => props.primary ? '#635BFF' : 'transparent'};
+  color: ${props => props.primary ? 'white' : '#635BFF'};
+  border: 2px solid #635BFF;
   padding: 0.75rem 1.5rem;
-  background-color: transparent;
-  color: var(--primary-color, #6366f1);
-  border: 1px solid var(--primary-color, #6366f1);
-  border-radius: 0.375rem;
+  border-radius: 6px;
   text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease;
-
+  font-weight: bold;
+  transition: all 0.3s ease;
+  
   &:hover {
-    background-color: var(--primary-color, #6366f1);
-    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: ${props => props.primary ? '#483dff' : 'rgba(99, 91, 255, 0.1)'};
   }
 `;
 
 const FeatureSection = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 2rem;
+  margin-top: 3rem;
   max-width: 1200px;
-  width: 100%;
 `;
 
 const FeatureCard = styled.div`
-  background-color: white;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-
+  flex: 1;
+  min-width: 300px;
+  max-width: 350px;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+  
   &:hover {
     transform: translateY(-5px);
   }
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.25rem;
-  color: var(--primary-color, #6366f1);
+  color: #333;
   margin-bottom: 0.75rem;
 `;
 
 const FeatureDescription = styled.p`
-  color: var(--text-secondary-color, #6b7280);
-  line-height: 1.6;
+  color: #666;
 `;
 
+/**
+ * Landing Page Component
+ * The first page users see when visiting the application
+ */
 const LandingPage = () => {
   return (
     <LandingContainer>
-      <HeroSection>
-        <Title>Welcome to HugMeNow</Title>
-        <Subtitle>
-          Track your moods, receive virtual hugs, and connect with others who understand.
-          Our emotional wellness platform helps you navigate your feelings and build meaningful connections.
-        </Subtitle>
-        <div>
-          <CTAButton to="/auth/register">Get Started</CTAButton>
-          <SecondaryButton to="/auth/login">Sign In</SecondaryButton>
-        </div>
-      </HeroSection>
-
+      <Title>Welcome to HugMood</Title>
+      <Subtitle>
+        Share virtual hugs, track your emotional wellness, and stay connected with 
+        those who matter most in a supportive online environment.
+      </Subtitle>
+      
+      <ButtonGroup>
+        <Button to="/auth/login" primary>Log In</Button>
+        <Button to="/auth/register">Sign Up</Button>
+      </ButtonGroup>
+      
       <FeatureSection>
         <FeatureCard>
-          <FeatureTitle>Track Your Mood</FeatureTitle>
+          <FeatureTitle>Track Your Moods</FeatureTitle>
           <FeatureDescription>
-            Record and monitor your emotional state with our intuitive mood tracker.
-            Gain insights into your patterns and triggers over time.
+            Record your daily emotions with intuitive tools and gain insights
+            into patterns affecting your well-being.
           </FeatureDescription>
         </FeatureCard>
         
         <FeatureCard>
-          <FeatureTitle>Send & Receive Hugs</FeatureTitle>
+          <FeatureTitle>Send Virtual Hugs</FeatureTitle>
           <FeatureDescription>
-            Share virtual hugs with friends or strangers when they need support.
-            Receive hugs when you're feeling down to boost your mood.
+            Show someone you care with personalized virtual hugs. Choose
+            from different hug types to match your feelings.
           </FeatureDescription>
         </FeatureCard>
         
         <FeatureCard>
-          <FeatureTitle>Community Support</FeatureTitle>
+          <FeatureTitle>Connect with Others</FeatureTitle>
           <FeatureDescription>
-            Connect with a compassionate community of users who understand what you're going through.
-            Share experiences and offer mutual support.
+            Build a supportive community, join group hugs, and share
+            your emotional journey with trusted friends.
           </FeatureDescription>
         </FeatureCard>
       </FeatureSection>

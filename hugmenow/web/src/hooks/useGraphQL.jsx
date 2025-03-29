@@ -138,10 +138,11 @@ export const GraphQLProvider = ({ children, options }) => {
     };
   }, [options]);
   
-  // Return JSX with proper formatting for Vite's JSX-in-JS parsing
   return (
     <GraphQLContext.Provider value={{ client, options }}>
-      <ApolloProvider client={client}>{children}</ApolloProvider>
+      <ApolloProvider client={client}>
+        {children}
+      </ApolloProvider>
     </GraphQLContext.Provider>
   );
 };

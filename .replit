@@ -30,6 +30,14 @@ localPort = 3006
 externalPort = 9000
 
 [[ports]]
+localPort = 4003
+externalPort = 6800
+
+[[ports]]
+localPort = 4006
+externalPort = 6000
+
+[[ports]]
 localPort = 5000
 externalPort = 5000
 
@@ -42,8 +50,16 @@ localPort = 5002
 externalPort = 3001
 
 [[ports]]
+localPort = 5003
+externalPort = 8080
+
+[[ports]]
 localPort = 5005
 externalPort = 4200
+
+[[ports]]
+localPort = 5006
+externalPort = 8008
 
 [[ports]]
 localPort = 5173
@@ -63,14 +79,6 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "PostGraphile"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "DirectPostgresProxy"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "DirectTest"
 
 [[workflows.workflow.tasks]]
@@ -83,7 +91,39 @@ args = "AuthTest"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "HugMeNow"
+args = "DirectPostgresProxy"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "PostGraphile"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ViteApp"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "BuildViteApp"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "RunBuiltApp"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "BuildAndRunVite"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ServeBuiltApp"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "BuildViteAppOnly"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "APIServer"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -93,36 +133,6 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash restart-app.sh"
-
-[[workflows.workflow]]
-name = "PostGraphile"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "chmod +x start-postgraphile.sh && ./start-postgraphile.sh"
-waitForPort = 3003
-
-[[workflows.workflow]]
-name = "DirectPostgresProxy"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node direct-postgres-proxy.js"
-waitForPort = 3006
 
 [[workflows.workflow]]
 name = "DirectTest"
@@ -177,21 +187,6 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node index.js"
-
-[[workflows.workflow]]
-name = "HugMeNow"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "chmod +x start-hugmenow-optimized.sh && ./start-hugmenow-optimized.sh"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "HugMeNowDev"
@@ -389,3 +384,135 @@ args = "# Start Vite with the --force flag to enable full HMR support"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/web && npm run dev -- --force"
+
+[[workflows.workflow]]
+name = "DirectPostgresProxy"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "DIRECT_PROXY_PORT=5006 node direct-postgres-proxy.js"
+waitForPort = 5006
+
+[[workflows.workflow]]
+name = "PostGraphile"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "POSTGRAPHILE_PORT=5003 node postgraphile-server.js"
+waitForPort = 5003
+
+[[workflows.workflow]]
+name = "ViteApp"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./start-vite-app.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "BuildViteApp"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./build-vite-app.sh"
+
+[[workflows.workflow]]
+name = "RunBuiltApp"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./run-built-app.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "BuildAndRunVite"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./build-and-run-vite.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "ServeBuiltApp"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./serve-built-app.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "BuildViteAppOnly"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./build-vite-app-only.sh"
+
+[[workflows.workflow]]
+name = "APIServer"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/api && PORT=3004 node simplified-server.mjs"

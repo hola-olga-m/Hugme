@@ -116,7 +116,7 @@ app.get('/postgraphile/status', (req, res) => {
 });
 
 // Get service information
-const PORT = process.env.POSTGRAPHILE_PORT || 3003;
+const PORT = process.env.POSTGRAPHILE_PORT || 5003;
 const SERVICE_NAME = process.env.SERVICE_NAME || 'PostGraphile';
 
 // Start server
