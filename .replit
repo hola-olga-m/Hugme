@@ -518,3 +518,12 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd hugmenow/api && PORT=3004 node simplified-server.mjs"
+
+[[workflows.workflow]]
+name = "BuildAndPreviewApp"
+author = 40513268
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && npm run build && npm run preview -- --port 5173 --host 0.0.0.0"
