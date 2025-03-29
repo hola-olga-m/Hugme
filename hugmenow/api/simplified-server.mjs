@@ -7,7 +7,7 @@ import express from 'express';
 import cors from 'cors';
 
 // Get port from environment variable or use default
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3004;
 
 // Create Express app
 const app = express();

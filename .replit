@@ -8,7 +8,6 @@ run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
 
 [[ports]]
 localPort = 3000
-externalPort = 6800
 
 [[ports]]
 localPort = 3002
@@ -20,7 +19,7 @@ externalPort = 3003
 
 [[ports]]
 localPort = 3004
-externalPort = 6000
+externalPort = 8000
 
 [[ports]]
 localPort = 3005
