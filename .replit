@@ -49,6 +49,10 @@ externalPort = 4200
 localPort = 5173
 externalPort = 80
 
+[[ports]]
+localPort = 5174
+externalPort = 3000
+
 [workflows]
 runButton = "HugMeNowDevWithAPI"
 
@@ -202,6 +206,18 @@ args = "cd hugmenow/web && npm run dev"
 name = "HugMeNowDevWithAPI"
 author = 40513268
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5173\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5174\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 1"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

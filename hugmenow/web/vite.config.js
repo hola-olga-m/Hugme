@@ -6,7 +6,7 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
+    port: 5174,
     host: true, // Make the server accessible externally
     hmr: {
       // Allow HMR from all hosts
@@ -16,7 +16,6 @@ export default defineConfig({
     },
     cors: true, // Enable CORS for all origins
     // Allow all hosts to access the dev server
-    strictPort: true,
     fs: {
       // Allow serving files from the entire project
       allow: ['..'],
