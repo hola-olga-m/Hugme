@@ -1,54 +1,40 @@
 #!/bin/bash
 
-# Startup script for HugMeNow application
-echo "Starting HugMeNow application services..."
+# HugMeNow application startup script
+echo "Starting HugMeNow application services in development mode..."
 
 # Clean up any existing processes
 echo "Cleaning up existing processes..."
 echo "Killing any Node.js processes that might be using ports 3002 and 5000..."
 
-# Find and kill processes 
+# Find and kill processes
 pkill -f "node.*PORT=3002" || true
 pkill -f "node.*PORT=5000" || true
 pkill -f "node.*simplified-server.mjs" || true
 pkill -f "node.*simple-server.js" || true
 
 # Wait a moment for ports to be released
-sleep 2
+sleep 1
 
-# Get the API port from environment variable or use default
-API_PORT=${API_PORT:-3002}
-
-# Start the API server in the background using the simplified server
-echo "Starting API server on port ${API_PORT}..."
-cd hugmenow/api && PORT=${API_PORT} node simplified-server.mjs &
+# Start the API server in the background
+echo "Starting API server on port 3002..."
+cd hugmenow/api && PORT=3002 node simplified-server.mjs &
 API_PID=$!
 
-# Give the API server a moment to start up
-sleep 3
-
-# Get the frontend port from environment variable or use default
-FRONTEND_PORT=${PORT:-5000}
-
-# Build and then start the frontend server
-echo "Building the frontend before starting server..."
-cd hugmenow/web && npm run build && cd ../..
-
-# Start the frontend server
-echo "Starting frontend server on port ${FRONTEND_PORT}..."
-cd hugmenow/web && PORT=${FRONTEND_PORT} node express-server.js &
+# Start the frontend server in development mode
+echo "Starting frontend server in development mode..."
+cd hugmenow/web && npm run dev &
 FRONTEND_PID=$!
 
 # Display useful information
 echo ""
 echo "HugMeNow is now running with:"
-echo "- API Server running on port ${API_PORT} (PID: $API_PID)"
-echo "- Frontend Server running on port 5000 (PID: $FRONTEND_PID)"
+echo "- API Server running on port 3002 (PID: $API_PID)"
+echo "- Frontend Server running in development mode (PID: $FRONTEND_PID)"
 echo ""
 echo "The frontend is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co"
 echo "The API is accessible at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/api"
 echo "The GraphQL endpoint is at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/graphql"
-echo "The PostGraphile interface is at: https://${REPL_SLUG}.${REPL_OWNER}.repl.co/postgraphile/graphiql"
 echo ""
 echo "Press Ctrl+C to stop all services"
 
