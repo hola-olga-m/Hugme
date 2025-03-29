@@ -1,4 +1,3 @@
-
 import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -24,7 +23,7 @@ const ErrorDetails = styled.p`
 
 const ErrorAction = styled.div`
   margin-top: 0.75rem;
-  
+
   button {
     background: none;
     border: none;
@@ -59,14 +58,14 @@ const categorizeErrors = (errors) => {
     validation: [],
     unknown: []
   };
-  
+
   if (!errors || errors.length === 0) {
     return categories;
   }
-  
+
   errors.forEach(error => {
     const message = error.message || '';
-    
+
     if (message.includes('Network error') || message.includes('Response not successful')) {
       categories.network.push(error);
     } else if (message.includes('Unknown argument') || message.includes('Cannot query field')) {
@@ -79,109 +78,85 @@ const categorizeErrors = (errors) => {
       categories.unknown.push(error);
     }
   });
-  
+
   return categories;
 };
 
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-
+/**
+ * GraphQL Error Handler Component
+ * @param {Object} props - Component props
+ * @param {Array} props.errors - GraphQL errors
+ * @param {Function} props.onRetry - Retry function
+ */
 const GraphQLErrorHandler = ({ errors, onRetry }) => {
-  const [isFetchingFix, setIsFetchingFix] = useState(false);
-  const [fixStatus, setFixStatus] = useState(null);
-  const categorizedErrors = categorizeErrors(errors);
-  const hasSchemaErrors = categorizedErrors.schema.length > 0;
-  const hasNetworkErrors = categorizedErrors.network.length > 0;
-  
-  // Store errors in localStorage immediately when errors change
-  useEffect(() => {
-    if (errors?.length > 0) {
-      const errorMessages = errors.map(e => `[GraphQL error]: Message: ${e.message}`).join('\n');
-      localStorage.setItem('graphql_errors', errorMessages);
-      console.log('GraphQL errors stored in localStorage for debugging');
-    }
-  }, [errors]);
-  
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-  
-  const handleTryFix = async () => {
-    if (isFetchingFix) return;
-    
-    setIsFetchingFix(true);
-    setFixStatus('Analyzing schema errors...');
-    
-    try {
-      // Log errors to console for debugging
-      console.log('GraphQL errors detected:', errors.map(e => e.message).join('\n'));
-      
-      // Generate error log for server-side processing
-      const errorMessages = errors.map(e => `[GraphQL error]: Message: ${e.message}`).join('\n');
-      
-      // Store detailed errors in localStorage
-      localStorage.setItem('graphql_errors_detailed', JSON.stringify({
-        timestamp: new Date().toISOString(),
-        errors: errors.map(e => ({
-          message: e.message,
-          path: e.path,
-          locations: e.locations
-        }))
-      }));
-      
-      setFixStatus('Schema fix requested. The page will refresh shortly...');
-      
-      // Wait a moment, then refresh the page
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-    } catch (error) {
-      console.error('Failed to request schema fix:', error);
-      setFixStatus('Failed to request schema fix. Please try again.');
-      setIsFetchingFix(false);
-    }
-  };
-  
+  const categories = categorizeErrors(errors);
+  const hasErrors = Object.values(categories).some(category => category.length > 0);
+
+  if (!hasErrors) return null;
+
   return (
     <ErrorContainer>
-      <ErrorTitle>
-        {hasSchemaErrors ? 'Schema Mismatch Detected' : 
-         hasNetworkErrors ? 'Network Error' : 'Error Loading Data'}
-      </ErrorTitle>
-      
-      <ErrorDetails>
-        {hasSchemaErrors ? 
-          'There is a mismatch between client queries and server schema. This might be due to recent updates.' : 
-         hasNetworkErrors ?
-          'Unable to connect to the server. Please check your internet connection.' :
-          'An error occurred while loading data. Please try again.'}
-      </ErrorDetails>
-      
-      {errors && errors.length > 0 && (
-        <ErrorList>
-          {errors.slice(0, 3).map((error, index) => (
-            <ErrorItem key={index}>{error.message}</ErrorItem>
-          ))}
-          {errors.length > 3 && <ErrorItem>...and {errors.length - 3} more errors</ErrorItem>}
-        </ErrorList>
+      {categories.network.length > 0 && (
+        <>
+          <ErrorTitle>Connection Error</ErrorTitle>
+          <ErrorDetails>
+            Unable to connect to the server. Please check your internet connection.
+          </ErrorDetails>
+          {onRetry && (
+            <ErrorAction>
+              <button onClick={onRetry}>Try again</button>
+            </ErrorAction>
+          )}
+        </>
       )}
-      
-      {fixStatus && <FixStatus>{fixStatus}</FixStatus>}
-      
-      <ErrorAction>
-        {hasSchemaErrors && (
-          <button 
-            onClick={handleTryFix} 
-            disabled={isFetchingFix}
-            style={{ marginRight: '10px' }}
-          >
-            {isFetchingFix ? 'Fixing...' : 'Fix Schema'}
-          </button>
-        )}
-        <button onClick={onRetry || handleRefresh}>
-          {onRetry ? 'Try Again' : 'Refresh Page'}
-        </button>
-      </ErrorAction>
+
+      {categories.auth.length > 0 && (
+        <>
+          <ErrorTitle>Authentication Error</ErrorTitle>
+          <ErrorDetails>
+            You are not authorized to perform this action. Please log in and try again.
+          </ErrorDetails>
+        </>
+      )}
+
+      {categories.schema.length > 0 && (
+        <>
+          <ErrorTitle>Request Error</ErrorTitle>
+          <ErrorDetails>
+            There was an error with the request format.
+          </ErrorDetails>
+          <ErrorList>
+            {categories.schema.map((error, index) => (
+              <ErrorItem key={index}>{error.message}</ErrorItem>
+            ))}
+          </ErrorList>
+        </>
+      )}
+
+      {categories.validation.length > 0 && (
+        <>
+          <ErrorTitle>Validation Error</ErrorTitle>
+          <ErrorList>
+            {categories.validation.map((error, index) => (
+              <ErrorItem key={index}>{error.message}</ErrorItem>
+            ))}
+          </ErrorList>
+        </>
+      )}
+
+      {categories.unknown.length > 0 && (
+        <>
+          <ErrorTitle>Unexpected Error</ErrorTitle>
+          <ErrorDetails>
+            An unexpected error occurred. Please try again later.
+          </ErrorDetails>
+          {onRetry && (
+            <ErrorAction>
+              <button onClick={onRetry}>Try again</button>
+            </ErrorAction>
+          )}
+        </>
+      )}
     </ErrorContainer>
   );
 };

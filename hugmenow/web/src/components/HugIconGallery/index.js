@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -122,20 +122,28 @@ const HugIconGallery = ({
   
   // Update selected type if default changes
   useEffect(() => {
-    setSelectedType(defaultSelectedType);
-  }, [defaultSelectedType]);
+    if (defaultSelectedType !== selectedType) {
+      setSelectedType(defaultSelectedType);
+    }
+  }, [defaultSelectedType, selectedType]);
   
   // Handle icon selection
-  const handleSelectIcon = (type) => {
+  const handleSelectIcon = useCallback((type) => {
     setSelectedType(type);
     if (onSelectHugType) {
       onSelectHugType(type);
     }
-  };
+  }, [onSelectHugType]);
   
   // Get the description for the selected hug type
-  const selectedDescription = getHugTypeDescription(selectedType);
+  const selectedDescription = useMemo(() => 
+    getHugTypeDescription(selectedType), 
+    [selectedType]
+  );
   
+  // Memoize the HUG_ICONS keys to avoid re-rendering
+  const hugIconKeys = useMemo(() => Object.keys(HUG_ICONS), []);
+
   return (
     <GalleryContainer data-testid="hug-icon-gallery">
       <GalleryHeader>
@@ -149,7 +157,7 @@ const HugIconGallery = ({
         animate="visible"
       >
         <GalleryGrid showSelectedSection={showSelectedSection}>
-          {Object.keys(HUG_ICONS).map((hugType) => (
+          {hugIconKeys.map((hugType) => (
             <motion.div key={hugType} variants={fadeInVariants}>
               <HugIcon
                 type={hugType}
@@ -178,7 +186,7 @@ const HugIconGallery = ({
             isSelected
           />
           <SelectedIconDetails>
-            <SelectedIconName>{HUG_ICONS[selectedType]?.name}</SelectedIconName>
+            <SelectedIconName>{HUG_ICONS[selectedType]?.name || ''}</SelectedIconName>
             <SelectedIconDescription>{selectedDescription}</SelectedIconDescription>
           </SelectedIconDetails>
         </SelectedIconSection>

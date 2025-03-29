@@ -295,6 +295,17 @@ const Profile = () => {
     return <LoadingScreen text="Loading profile..." />;
   }
   
+  // Redirect if user is not authenticated
+  useEffect(() => {
+    if (!loading && !currentUser) {
+      navigate('/login');
+    }
+  }, [currentUser, loading, navigate]);
+  
+  if (!currentUser) {
+    return null; // Avoid rendering the profile if no user exists
+  }
+  
   return (
     <ProfileContainer>
       <ProfileHeader>
