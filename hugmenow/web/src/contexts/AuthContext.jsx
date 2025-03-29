@@ -66,24 +66,29 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
+      console.log('AuthContext: Initializing auth state');
       try {
         const storedToken = localStorage.getItem('authToken');
+        console.log('AuthContext: Found stored token?', !!storedToken);
         
         if (storedToken) {
+          console.log('AuthContext: Setting token and preparing to fetch user');
           setToken(storedToken);
           setAuthToken(storedToken);
           await fetchCurrentUser();
         } else {
+          console.log('AuthContext: No token found, setting loading to false');
           setLoading(false);
         }
       } catch (err) {
         console.error('Auth initialization error:', err);
+        console.log('AuthContext: Clearing auth data due to error');
         clearAuthData();
         setLoading(false);
       }
     };
 
-    console.log('AuthContext: Checking authentication status...');
+    console.log('AuthContext: Starting authentication check...');
     initializeAuth();
   }, []);
 
@@ -96,21 +101,29 @@ export const AuthProvider = ({ children }) => {
       console.log('AuthContext: Attempting to fetch current user');
       const { data } = await client.query({
         query: GET_CURRENT_USER,
-        fetchPolicy: 'network-only' // Don't use cache for this
+        fetchPolicy: 'network-only', // Don't use cache for this
+        errorPolicy: 'all' // Return errors alongside any data
       });
       
       if (data?.currentUser) {
         console.log('AuthContext: Current user found', data.currentUser);
         setUser(data.currentUser);
       } else {
-        console.log('AuthContext: No current user found in response');
+        console.log('AuthContext: No current user found in response, data:', data);
         clearAuthData();
       }
     } catch (err) {
       console.error('Error fetching current user:', err);
+      if (err.networkError) {
+        console.error('Network error details:', err.networkError);
+      }
+      if (err.graphQLErrors) {
+        console.error('GraphQL errors:', err.graphQLErrors);
+      }
       clearAuthData();
       setError('Session expired. Please log in again.');
     } finally {
+      console.log('AuthContext: Finished fetchCurrentUser, setting loading to false');
       setLoading(false);
     }
   };

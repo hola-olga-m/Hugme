@@ -1,4 +1,4 @@
-import{d as o,j as e}from"./main-c14c6660.js";const n=o.div`
+import{d as o,j as e}from"./main-bf336841.js";const n=o.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as o,j as e}from"./main-c14c6660.js";const n=o.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,a=()=>e.jsxs(n,{children:[e.jsxs(t,{children:[e.jsx(i,{children:"Mood Insights"}),e.jsx(r,{children:"This page will contain the Mood Insights functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for Mood Insights will be implemented here."})})]});export{a as default};
-//# sourceMappingURL=MoodInsightsPage-88612456.js.map
+//# sourceMappingURL=MoodInsightsPage-a67a8180.js.map

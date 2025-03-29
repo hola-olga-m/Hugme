@@ -4,16 +4,16 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoadingScreen from '../common/LoadingScreen';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, currentUser } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   // Add some debugging
   console.log('ProtectedRoute Component - Auth State:', {
     isAuthenticated,
     loading,
-    hasUser: !!currentUser,
-    userId: currentUser?.id,
-    username: currentUser?.username
+    hasUser: !!user,
+    userId: user?.id,
+    username: user?.name
   });
   
   // Show loading state if auth is still being determined
@@ -22,10 +22,9 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // Redirect to login if not authenticated
-  // Fix: isAuthenticated is a boolean value, not a function
   if (!isAuthenticated) {
     console.log('ProtectedRoute: Not authenticated, redirecting to login');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
   // Render children if authenticated

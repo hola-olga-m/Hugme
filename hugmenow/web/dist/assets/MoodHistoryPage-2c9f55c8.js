@@ -1,4 +1,4 @@
-import{d as e,j as o}from"./main-c14c6660.js";const r=e.div`
+import{d as e,j as o}from"./main-bf336841.js";const r=e.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as e,j as o}from"./main-c14c6660.js";const r=e.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,a=()=>o.jsxs(r,{children:[o.jsxs(t,{children:[o.jsx(i,{children:"Mood History"}),o.jsx(n,{children:"This page will contain the Mood History functionality."})]}),o.jsx("div",{children:o.jsx("p",{children:"Content for Mood History will be implemented here."})})]});export{a as default};
-//# sourceMappingURL=MoodHistoryPage-7d52a0e7.js.map
+//# sourceMappingURL=MoodHistoryPage-2c9f55c8.js.map

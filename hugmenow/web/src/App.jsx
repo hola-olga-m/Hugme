@@ -20,6 +20,7 @@ import Notifications from './components/common/Notifications';
 import LandingPage from './pages/LandingPage';
 import ErrorPage from './pages/ErrorPage';
 import OnboardingPage from './pages/OnboardingPage';
+import TestPage from './pages/TestPage';
 
 // Lazy-loaded Pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -48,13 +49,22 @@ function AppContent() {
   
   useEffect(() => {
     console.log('App component mounted, preparing application...');
-    setAppReady(true);
+    // Short timeout to ensure all contexts are properly initialized
+    const timer = setTimeout(() => {
+      console.log('App ready timeout completed, setting appReady to true');
+      setAppReady(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, []);
   
   // Show loading screen while initializing
   if (!appReady) {
+    console.log('AppContent: App not ready yet, showing loading screen');
     return <Loading fullScreen message="Initializing application..." />;
   }
+  
+  console.log('AppContent: App ready, rendering main content');
 
   return (
     <Router>
@@ -62,6 +72,7 @@ function AppContent() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/test" element={<TestPage />} />
           <Route path="/auth/*" element={
             <AuthLayout>
               <AuthPage />

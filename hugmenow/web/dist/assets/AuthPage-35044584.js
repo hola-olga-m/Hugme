@@ -1,4 +1,4 @@
-import{d as r,r as o,u as S,j as e,L as F,a as N,R as T,b as x,N as A}from"./main-c14c6660.js";const B=r.form`
+import{d as r,r as o,u as S,j as e,L as F,a as N,R as T,b as x,N as A}from"./main-bf336841.js";const B=r.form`
   width: 100%;
 `,P=r.div`
   margin-bottom: 1.5rem;
@@ -265,4 +265,4 @@ import{d as r,r as o,u as S,j as e,L as F,a as N,R as T,b as x,N as A}from"./mai
 `,he=r.p`
   color: var(--text-secondary-color, #6b7280);
 `,pe=()=>{const t=N(),u=()=>t.pathname.includes("/register")?"Create an Account":t.pathname.includes("/forgot-password")?"Forgot Password":t.pathname.includes("/reset-password")?"Reset Password":"Welcome Back",a=()=>t.pathname.includes("/register")?"Join HugMeNow to start tracking your moods and connecting with others.":t.pathname.includes("/forgot-password")?"Enter your email to receive a password reset link.":t.pathname.includes("/reset-password")?"Create a new password for your account.":"Sign in to access your HugMeNow account.";return e.jsxs(de,{children:[e.jsxs(me,{children:[e.jsx(ue,{children:u()}),e.jsx(he,{children:a()})]}),e.jsxs(T,{children:[e.jsx(x,{path:"login",element:e.jsx(M,{})}),e.jsx(x,{path:"register",element:e.jsx(O,{})}),e.jsx(x,{path:"forgot-password",element:e.jsx(se,{})}),e.jsx(x,{path:"reset-password",element:e.jsx(le,{})}),e.jsx(x,{path:"*",element:e.jsx(A,{to:"/auth/login",replace:!0})})]})]})};export{pe as default};
-//# sourceMappingURL=AuthPage-ea7a0ba1.js.map
+//# sourceMappingURL=AuthPage-35044584.js.map

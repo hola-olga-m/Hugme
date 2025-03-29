@@ -1,4 +1,4 @@
-import{d as r,j as e}from"./main-c14c6660.js";const o=r.div`
+import{d as r,j as e}from"./main-bf336841.js";const o=r.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as r,j as e}from"./main-c14c6660.js";const o=r.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,a=()=>e.jsxs(o,{children:[e.jsxs(n,{children:[e.jsx(t,{children:"Group Hugs"}),e.jsx(i,{children:"This page will contain the Group Hugs functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for Group Hugs will be implemented here."})})]});export{a as default};
-//# sourceMappingURL=GroupHugPage-6695922a.js.map
+//# sourceMappingURL=GroupHugPage-1f9d57a0.js.map

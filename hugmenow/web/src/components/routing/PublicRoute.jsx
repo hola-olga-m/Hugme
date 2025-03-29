@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoadingScreen from '../common/LoadingScreen';
 
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading, currentUser } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   // Show loading screen while auth is being determined
@@ -16,8 +16,8 @@ const PublicRoute = ({ children }) => {
   // Add debugging info
   console.log('PublicRoute - Auth state:', {
     isAuthenticated,
-    hasCurrentUser: !!currentUser,
-    currentUser
+    hasUser: !!user,
+    user
   });
 
   // If user is authenticated and tries to access a public route (like login),

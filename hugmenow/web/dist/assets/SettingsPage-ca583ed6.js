@@ -1,4 +1,4 @@
-import{d as t,j as e}from"./main-c14c6660.js";const n=t.div`
+import{d as t,j as e}from"./main-bf336841.js";const n=t.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,4 +12,4 @@ import{d as t,j as e}from"./main-c14c6660.js";const n=t.div`
   color: var(--text-secondary-color, #666);
   margin: 0;
 `,a=()=>e.jsxs(n,{children:[e.jsxs(r,{children:[e.jsx(i,{children:"Settings"}),e.jsx(o,{children:"This page will contain the User Settings functionality."})]}),e.jsx("div",{children:e.jsx("p",{children:"Content for User Settings will be implemented here."})})]});export{a as default};
-//# sourceMappingURL=SettingsPage-a79ec165.js.map
+//# sourceMappingURL=SettingsPage-ca583ed6.js.map

@@ -15,6 +15,10 @@ localPort = 3003
 externalPort = 3003
 
 [[ports]]
+localPort = 3005
+externalPort = 5173
+
+[[ports]]
 localPort = 3006
 externalPort = 9000
 
@@ -65,6 +69,10 @@ args = "FixedServer"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "DirectTest"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "SimpleProxy"
 
 [[workflows.workflow]]
 name = "HugMeNow"
@@ -149,3 +157,18 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-direct-test.sh"
 waitForPort = 5005
+
+[[workflows.workflow]]
+name = "SimpleProxy"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-simple-proxy.sh"
+waitForPort = 3005
