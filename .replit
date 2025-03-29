@@ -72,7 +72,7 @@ localPort = 5174
 externalPort = 3000
 
 [workflows]
-runButton = "RefreshAndBuild"
+runButton = "FixedBuildAndPreview"
 
 [[workflows.workflow]]
 name = "Project"
@@ -646,6 +646,39 @@ args = "cd hugmenow/web && npm run build && VITE_BACKEND_URL=http://localhost:30
 name = "RefreshAndBuild"
 author = 40513268
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Clear any running processes"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"npm run preview\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5173\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 2"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = ""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Build and serve the application with debug mode"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd hugmenow/web && npm run build && VITE_BACKEND_URL=http://0.0.0.0:3004 VITE_API_DEBUG=true npm run preview -- --port 5173 --host 0.0.0.0"
+
+[[workflows.workflow]]
+name = "FixedBuildAndPreview"
+author = 40513268
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

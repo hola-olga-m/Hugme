@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { fetchWithErrorHandling } from '../utils/apiErrorHandler';
 
@@ -9,7 +8,6 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Initialize authentication state from localStorage or API
   useEffect(() => {
@@ -57,11 +55,7 @@ export const AuthProvider = ({ children }) => {
         clearAuthData();
         setLoading(false);
         
-        if (err.message.includes('timeout')) {
-          setError('Connection timed out. Please check your network.');
-        } else {
-          setError('Session expired. Please log in again.');
-        }
+        // Removed error handling as per edited code intention.  Error handling would need to be implemented outside the AuthContext if required.
       }
     };
 
@@ -84,11 +78,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
       
       setCurrentUser(user);
-      setError(null);
       
       return user;
     } catch (err) {
-      setError(err.message || 'Failed to login');
+      // Removed error handling as per edited code intention
       throw err;
     }
   };
@@ -109,18 +102,16 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
       
       setCurrentUser(user);
-      setError(null);
       
       return user;
     } catch (err) {
-      setError(err.message || 'Failed to register');
+      // Removed error handling as per edited code intention
       throw err;
     }
   };
 
   const logout = () => {
     clearAuthData();
-    setError(null);
   };
 
   const clearAuthData = () => {
@@ -153,7 +144,7 @@ export const AuthProvider = ({ children }) => {
       
       return updatedUser;
     } catch (err) {
-      setError(err.message || 'Failed to update profile');
+      // Removed error handling as per edited code intention
       throw err;
     }
   };
@@ -170,7 +161,7 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (err) {
-      setError(err.message || 'Failed to send password reset email');
+      // Removed error handling as per edited code intention
       throw err;
     }
   };
@@ -187,7 +178,7 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (err) {
-      setError(err.message || 'Failed to reset password');
+      // Removed error handling as per edited code intention
       throw err;
     }
   };
@@ -195,7 +186,6 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     loading,
-    error,
     login,
     register,
     logout,
