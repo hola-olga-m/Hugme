@@ -1,0 +1,327 @@
+/* Dashboard Page Styles */
+
+.dashboard-page {
+  margin-bottom: 3rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.dashboard-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+  position: relative;
+}
+
+.dashboard-header h1 {
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-header p {
+  color: var(--gray-color);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.dashboard-header::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(135deg, #6C63FF 0%, #5A54D4 100%);
+  border-radius: 4px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+@media screen and (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dashboard-card {
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  padding: 1.75rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  height: 100%;
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+}
+
+.dashboard-card h3 {
+  color: var(--primary-color);
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.dashboard-card h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(135deg, #6C63FF 0%, #5A54D4 100%);
+  border-radius: 3px;
+}
+
+.dashboard-card h3 i {
+  margin-right: 0.75rem;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  opacity: 0.9;
+}
+
+/* Mood Summary Card */
+.mood-overview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  background-color: rgba(108, 99, 255, 0.03);
+  padding: 1.25rem;
+  border-radius: 15px;
+}
+
+.mood-emoji {
+  font-size: 3.75rem;
+  margin-right: 1.5rem;
+  min-width: 70px;
+  text-align: center;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.mood-details {
+  flex: 1;
+}
+
+.mood-score {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(135deg, #6C63FF 0%, #5A54D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mood-label {
+  font-size: 0.95rem;
+  color: var(--gray-color);
+  margin-top: 0.5rem;
+}
+
+.streak-info {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.streak-count {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1.25rem;
+}
+
+.streak-icon {
+  color: #FF9F43;
+  font-size: 1.25rem;
+}
+
+/* Hugs Card */
+.hugs-overview,
+.requests-overview {
+  margin-bottom: 1.5rem;
+  background: rgba(108, 99, 255, 0.03);
+  padding: 1.25rem;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+.hugs-overview:hover,
+.requests-overview:hover {
+  background: rgba(108, 99, 255, 0.05);
+}
+
+.hugs-count,
+.requests-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.card-action-button {
+  margin-top: 1.25rem;
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #6C63FF 0%, #5A54D4 100%);
+  color: white;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(108, 99, 255, 0.2);
+}
+
+.card-action-button:hover {
+  box-shadow: 0 8px 15px rgba(108, 99, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.activity-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(108, 99, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 1.25rem;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-time {
+  font-size: 0.85rem;
+  color: var(--gray-color);
+}
+
+.hugs-count,
+.requests-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.count-number {
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--primary-color);
+}
+
+.count-label {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+  margin-top: 0.25rem;
+}
+
+.hugs-preview,
+.requests-preview {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.hugs-list,
+.requests-list {
+  margin-top: 0.5rem;
+}
+
+.hugs-list li,
+.requests-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--gray-light);
+}
+
+.hugs-list li:last-child,
+.requests-list li:last-child {
+  border-bottom: none;
+}
+
+.and-more {
+  font-style: italic;
+  color: var(--gray-color);
+}
+
+.no-data-message {
+  color: var(--gray-color);
+  text-align: center;
+  margin: 2rem 0;
+  font-style: italic;
+}
+
+/* Quick Actions Card */
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius);
+  padding: 1.25rem 0.5rem;
+  text-align: center;
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.action-button:hover {
+  background-color: var(--primary-light);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.action-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-text {
+  font-weight: 500;
+}
+
+.loading-indicator {
+  text-align: center;
+  color: var(--gray-color);
+  font-style: italic;
+  margin: 1.5rem 0;
+}

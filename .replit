@@ -86,6 +86,14 @@ args = "FeedbackTest"
 task = "workflow.run"
 args = "SimpleTest"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "HugMeNow"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "AuthTest"
+
 [[workflows.workflow]]
 name = "RestartHugMeNow"
 author = 40513268
@@ -107,7 +115,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash start-postgraphile.sh"
+args = "chmod +x start-postgraphile.sh && ./start-postgraphile.sh"
 waitForPort = 3003
 
 [[workflows.workflow]]
@@ -199,3 +207,33 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-simple-test.sh"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "HugMeNow"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "chmod +x start-hugmenow-optimized.sh && ./start-hugmenow-optimized.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "AuthTest"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./start-auth-test.sh"
+waitForPort = 5001

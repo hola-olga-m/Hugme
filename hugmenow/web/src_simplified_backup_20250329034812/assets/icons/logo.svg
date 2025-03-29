@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5e72e4" />
+      <stop offset="100%" stop-color="#3a56d4" />
+    </linearGradient>
+    <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7eb3" />
+      <stop offset="100%" stop-color="#e45c90" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000" flood-opacity="0.2" />
+    </filter>
+  </defs>
+  
+  <!-- Background Circle with Subtle Glow -->
+  <circle cx="256" cy="256" r="220" fill="white" filter="url(#shadow)" />
+  
+  <!-- Left Person (Blue) -->
+  <g transform="translate(100, 160) scale(0.8)">
+    <path d="M100,20 C140,20 160,60 160,100 C160,140 140,180 100,180 C60,180 40,140 40,100 C40,60 60,20 100,20 Z" fill="url(#primaryGradient)" />
+    <path d="M100,200 C160,200 200,230 200,320 L0,320 C0,230 40,200 100,200 Z" fill="url(#primaryGradient)" />
+  </g>
+  
+  <!-- Right Person (Pink) -->
+  <g transform="translate(412, 160) scale(0.8) rotate(0)">
+    <path d="M100,20 C140,20 160,60 160,100 C160,140 140,180 100,180 C60,180 40,140 40,100 C40,60 60,20 100,20 Z" fill="url(#secondaryGradient)" />
+    <path d="M100,200 C160,200 200,230 200,320 L0,320 C0,230 40,200 100,200 Z" fill="url(#secondaryGradient)" />
+  </g>
+  
+  <!-- Connecting Arms (Embrace) -->
+  <path d="M180,280 C220,240 300,240 340,280" stroke="#36d6b7" stroke-width="12" stroke-linecap="round" fill="none" />
+  
+  <!-- Heart in the middle -->
+  <path d="M256,310 C280,280 330,250 330,210 C330,180 305,160 280,160 C265,160 256,170 256,170 C256,170 247,160 232,160 C207,160 182,180 182,210 C182,250 232,280 256,310 Z" fill="url(#secondaryGradient)" opacity="0.8" />
+</svg>

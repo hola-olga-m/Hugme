@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { HugProvider } from './contexts/HugContext';
-// GraphQL components
+// Use GraphQL API instead of WebSocket-based hugmoodAPI
+import * as graphqlService from './services/graphqlService';
 import GraphQLAppProvider from './components/GraphQLAppProvider';
-import GraphQLServicesInitializer from './components/GraphQLServicesInitializer';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -13,14 +13,13 @@ import AuthLayout from './layouts/AuthLayout';
 
 // Common Components
 import Loading from './components/common/Loading';
-import ProtectedRoute from './components/routing/ProtectedRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import Notifications from './components/common/Notifications';
 
 // Eager-loaded Pages
 import LandingPage from './pages/LandingPage';
 import ErrorPage from './pages/ErrorPage';
 import OnboardingPage from './pages/OnboardingPage';
-import TestPage from './pages/TestPage';
 
 // Lazy-loaded Pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -49,22 +48,13 @@ function AppContent() {
   
   useEffect(() => {
     console.log('App component mounted, preparing application...');
-    // Short timeout to ensure all contexts are properly initialized
-    const timer = setTimeout(() => {
-      console.log('App ready timeout completed, setting appReady to true');
-      setAppReady(true);
-    }, 500);
-    
-    return () => clearTimeout(timer);
+    setAppReady(true);
   }, []);
   
   // Show loading screen while initializing
   if (!appReady) {
-    console.log('AppContent: App not ready yet, showing loading screen');
     return <Loading fullScreen message="Initializing application..." />;
   }
-  
-  console.log('AppContent: App ready, rendering main content');
 
   return (
     <Router>
@@ -72,7 +62,6 @@ function AppContent() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/test" element={<TestPage />} />
           <Route path="/auth/*" element={
             <AuthLayout>
               <AuthPage />
@@ -179,15 +168,13 @@ function App() {
   return (
     <div className="app">
       <GraphQLAppProvider options={graphqlOptions}>
-        <GraphQLServicesInitializer>
-          <ThemeProvider>
-            <AuthProvider>
-              <HugProvider>
-                <AppContent />
-              </HugProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </GraphQLServicesInitializer>
+        <ThemeProvider>
+          <AuthProvider>
+            <HugProvider>
+              <AppContent />
+            </HugProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </GraphQLAppProvider>
     </div>
   );

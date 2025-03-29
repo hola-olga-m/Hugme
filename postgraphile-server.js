@@ -3,38 +3,105 @@
  * 
  * This server provides a direct GraphQL API for the PostgreSQL database,
  * auto-generating queries and mutations based on the database schema.
+ * 
+ * Enhanced with resilient connection handling and performance optimizations.
  */
 
 import express from 'express';
 import { postgraphile } from 'postgraphile';
+import cors from 'cors';
 
 const app = express();
+
+// Enable CORS for cross-origin requests
+app.use(cors());
+
+// Add basic health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'postgraphile' });
+});
+
+// Parse JSON request bodies
+app.use(express.json());
 
 // Database connection string from environment variable
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// Configure PostGraphile middleware
+// Determine if we're in production mode
+const isProd = process.env.NODE_ENV === 'production';
+
+// Configure connection pool settings
+const pgSettings = {
+  // Maximum number of clients the pool should contain
+  max: 10,
+  
+  // Connection timeout in milliseconds
+  connectionTimeoutMillis: 10000,
+  
+  // How long a client is allowed to remain idle before being closed
+  idleTimeoutMillis: 30000
+};
+
+// Configure PostGraphile middleware with optimized settings
 app.use(
   postgraphile(
-    DATABASE_URL,
+    {
+      connectionString: DATABASE_URL,
+      // Use a connection pool for better performance and reliability
+      pgSettings,
+      // Add retry logic for connection issues
+      retryOnInitFail: true
+    },
     'public', // PostgreSQL schema to expose
     {
-      watchPg: true, // Auto-restart on schema changes
-      graphiql: true, // Enable GraphiQL interface
-      enhanceGraphiql: true, // Add features to GraphiQL
-      subscriptions: true, // Enable GraphQL subscriptions
-      dynamicJson: true, // Return JSON scalars as object
-      setofFunctionsContainNulls: false, // Assume functions don't return nulls
-      ignoreRBAC: false, // Respect PostgreSQL's row-level security
-      showErrorStack: 'json', // Include error stack in error responses
-      extendedErrors: ['hint', 'detail', 'errcode'], // Include more error details
-      allowExplain: true, // Allow EXPLAIN in development
-      legacyRelations: 'omit', // Don't include deprecated relations
-      disableDefaultMutations: false, // Include default CRUD mutations
-      appendPlugins: [], // Add custom plugins here if needed
-      exportGqlSchemaPath: './postgraphile-schema.graphql', // Export the schema to a file
-      graphqlRoute: '/postgraphile/graphql', // GraphQL endpoint
-      graphiqlRoute: '/postgraphile/graphiql', // GraphiQL endpoint
+      // Disable watchPg completely to avoid watch fixture errors
+      // Restarting the service is more reliable for schema updates
+      watchPg: false,
+      
+      // Enable in development, optional in production
+      graphiql: true,
+      enhanceGraphiql: true,
+      
+      // Performance optimizations
+      dynamicJson: true,
+      setofFunctionsContainNulls: false,
+      ignoreRBAC: false,
+      
+      // Error handling
+      showErrorStack: isProd ? false : 'json',
+      extendedErrors: isProd ? ['errcode'] : ['hint', 'detail', 'errcode'],
+      
+      // Development features, disable in production
+      allowExplain: !isProd,
+      
+      // Schema settings
+      legacyRelations: 'omit',
+      disableDefaultMutations: false,
+      
+      // Custom plugins
+      appendPlugins: [],
+      
+      // Export schema to file for reference
+      exportGqlSchemaPath: './postgraphile-schema.graphql',
+      
+      // Route configuration
+      graphqlRoute: '/postgraphile/graphql',
+      graphiqlRoute: '/postgraphile/graphiql',
+      
+      // Enable subscriptions for real-time updates
+      subscriptions: true,
+      
+      // Add connection retry logic and timeout limits
+      retryOnInitFail: true,
+      connectionTimeoutMillis: 30000,
+      
+      // Set more resilient PG connection settings
+      pgSettings: {
+        // Statement timeout of 30 seconds
+        statement_timeout: 30000,
+        // Idle in transaction timeout of 60 seconds
+        idle_in_transaction_session_timeout: 60000
+      }
     }
   )
 );

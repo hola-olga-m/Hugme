@@ -1,0 +1,71 @@
+.paths-list {
+  list-style-type: none;
+  margin: 10px 0;
+  padding: 0;
+}
+
+.paths-list li {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 5px;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.paths-list li strong {
+  text-transform: capitalize;
+  color: #0056b3;
+  margin-right: 10px;
+}
+
+/* Enhance existing endpoint list styling */
+.endpoints-list {
+  list-style-type: none;
+  margin: 10px 0;
+  padding: 0;
+}
+
+.endpoints-list li {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-radius: 4px;
+  margin-bottom: 5px;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.endpoints-list li strong {
+  color: #28a745;
+  margin-right: 10px;
+}
+
+/* Status badge styling */
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+  background-color: #28a745;
+  color: white;
+}
+
+/* Card styling improvements */
+.api-details.card {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 30px;
+  background-color: white;
+  transition: transform 0.3s ease;
+}
+
+.api-details.card:hover {
+  transform: translateY(-5px);
+}
