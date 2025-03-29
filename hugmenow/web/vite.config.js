@@ -1,3 +1,4 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
@@ -16,15 +17,30 @@ export default defineConfig({
       }
     }
   },
-  // Configure preview server to listen on all interfaces (0.0.0.0)
-  // and use port 5173 which is mapped to port 80 externally
+  server: {
+    port: 5173,
+    host: '0.0.0.0',
+    cors: true,
+    hmr: {
+      host: '0.0.0.0',
+      port: 5173,
+      protocol: 'wss'
+    }
+  },
   preview: {
     port: 5173,
     host: '0.0.0.0',
+    cors: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+    },
     allowedHosts: [
       'hug-network-holaolgam.replit.app',
-      '.replit.app', // Allow all replit.app subdomains
-      'localhost'
+      '.replit.app',
+      'localhost',
+      '*'
     ]
   }
 });
