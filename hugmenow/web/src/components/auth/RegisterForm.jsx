@@ -95,21 +95,21 @@ const RegisterForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     // Basic validation
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
       console.log('Registration attempt with:', { name, email });
-      
+
       // Use the register function from AuthContext
       const result = await register({ name, email, password });
-      
+
       if (result && result.success) {
         console.log('Registration successful, navigating to onboarding');
         navigate('/onboarding');
@@ -117,8 +117,22 @@ const RegisterForm = () => {
         throw new Error('Registration failed');
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.message || 'Registration failed. Please try again.');
+      console.error('Registration error details:', err);
+
+      // Handle different error types
+      if (err.code === 'ECONNABORTED') {
+        setError('Connection timed out. Server might be busy, please try again.');
+      } else if (err.response) {
+        // Server responded with an error
+        const errorMessage = err.response.data?.error || `Error ${err.response.status}: ${err.response.statusText}`;
+        setError(errorMessage);
+      } else if (err.request) {
+        // Request made but no response received (timeout)
+        setError('Server is not responding. Please try again later.');
+      } else {
+        // Something else went wrong
+        setError(err.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +141,7 @@ const RegisterForm = () => {
   return (
     <FormContainer onSubmit={handleSubmit}>
       {error && <FormError>{error}</FormError>}
-      
+
       <FormField>
         <FormLabel htmlFor="name">Full Name</FormLabel>
         <FormInput
@@ -139,7 +153,7 @@ const RegisterForm = () => {
           placeholder="John Doe"
         />
       </FormField>
-      
+
       <FormField>
         <FormLabel htmlFor="email">Email</FormLabel>
         <FormInput
@@ -151,7 +165,7 @@ const RegisterForm = () => {
           placeholder="you@example.com"
         />
       </FormField>
-      
+
       <FormField>
         <FormLabel htmlFor="password">Password</FormLabel>
         <FormInput
@@ -163,7 +177,7 @@ const RegisterForm = () => {
           placeholder="••••••••"
         />
       </FormField>
-      
+
       <FormField>
         <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
         <FormInput
@@ -175,11 +189,11 @@ const RegisterForm = () => {
           placeholder="••••••••"
         />
       </FormField>
-      
+
       <SubmitButton type="submit" disabled={isLoading}>
         {isLoading ? 'Creating account...' : 'Create Account'}
       </SubmitButton>
-      
+
       <FormLinks>
         <p>
           Already have an account?{' '}
