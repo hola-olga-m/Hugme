@@ -1,184 +1,258 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { fetchWithErrorHandling } from '../utils/apiErrorHandler';
 
+// Auth debugging function
+const logAuthStatus = (title, data) => {
+  console.log(`[Auth Debug] ${title}:`, data);
+  return data;
+};
+
 export const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
+  // Check if token exists in localStorage
+  const hasToken = () => {
+    const token = localStorage.getItem('authToken');
+    logAuthStatus('Token exists', !!token);
+    return !!token;
+  };
+
+  // Get user from localStorage
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (err) {
+      console.error('[Auth Debug] Error parsing user from storage:', err);
+      return null;
+    }
+  };
 
   // Initialize authentication state from localStorage or API
   useEffect(() => {
-    const initializeAuth = async () => {
+    const checkAuthStatus = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const storedUser = localStorage.getItem('user');
-        
-        console.log('[Auth Debug] Token exists:', !!token);
-        
-        if (token && storedUser) {
-          // If we have both token and user data in storage, use them
-          const userData = JSON.parse(storedUser);
-          setCurrentUser(userData);
-          
-          // Optionally verify token validity with the server
-          try {
-            const response = await fetchWithErrorHandling('/api/auth/verify', {
-              headers: {
-                'Authorization': `Bearer ${token}`
+        logAuthStatus('Checking authentication status', {
+          hasToken: hasToken(),
+          hasUser: !!getUserFromStorage(),
+          userDetails: getUserFromStorage()
+        });
+
+        // Try to get user from localStorage first
+        const storedUser = getUserFromStorage();
+        const storedToken = localStorage.getItem('authToken');
+
+        if (storedUser && storedToken) {
+          // Validate the token with the backend if in production
+          // In development, we'll trust the localStorage
+          if (import.meta.env.PROD) {
+            try {
+              const response = await fetchWithErrorHandling('/api/validate-token', {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${storedToken}`
+                }
+              });
+
+              if (response.valid) {
+                logAuthStatus('Token is valid, setting currentUser', storedUser);
+                setCurrentUser(storedUser);
+              } else {
+                logAuthStatus('Token is invalid, clearing auth data', null);
+                clearAuthData();
               }
-            });
-            
-            if (response.valid) {
-              console.log('AuthContext: Token validated successfully');
-              // Refresh user data if needed
-              setCurrentUser(response.user || userData);
-            } else {
-              console.log('AuthContext: Token invalid, clearing auth data');
-              clearAuthData();
+            } catch (validationErr) {
+              // If validation fails, still use local data to avoid login issues
+              logAuthStatus('Token validation failed, using stored user', storedUser);
+              setCurrentUser(storedUser);
             }
-          } catch (verifyError) {
-            console.warn('Auth verification error:', verifyError);
-            // Continue with stored data, as the server might be unavailable
+          } else {
+            // In development, trust the localStorage
+            logAuthStatus('Development mode, using stored user without validation', storedUser);
+            setCurrentUser(storedUser);
           }
-          
-          setLoading(false);
         } else {
-          console.log('AuthContext: No token found, setting loading to false');
-          setLoading(false);
+          logAuthStatus('No stored auth data found', null);
         }
       } catch (err) {
-        console.error('Auth initialization error:', err);
-        console.log('AuthContext: Clearing auth data due to error');
+        console.error('[Auth Debug] Error checking auth status:', err);
+        setAuthError('Unable to verify authentication status');
         clearAuthData();
+      } finally {
+        // Always set loading to false when done
+        logAuthStatus('Auth check complete, setting loading to false', null);
         setLoading(false);
-        
-        // Removed error handling as per edited code intention.  Error handling would need to be implemented outside the AuthContext if required.
       }
     };
 
-    initializeAuth();
+    checkAuthStatus();
   }, []);
 
-  const login = async (credentials) => {
+  const login = async (email, password) => {
+    setAuthError(null);
+
     try {
-      const response = await fetchWithErrorHandling('/api/auth/login', {
+      logAuthStatus('Attempting login', { email });
+
+      const response = await fetchWithErrorHandling('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          loginInput: {
+            email,
+            password
+          }
+        }),
       });
 
       const { token, user } = response;
-      
+
       localStorage.setItem('authToken', token);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
+      logAuthStatus('Login successful', user);
       setCurrentUser(user);
-      
+
       return user;
     } catch (err) {
-      // Removed error handling as per edited code intention
+      logAuthStatus('Login failed', err.message);
+      setAuthError(err.message || 'Failed to login');
       throw err;
     }
   };
 
   const register = async (userData) => {
+    setAuthError(null);
+
     try {
-      const response = await fetchWithErrorHandling('/api/auth/register', {
+      logAuthStatus('Attempting registration', userData);
+
+      const response = await fetchWithErrorHandling('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          registerInput: userData
+        }),
       });
 
       const { token, user } = response;
-      
+
       localStorage.setItem('authToken', token);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
+      logAuthStatus('Registration successful', user);
       setCurrentUser(user);
-      
+
       return user;
     } catch (err) {
-      // Removed error handling as per edited code intention
+      logAuthStatus('Registration failed', err.message);
+      setAuthError(err.message || 'Failed to register');
       throw err;
     }
   };
 
   const logout = () => {
+    logAuthStatus('Logging out user', currentUser?.id);
     clearAuthData();
+    setAuthError(null);
   };
 
   const clearAuthData = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     setCurrentUser(null);
+    logAuthStatus('Auth data cleared', null);
   };
 
   const updateProfile = async (userData) => {
+    setAuthError(null);
+
     try {
       const token = localStorage.getItem('authToken');
-      
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-      
-      const response = await fetchWithErrorHandling('/api/auth/update-profile', {
-        method: 'POST',
+      logAuthStatus('Updating profile', userData);
+
+      const response = await fetchWithErrorHandling('/api/update-profile', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          updateProfileInput: userData
+        }),
       });
 
       const updatedUser = response.user;
-      
+
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
-      
+
+      logAuthStatus('Profile updated successfully', updatedUser);
       return updatedUser;
     } catch (err) {
-      // Removed error handling as per edited code intention
+      logAuthStatus('Profile update failed', err.message);
+      setAuthError(err.message || 'Failed to update profile');
       throw err;
     }
   };
 
   const forgotPassword = async (email) => {
+    setAuthError(null);
+
     try {
-      await fetchWithErrorHandling('/api/auth/forgot-password', {
+      logAuthStatus('Requesting password reset', { email });
+
+      await fetchWithErrorHandling('/api/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
-      
+
+      logAuthStatus('Password reset email sent', { email });
       return true;
     } catch (err) {
-      // Removed error handling as per edited code intention
+      logAuthStatus('Password reset request failed', err.message);
+      setAuthError(err.message || 'Failed to send password reset email');
       throw err;
     }
   };
 
   const resetPassword = async (token, newPassword) => {
+    setAuthError(null);
+
     try {
-      await fetchWithErrorHandling('/api/auth/reset-password', {
+      logAuthStatus('Resetting password', { token: token?.substring(0, 10) + '...' });
+
+      await fetchWithErrorHandling('/api/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token, newPassword }),
+        body: JSON.stringify({
+          token,
+          newPassword
+        }),
       });
-      
+
+      logAuthStatus('Password reset successful', null);
       return true;
     } catch (err) {
-      // Removed error handling as per edited code intention
+      logAuthStatus('Password reset failed', err.message);
+      setAuthError(err.message || 'Failed to reset password');
       throw err;
     }
   };
@@ -186,12 +260,15 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     loading,
+    authError,
     login,
     register,
     logout,
     updateProfile,
     forgotPassword,
     resetPassword,
+    isAuthenticated: !!currentUser,
+    hasToken: hasToken
   };
 
   return (
@@ -200,5 +277,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export default AuthProvider;

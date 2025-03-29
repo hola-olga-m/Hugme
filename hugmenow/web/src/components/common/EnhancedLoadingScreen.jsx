@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
@@ -33,42 +34,47 @@ const LoadingText = styled.p`
 
 const TimeoutMessage = styled.div`
   margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: var(--gray-200);
-  border-radius: var(--border-radius-md);
   color: var(--gray-700);
-  max-width: 300px;
+  font-size: 0.9rem;
   text-align: center;
+  max-width: 300px;
+  background-color: var(--gray-200);
+  padding: 0.75rem;
+  border-radius: var(--border-radius-md);
 `;
 
 /**
- * Simple loading screen component
- * For a more feature-rich version, see EnhancedLoadingScreen
+ * Enhanced loading screen component with timeout handling
+ * @param {Object} props Component props
+ * @param {string} props.text Text to display while loading
+ * @param {number} props.timeout Timeout in milliseconds (default: 5000)
+ * @param {string} props.timeoutMessage Message to display after timeout
+ * @param {Function} props.onTimeout Callback function to execute on timeout
  */
-const LoadingScreen = ({ 
+const EnhancedLoadingScreen = ({ 
   text = "Loading...", 
-  showTimeoutAfter = 5000,
-  timeoutMessage = "This is taking longer than expected."
+  timeout = 5000,
+  timeoutMessage = "This is taking longer than expected. Please check your connection.",
+  onTimeout = null
 }) => {
-  const [showTimeout, setShowTimeout] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    if (showTimeoutAfter > 0) {
-      const timer = setTimeout(() => {
-        setShowTimeout(true);
-      }, showTimeoutAfter);
+    const timer = setTimeout(() => {
+      setTimedOut(true);
+      if (onTimeout) onTimeout();
+    }, timeout);
 
-      return () => clearTimeout(timer);
-    }
-  }, [showTimeoutAfter]);
+    return () => clearTimeout(timer);
+  }, [timeout, onTimeout]);
 
   return (
     <LoadingContainer>
       <LoadingSpinner />
       <LoadingText>{text}</LoadingText>
-      {showTimeout && <TimeoutMessage>{timeoutMessage}</TimeoutMessage>}
+      {timedOut && <TimeoutMessage>{timeoutMessage}</TimeoutMessage>}
     </LoadingContainer>
   );
 };
 
-export default LoadingScreen;
+export default EnhancedLoadingScreen;

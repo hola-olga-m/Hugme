@@ -6,7 +6,7 @@ import LoadingScreen from '../common/Loading';
 import { logAuthStatus } from '../common/debug-auth';
 
 const ProtectedRoute = ({ children, requireAuth = true }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, currentUser, hasToken } = useAuth();
   const location = useLocation();
   const [timeoutReached, setTimeoutReached] = useState(false);
 
@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, requireAuth = true }) => {
   useEffect(() => {
     if (loading) {
       const timeoutId = setTimeout(() => {
-        console.warn('Authentication check timeout reached after 5 seconds');
+        console.warn('[Auth Debug] Authentication check timeout reached after 5 seconds');
         setTimeoutReached(true);
       }, 5000); // 5 second timeout
 
@@ -22,28 +22,42 @@ const ProtectedRoute = ({ children, requireAuth = true }) => {
     }
   }, [loading]);
 
-  // Enhanced debugging
+  // Log authentication state for debugging
   useEffect(() => {
-    logAuthStatus('ProtectedRoute Component - Auth State', {
+    console.log('[Auth Debug] ProtectedRoute Component - Auth State:', {
       isAuthenticated,
       loading,
       timeoutReached,
       requireAuth,
+      hasToken: hasToken ? hasToken() : false,
       currentPath: location.pathname,
-      user: user ? { id: user.id, name: user.name } : null
+      currentUser: currentUser ? { id: currentUser.id, name: currentUser.name } : null
     });
-  }, [isAuthenticated, loading, timeoutReached, user, location.pathname, requireAuth]);
+  }, [isAuthenticated, loading, timeoutReached, currentUser, location.pathname, requireAuth, hasToken]);
 
   // Still loading and timeout not reached
   if (loading && !timeoutReached) {
-    console.log("ProtectedRoute: Still loading, showing LoadingScreen");
-    return <LoadingScreen text="Checking authentication..." />;
+    console.log("[Auth Debug] ProtectedRoute: Still loading, showing LoadingScreen");
+    return <LoadingScreen 
+      text="Checking authentication..." 
+      showTimeoutAfter={3000}
+      timeoutMessage="Still verifying your authentication. Please wait a moment." 
+    />;
   }
 
-  // Handle timeout case
+  // Handle timeout case - Try to continue with whatever auth state we have
   if (loading && timeoutReached) {
-    console.error('Authentication timeout - forcing navigation to login');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    console.warn('[Auth Debug] Authentication timeout - using best effort auth state');
+    
+    // If we have a token, assume authenticated for better UX
+    if (hasToken && hasToken()) {
+      console.log('[Auth Debug] Token exists despite timeout, attempting to proceed');
+      // Continue with the protected route
+      return children;
+    } else {
+      console.error('[Auth Debug] No token found after timeout, redirecting to login');
+      return <Navigate to="/login" state={{ from: location }} replace />;
+    }
   }
 
   // Not authenticated but authentication required
