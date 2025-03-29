@@ -7,12 +7,20 @@ channel = "stable-24_05"
 run = ["sh", "-c", "cd hugmenow/web && npm run build && npm run preview"]
 
 [[ports]]
+localPort = 3000
+externalPort = 6800
+
+[[ports]]
 localPort = 3002
 externalPort = 3002
 
 [[ports]]
 localPort = 3003
 externalPort = 3003
+
+[[ports]]
+localPort = 3004
+externalPort = 6000
 
 [[ports]]
 localPort = 3005
@@ -52,10 +60,6 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "HugMeNow"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "PostGraphile"
 
 [[workflows.workflow.tasks]]
@@ -78,20 +82,13 @@ args = "SimpleProxy"
 task = "workflow.run"
 args = "FeedbackTest"
 
-[[workflows.workflow]]
-name = "HugMeNow"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "BasicServer"
 
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bash start-hugmenow-optimized.sh"
-waitForPort = 5000
+task = "workflow.run"
+args = "HugMeNow"
 
 [[workflows.workflow]]
 name = "RestartHugMeNow"
@@ -191,3 +188,33 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "bash start-feedback-test.sh"
 waitForPort = 5001
+
+[[workflows.workflow]]
+name = "BasicServer"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-basic-server.sh"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "HugMeNow"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start-hugmenow-optimized.sh"
+waitForPort = 3000

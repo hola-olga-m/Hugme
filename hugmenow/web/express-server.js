@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // Get port from environment variable or use default
 const PORT = process.env.PORT || 5000;
-const API_URL = process.env.API_URL || 'http://localhost:3003';
+const API_URL = process.env.API_URL || 'http://localhost:3004';
 
 // Create Express app
 const app = express();
