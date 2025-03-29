@@ -20,6 +20,11 @@ export default defineConfig({
   // and use port 5173 which is mapped to port 80 externally
   preview: {
     port: 5173,
-    host: '0.0.0.0'
+    host: '0.0.0.0',
+    allowedHosts: [
+      'hug-network-holaolgam.replit.app',
+      '.replit.app', // Allow all replit.app subdomains
+      'localhost'
+    ]
   }
 });
